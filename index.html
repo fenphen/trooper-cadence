@@ -21,6 +21,12 @@
     min-height:100%;padding:18px;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:manipulation;
   }
   .cabinet{position:relative;width:100%;max-width:940px}
+  /* keep the 16:9 screen fully on-screen in landscape (esp. phones) */
+  @media (orientation:landscape){ .cabinet{max-width:min(940px, calc((100vh - 120px) * 16 / 9))} }
+  @media (orientation:landscape) and (max-height:520px){
+    .marquee,.foot{display:none}
+    .cabinet{max-width:min(940px, calc((100vh - 26px) * 16 / 9))}
+  }
   .marquee{text-align:center;margin-bottom:10px}
   .marquee h1{font-size:clamp(14px,3.4vw,26px);letter-spacing:2px;color:var(--gold);
     text-shadow:0 0 8px rgba(232,181,74,.6),3px 3px 0 var(--crimson);line-height:1.5}
@@ -80,9 +86,36 @@
   .mute{position:absolute;top:12px;right:14px;z-index:9;pointer-events:auto;background:rgba(7,10,12,.55);
     border:1px solid rgba(232,181,74,.35);color:var(--gold);font-family:var(--pixel);font-size:8px;
     padding:6px 8px;border-radius:6px;cursor:pointer;display:none}
+
+  /* rotate-to-landscape prompt (portrait phones) */
+  .rotate{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;text-align:center;background:radial-gradient(circle at 50% 40%,#16110a,#000);color:var(--cream);padding:24px}
+  .rotate .rot-ico{font-size:54px;animation:rot 1.8s ease-in-out infinite}
+  .rotate .rot-t{font-size:14px;color:var(--gold);letter-spacing:2px;text-shadow:2px 2px 0 var(--crimson);line-height:1.6}
+  .rotate .rot-sub{font-size:9px;color:var(--sand);letter-spacing:1px}
+  @keyframes rot{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(78deg)}}
+  @media (orientation:portrait) and (max-width:820px){ .rotate{display:flex} }
+
+  /* bigger thumb targets + readable HUD on phones */
+  @media (pointer:coarse){
+    .tapbtn{width:96px;height:96px;font-size:20px;border-width:3px}
+    .taps{bottom:24px;padding:0 20px}
+  }
+  @media (max-width:600px){
+    .marquee h1{font-size:15px} .marquee p{font-size:7px}
+    .overlay h2{font-size:18px} .overlay .sub{font-size:10px;line-height:2}
+    .overlay .keys{font-size:9px} .crest{font-size:30px}
+    .hud{font-size:9px} .hud .val{font-size:12px} .combo .big{font-size:16px}
+    .stat{min-width:66px} .foot{font-size:6px}
+  }
 </style>
 </head>
 <body>
+<div class="rotate" id="rotate">
+  <div class="rot-ico">📱</div>
+  <div class="rot-t">ROTATE YOUR PHONE</div>
+  <div class="rot-sub">turn sideways to march →</div>
+</div>
 <div class="cabinet">
   <div class="marquee">
     <h1>★ TROOPER CADENCE ★</h1>
