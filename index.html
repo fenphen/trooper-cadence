@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>TROOPER CADENCE — Retro Marching Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --crimson:#b11722; --crimson-lt:#e23744; --sand:#d8b87f; --sand-d:#a07c45;
+    --gold:#e8b54a; --cream:#f3ead2; --ink:#070a0c; --field:#0c241b;
+    --pixel:'Press Start 2P', 'Courier New', monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:radial-gradient(circle at 50% 20%,#16110a 0%,#070605 70%,#000 100%);
+    color:var(--cream);font-family:var(--pixel);display:flex;align-items:center;justify-content:center;
+    min-height:100%;padding:18px;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:manipulation;
+  }
+  .cabinet{position:relative;width:100%;max-width:940px}
+  .marquee{text-align:center;margin-bottom:10px}
+  .marquee h1{font-size:clamp(14px,3.4vw,26px);letter-spacing:2px;color:var(--gold);
+    text-shadow:0 0 8px rgba(232,181,74,.6),3px 3px 0 var(--crimson);line-height:1.5}
+  .marquee p{font-size:9px;color:var(--sand);margin-top:8px;letter-spacing:1px}
+
+  .screen{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;
+    border:4px solid #1c150c;box-shadow:0 0 0 6px #2a2013,0 18px 50px rgba(0,0,0,.7),inset 0 0 60px rgba(0,0,0,.5)}
+  canvas{display:block;width:100%;height:100%;background:var(--field)}
+  /* CRT overlays */
+  .scan{position:absolute;inset:0;pointer-events:none;z-index:5;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0,rgba(0,0,0,.18) 1px,transparent 2px,transparent 3px)}
+  .vignette{position:absolute;inset:0;pointer-events:none;z-index:5;
+    background:radial-gradient(120% 120% at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%)}
+  .glare{position:absolute;inset:0;pointer-events:none;z-index:6;
+    background:linear-gradient(120deg,rgba(255,255,255,.06),transparent 30%)}
+
+  /* HUD */
+  .hud{position:absolute;top:0;left:0;right:0;z-index:7;display:flex;justify-content:space-between;
+    align-items:flex-start;padding:12px 14px;pointer-events:none;font-size:9px;letter-spacing:1px}
+  .hud .blk{background:rgba(7,10,12,.55);border:1px solid rgba(232,181,74,.35);border-radius:6px;padding:6px 9px}
+  .hud .lbl{color:var(--sand);font-size:7px}
+  .hud .val{color:var(--cream);font-size:13px;margin-top:4px}
+  .hud .val.gold{color:var(--gold)}
+  .combo{text-align:center}
+  .combo .big{color:var(--crimson-lt);font-size:18px;text-shadow:0 0 8px rgba(226,55,68,.6)}
+  .morale-wrap{position:absolute;bottom:10px;left:14px;right:14px;z-index:7;pointer-events:none}
+  .morale-lbl{font-size:7px;color:var(--sand);margin-bottom:4px;letter-spacing:1px}
+  .morale-bar{height:12px;border:1px solid rgba(232,181,74,.5);border-radius:6px;overflow:hidden;background:rgba(0,0,0,.5)}
+  .morale-fill{height:100%;width:100%;background:linear-gradient(90deg,var(--crimson),var(--gold));transition:width .12s linear}
+
+  /* Overlays */
+  .overlay{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;text-align:center;background:rgba(5,8,10,.82);padding:20px;gap:14px}
+  .overlay.hidden{display:none}
+  .overlay h2{font-size:clamp(16px,4vw,30px);color:var(--gold);text-shadow:3px 3px 0 var(--crimson);letter-spacing:2px;line-height:1.6}
+  .overlay .sub{font-size:9px;color:var(--cream);line-height:2;max-width:520px}
+  .overlay .keys{font-size:8px;color:var(--sand);line-height:2.1}
+  .key{display:inline-block;background:#1c150c;border:1px solid var(--gold);border-radius:4px;padding:3px 7px;margin:0 2px;color:var(--gold)}
+  .blink{animation:blink 1s steps(2,start) infinite}
+  @keyframes blink{to{opacity:.25}}
+  .stats{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:8px}
+  .stat{background:rgba(7,10,12,.6);border:1px solid rgba(232,181,74,.35);border-radius:6px;padding:9px 12px;min-width:78px}
+  .stat .n{font-size:15px;margin-top:6px;display:block}
+  .perfect{color:var(--gold)} .good{color:var(--crimson-lt)} .missc{color:#7fa6c9}
+  .crest{font-size:34px;filter:drop-shadow(0 0 10px rgba(232,181,74,.5))}
+
+  /* Mobile tap buttons */
+  .taps{position:absolute;bottom:30px;left:0;right:0;z-index:7;display:flex;justify-content:space-between;
+    padding:0 16px;pointer-events:none}
+  .tapbtn{pointer-events:auto;width:74px;height:74px;border-radius:50%;border:2px solid var(--gold);
+    background:rgba(177,23,34,.35);color:var(--cream);font-family:var(--pixel);font-size:18px;
+    display:grid;place-items:center;backdrop-filter:blur(2px)}
+  .tapbtn:active{background:rgba(232,181,74,.5)}
+  @media(hover:hover) and (pointer:fine){.taps{display:none}}
+
+  .foot{text-align:center;margin-top:10px;font-size:7px;color:#6b5a3c;letter-spacing:1px;line-height:1.9}
+  .mute{position:absolute;top:12px;right:14px;z-index:9;pointer-events:auto;background:rgba(7,10,12,.55);
+    border:1px solid rgba(232,181,74,.35);color:var(--gold);font-family:var(--pixel);font-size:8px;
+    padding:6px 8px;border-radius:6px;cursor:pointer;display:none}
+</style>
+</head>
+<body>
+<div class="cabinet">
+  <div class="marquee">
+    <h1>★ TROOPER CADENCE ★</h1>
+    <p>KEEP THE BEAT · DRESS THE LINE · HIT THE SUNBURST</p>
+  </div>
+
+  <div class="screen" id="screen">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div class="scan"></div><div class="vignette"></div><div class="glare"></div>
+
+    <button class="mute" id="muteBtn">♪ ON</button>
+
+    <!-- HUD -->
+    <div class="hud" id="hud" style="visibility:hidden">
+      <div class="blk"><div class="lbl">SCORE</div><div class="val gold" id="score">0</div></div>
+      <div class="combo blk"><div class="lbl">COMBO</div><div class="big" id="combo">0</div><div class="lbl" id="mult">x1</div></div>
+      <div class="blk"><div class="lbl">BEST</div><div class="val" id="best">0</div></div>
+    </div>
+    <div class="morale-wrap" id="moraleWrap" style="visibility:hidden">
+      <div class="morale-lbl">CORPS MORALE</div>
+      <div class="morale-bar"><div class="morale-fill" id="morale"></div></div>
+    </div>
+
+    <!-- Mobile taps -->
+    <div class="taps" id="taps" style="visibility:hidden">
+      <button class="tapbtn" data-lane="0">◄ L</button>
+      <button class="tapbtn" data-lane="1">R ►</button>
+    </div>
+
+    <!-- TITLE -->
+    <div class="overlay" id="title">
+      <div class="crest">🎺</div>
+      <h2>TROOPER<br>CADENCE</h2>
+      <div class="sub">A scrolling beat marches in from the right. Tap your feet <b>in time</b> as each
+        marker crosses the line. Alternate left &amp; right to hold the cadence and build your combo.</div>
+      <div class="keys">
+        <span class="key">◄</span> LEFT FOOT &nbsp;&nbsp; <span class="key">►</span> RIGHT FOOT<br>
+        <span class="key">M</span> mute &nbsp;&nbsp; on phones, tap the <b>L</b> / <b>R</b> pads
+      </div>
+      <div class="sub blink" style="color:var(--gold)">▶ PRESS SPACE / TAP TO MARCH OFF</div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="overlay hidden" id="over">
+      <h2 id="overTitle">CORPS FELL OUT</h2>
+      <div class="stats">
+        <div class="stat">SCORE<span class="n gold" id="fScore">0</span></div>
+        <div class="stat">BEST COMBO<span class="n" id="fCombo">0</span></div>
+        <div class="stat">ACCURACY<span class="n gold" id="fAcc">0%</span></div>
+      </div>
+      <div class="stats">
+        <div class="stat perfect">PERFECT<span class="n" id="fPerf">0</span></div>
+        <div class="stat good">GOOD<span class="n" id="fGood">0</span></div>
+        <div class="stat missc">MISS<span class="n" id="fMiss">0</span></div>
+      </div>
+      <div class="sub" id="rank" style="color:var(--gold)"></div>
+      <div class="sub blink" style="color:var(--cream)">▶ PRESS SPACE / TAP TO FALL BACK IN</div>
+    </div>
+  </div>
+
+  <div class="foot">FAN TRIBUTE TO THE WESTERN-CAVALRY DRILL CORPS LOOK · NOT AFFILIATED WITH ANY ORGANIZATION</div>
+</div>
+
+<script>
+(()=>{
+const cv=document.getElementById('game'), ctx2d=cv.getContext('2d');
+const W=960,H=540;
+// layout
+const HITX=210, SPAWNX=W+50, APPROACH=1700, BEAT=500;
+const LANEY=[232,352];               // left foot lane, right foot lane
+const speed=(SPAWNX-HITX)/APPROACH;  // px per ms
+const GOOD=115, PERF=55, MISSLATE=140;
+
+// ---------- audio (marching snare + blips) ----------
+let actx=null, master=null, noiseBuf=null, muted=false, audioStart=0, perfStart=0;
+function initAudio(){
+  if(actx) return;
+  try{
+    actx=new (window.AudioContext||window.webkitAudioContext)();
+    master=actx.createGain(); master.gain.value=0.5; master.connect(actx.destination);
+    const len=actx.sampleRate*0.2, b=actx.createBuffer(1,len,actx.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    noiseBuf=b;
+    document.getElementById('muteBtn').style.display='block';
+  }catch(e){}
+}
+function aTime(perfT){ return audioStart + (perfT-perfStart)/1000; }
+function snare(at,accent){
+  if(!actx||muted) return;
+  const src=actx.createBufferSource(); src.buffer=noiseBuf;
+  const bp=actx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=accent?2300:1700; bp.Q.value=0.8;
+  const g=actx.createGain();
+  const t=Math.max(at,actx.currentTime);
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(accent?0.5:0.28,t+0.005);
+  g.gain.exponentialRampToValueAtTime(0.001,t+(accent?0.14:0.09));
+  src.connect(bp).connect(g).connect(master); src.start(t); src.stop(t+0.2);
+}
+function blip(freq,type){
+  if(!actx||muted) return;
+  const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime;
+  o.type=type||'square'; o.frequency.setValueAtTime(freq,t);
+  o.frequency.exponentialRampToValueAtTime(freq*1.5,t+0.06);
+  g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.22,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.12);
+  o.connect(g).connect(master); o.start(t); o.stop(t+0.14);
+}
+function thud(){
+  if(!actx||muted) return;
+  const o=actx.createOscillator(), g=actx.createGain(), t=actx.currentTime;
+  o.type='sawtooth'; o.frequency.setValueAtTime(160,t); o.frequency.exponentialRampToValueAtTime(60,t+0.18);
+  g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.3,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
+  o.connect(g).connect(master); o.start(t); o.stop(t+0.24);
+}
+
+// ---------- state ----------
+let state='title';
+let notes=[], particles=[], popups=[];
+let beatIndex=0, startTime=0;
+let score=0, combo=0, bestCombo=0, morale=100, stepPhase=0;
+let perfects=0, goods=0, misses=0, shake=0, flash=0, sunburstGlow=0;
+
+const $=id=>document.getElementById(id);
+
+function reset(now){
+  notes=[];particles=[];popups=[];
+  beatIndex=0; startTime=now; perfStart=now; if(actx) audioStart=actx.currentTime;
+  score=0;combo=0;bestCombo=0;morale=100;stepPhase=0;perfects=0;goods=0;misses=0;shake=0;flash=0;sunburstGlow=0;
+}
+function start(){
+  initAudio(); if(actx&&actx.state==='suspended') actx.resume();
+  reset(performance.now());
+  state='playing';
+  $('title').classList.add('hidden'); $('over').classList.add('hidden');
+  $('hud').style.visibility='visible'; $('moraleWrap').style.visibility='visible'; $('taps').style.visibility='visible';
+}
+function gameOver(){
+  state='over';
+  $('fScore').textContent=score.toLocaleString();
+  $('fCombo').textContent=bestCombo;
+  const tot=perfects+goods+misses;
+  const acc= tot? Math.round((perfects+goods*0.5)/tot*100):0;
+  $('fAcc').textContent=acc+'%';
+  $('fPerf').textContent=perfects;$('fGood').textContent=goods;$('fMiss').textContent=misses;
+  let rank='RECRUIT';
+  if(acc>=95&&score>6000) rank='★ DRUM MAJOR ★';
+  else if(acc>=85) rank='SECTION LEADER';
+  else if(acc>=70) rank='VETERAN MARCHER';
+  $('rank').textContent='RANK: '+rank;
+  $('over').classList.remove('hidden');
+  $('hud').style.visibility='hidden'; $('moraleWrap').style.visibility='hidden'; $('taps').style.visibility='hidden';
+}
+
+// ---------- input ----------
+function judge(lane){
+  if(state!=='playing') return;
+  let best=null,bd=1e9;
+  for(const n of notes){
+    if(n.lane!==lane||n.hit||n.missed) continue;
+    const dt=Math.abs(n.t-lastNow);
+    if(dt<bd){bd=dt;best=n;}
+  }
+  if(best && bd<=GOOD){
+    best.hit=true;
+    stepPhase^=1;
+    const perfect=bd<=PERF;
+    if(perfect){perfects++; score+=100*mult(); blip(880);}
+    else{goods++; score+=50*mult(); blip(620);}
+    combo++; if(combo>bestCombo) bestCombo=combo;
+    morale=Math.min(100,morale+(perfect?2.5:1.2));
+    popups.push({x:HITX,y:LANEY[lane]-34,txt:perfect?'PERFECT':'GOOD',col:perfect?'#e8b54a':'#e23744',life:1});
+    if(combo>0 && combo%20===0) triggerSunburst();
+  }else{
+    // stray tap — light shake, no score, no combo loss (forgiving)
+    shake=Math.min(shake,4)+3;
+  }
+}
+function key(e){
+  if(e.code==='KeyM'){toggleMute();return;}
+  if(e.code==='Space'||e.code==='Enter'){
+    e.preventDefault();
+    if(state!=='playing') start();
+    return;
+  }
+  if(state==='playing'){
+    if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();judge(0);}
+    else if(e.code==='ArrowRight'||e.code==='KeyL'||e.code==='KeyD'){e.preventDefault();judge(1);}
+  }
+}
+window.addEventListener('keydown',key);
+$('screen').addEventListener('pointerdown',e=>{
+  if(e.target.classList.contains('tapbtn')||e.target.id==='muteBtn') return;
+  if(state!=='playing'){ start(); }
+});
+document.querySelectorAll('.tapbtn').forEach(b=>{
+  b.addEventListener('pointerdown',e=>{e.preventDefault(); if(state==='playing') judge(+b.dataset.lane); else start();});
+});
+$('muteBtn').addEventListener('click',toggleMute);
+function toggleMute(){muted=!muted; $('muteBtn').textContent=muted?'♪ OFF':'♪ ON'; $('muteBtn').style.color=muted?'#7a6a48':'#e8b54a';}
+
+function mult(){ return combo>=50?4:combo>=25?3:combo>=10?2:1; }
+
+function triggerSunburst(){
+  sunburstGlow=1; flash=0.6;
+  const cx=148, cy=(LANEY[0]+LANEY[1])/2;
+  popups.push({x:W/2-70,y:H/2-60,txt:'SUNBURST!',col:'#e8b54a',life:1.4,big:true});
+  for(let i=0;i<46;i++){
+    const a=(i/46)*Math.PI*2, sp=3+Math.random()*4.5;
+    particles.push({x:cx,y:cy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+      life:1,col:i%2?'#e8b54a':'#e23744',size:3+Math.random()*3});
+  }
+}
+
+// ---------- scheduling ----------
+function schedule(now){
+  while(startTime+beatIndex*BEAT-now < APPROACH){
+    const bt=startTime+beatIndex*BEAT;
+    const lane=beatIndex%2;
+    notes.push({lane,t:bt,hit:false,missed:false});
+    if(actx) snare(aTime(bt), beatIndex%4===0);
+    const diff=Math.min(0.55,(beatIndex-16)/180);
+    if(beatIndex>16 && Math.random()<diff){
+      notes.push({lane:(lane+1)%2,t:bt+BEAT/2,hit:false,missed:false});
+    }
+    beatIndex++;
+  }
+}
+
+// ---------- update ----------
+let lastNow=0;
+function update(now,dt){
+  if(state==='playing'){
+    schedule(now);
+    for(const n of notes){
+      if(!n.hit && !n.missed && now-n.t>MISSLATE){
+        n.missed=true; misses++; combo=0; morale-=14; thud();
+        popups.push({x:HITX,y:LANEY[n.lane]-34,txt:'MISS',col:'#7fa6c9',life:1});
+      }
+    }
+    notes=notes.filter(n=>!( (n.hit||n.missed) && n.t<now-300 ));
+    if(morale<=0){morale=0; gameOver();}
+  }
+  for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vy+=0.05;p.life-=dt/900;}
+  particles=particles.filter(p=>p.life>0);
+  for(const u of popups){u.y-=dt*0.03;u.life-=dt/700;}
+  popups=popups.filter(u=>u.life>0);
+  if(shake>0) shake=Math.max(0,shake-dt*0.02);
+  if(flash>0) flash=Math.max(0,flash-dt/400);
+  if(sunburstGlow>0) sunburstGlow=Math.max(0,sunburstGlow-dt/600);
+  // HUD
+  if(state==='playing'){
+    $('score').textContent=score.toLocaleString();
+    $('combo').textContent=combo;
+    $('mult').textContent='x'+mult();
+    $('best').textContent=bestCombo;
+    $('morale').style.width=morale+'%';
+  }
+}
+
+// ---------- drawing ----------
+let fieldScroll=0;
+function draw(now){
+  ctx2d.save();
+  const sx=(Math.random()-0.5)*shake, sy=(Math.random()-0.5)*shake;
+  ctx2d.translate(sx,sy);
+
+  // field
+  const g=ctx2d.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#103021'); g.addColorStop(1,'#081a12');
+  ctx2d.fillStyle=g; ctx2d.fillRect(-10,-10,W+20,H+20);
+
+  // moving yard lines
+  fieldScroll=(fieldScroll+ (state==='playing'?2.0:0.5));
+  const sp=80, off=fieldScroll%sp;
+  ctx2d.lineWidth=2;
+  for(let x=-off;x<W+sp;x+=sp){
+    ctx2d.strokeStyle='rgba(216,184,127,0.18)'; ctx2d.beginPath(); ctx2d.moveTo(x,0); ctx2d.lineTo(x,H); ctx2d.stroke();
+  }
+  // hash marks
+  ctx2d.strokeStyle='rgba(216,184,127,0.12)';
+  for(let x=-off;x<W+sp;x+=sp/2){for(const hy of [H*0.32,H*0.68]){ctx2d.beginPath();ctx2d.moveTo(x,hy-5);ctx2d.lineTo(x,hy+5);ctx2d.stroke();}}
+
+  // lane guides
+  for(const ly of LANEY){
+    ctx2d.strokeStyle='rgba(255,255,255,0.07)'; ctx2d.lineWidth=24;
+    ctx2d.beginPath(); ctx2d.moveTo(0,ly); ctx2d.lineTo(W,ly); ctx2d.stroke();
+  }
+
+  // hit zone
+  const pulse=0.5+0.5*Math.sin(now*0.006);
+  ctx2d.fillStyle='rgba(232,181,74,'+(0.10+0.06*pulse)+')';
+  ctx2d.fillRect(HITX-34,40,68,H-90);
+  ctx2d.strokeStyle='rgba(232,181,74,'+(0.7+0.3*pulse)+')'; ctx2d.lineWidth=3;
+  ctx2d.beginPath(); ctx2d.moveTo(HITX,46); ctx2d.lineTo(HITX,H-50); ctx2d.stroke();
+
+  // notes
+  if(state==='playing'){
+    for(const n of notes){
+      if(n.hit||n.missed) continue;
+      const x=HITX+(n.t-now)*speed, y=LANEY[n.lane];
+      if(x<-40||x>W+60) continue;
+      drawNote(x,y,n.lane);
+    }
+  }
+
+  // sunburst glow ring
+  if(sunburstGlow>0){
+    ctx2d.strokeStyle='rgba(232,181,74,'+sunburstGlow*0.6+')'; ctx2d.lineWidth=6;
+    ctx2d.beginPath(); ctx2d.arc(148,(LANEY[0]+LANEY[1])/2,(1-sunburstGlow)*160+30,0,Math.PI*2); ctx2d.stroke();
+  }
+  // particles
+  for(const p of particles){
+    ctx2d.globalAlpha=Math.max(0,p.life); ctx2d.fillStyle=p.col;
+    ctx2d.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+  }
+  ctx2d.globalAlpha=1;
+
+  // trooper
+  drawTrooper(140,(LANEY[0]+LANEY[1])/2+8,stepPhase,now);
+
+  // popups
+  ctx2d.textAlign='center';
+  for(const u of popups){
+    ctx2d.globalAlpha=Math.max(0,Math.min(1,u.life));
+    ctx2d.fillStyle=u.col; ctx2d.font=(u.big?'22px':'13px')+" 'Press Start 2P', monospace";
+    ctx2d.fillText(u.txt,u.x+ (u.big?70:0),u.y);
+  }
+  ctx2d.globalAlpha=1; ctx2d.textAlign='left';
+
+  // flash
+  if(flash>0){ ctx2d.fillStyle='rgba(232,181,74,'+flash*0.35+')'; ctx2d.fillRect(-10,-10,W+20,H+20); }
+
+  ctx2d.restore();
+}
+
+function drawNote(x,y,lane){
+  ctx2d.save();
+  ctx2d.translate(x,y);
+  // glow
+  ctx2d.fillStyle='rgba(226,55,68,0.25)'; ctx2d.beginPath(); ctx2d.arc(0,0,26,0,Math.PI*2); ctx2d.fill();
+  // body
+  ctx2d.fillStyle='#b11722'; ctx2d.strokeStyle='#e8b54a'; ctx2d.lineWidth=3;
+  ctx2d.beginPath(); ctx2d.arc(0,0,18,0,Math.PI*2); ctx2d.fill(); ctx2d.stroke();
+  // chevron (points toward hit line = left)
+  ctx2d.strokeStyle='#f3ead2'; ctx2d.lineWidth=4; ctx2d.lineCap='round';
+  ctx2d.beginPath(); ctx2d.moveTo(6,-7); ctx2d.lineTo(-5,0); ctx2d.lineTo(6,7); ctx2d.stroke();
+  ctx2d.restore();
+}
+
+// pixel cavalry trooper
+function drawTrooper(cx,cy,phase,now){
+  const bob = state==='playing'? Math.sin(now*0.012)*1.5 : 0;
+  const P=4; // pixel scale
+  const px=(gx,gy,c,w=1,h=1)=>{ctx2d.fillStyle=c; ctx2d.fillRect(cx+gx*P, cy+gy*P+bob, w*P, h*P);};
+  const sand='#d8b87f', sandD='#a07c45', crim='#b11722', crimD='#7d0f17',
+        gold='#e8b54a', cream='#f3ecd6', skin='#e7b48f', boot='#2a1d10', white='#f3ead2';
+  // legs (alternate)
+  if(phase===0){
+    px(-3,9,crimD,2,4); px(-3,13,boot,2,2);   // back leg planted
+    px(1,8,crim,2,4);  px(1,12,boot,2,2);      // front leg up
+  }else{
+    px(-3,8,crim,2,4); px(-3,12,boot,2,2);
+    px(1,9,crimD,2,4); px(1,13,boot,2,2);
+  }
+  // jacket (crimson)
+  px(-3,1,crim,6,8);
+  px(-4,1,crim,1,5); px(3,1,crim,1,5);         // arms
+  // cross belt (white)
+  px(-2,2,white,1,1);px(-1,3,white,1,1);px(0,4,white,1,1);px(1,5,white,1,1);
+  // gold buttons
+  px(0,2,gold,1,1); px(0,4,gold,1,1); px(0,6,gold,1,1);
+  // horn (gold) in front
+  px(3,4,gold,2,1); px(4,3,gold,1,2);
+  // head
+  px(-1,-2,skin,3,3);
+  // campaign / cavalry hat (sand) + crimson plume
+  px(-2,-4,sandD,5,1); px(-1,-5,sand,3,1);
+  px(0,-7,crim,1,2);                            // plume
+}
+
+// ---------- main loop ----------
+let prev=performance.now();
+function loop(now){
+  const dt=Math.min(50, now-prev); prev=now; lastNow=now;
+  update(now,dt);
+  draw(now);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
