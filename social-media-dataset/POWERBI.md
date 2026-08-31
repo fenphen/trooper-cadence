@@ -6,11 +6,26 @@ the relationships, 109 DAX measures, a custom theme, and a six-page report with
 
 ## Open it
 
+Clone or extract this repo to **`C:\CampusPulse`** — the `DataFolder` parameter
+is pre-set to `C:\CampusPulse\social-media-dataset\data`, so with that location
+there is nothing to configure:
+
+```powershell
+cd C:\
+git clone https://github.com/fenphen/trooper-cadence.git CampusPulse
+```
+
+Use a **local disk**, not a Google Drive / OneDrive virtual drive. Power BI's
+data-loading engine runs in a separate process that often cannot resolve virtual
+drive letters, and you get `Could not find a part of the path` for every file at
+once even though Explorer shows them. Publish from a local copy; sync the
+finished `.pbix` afterwards if you want it shared.
+
 1. Open **`powerbi/CampusPulse.pbip`** in Power BI Desktop (File → Open, or
    double-click).
-2. Desktop will ask for the **`DataFolder`** parameter, or you can set it from
-   **Home → Transform data → Manage parameters**. Point it at the folder holding
-   the CSVs, e.g. `C:\CampusPulse\data`. A trailing slash is fine either way.
+2. If you put the project anywhere other than `C:\CampusPulse`, set the
+   **`DataFolder`** parameter from **Home → Transform data → Manage parameters**
+   to the folder holding the CSVs. A trailing slash is fine either way.
 3. **Home → Refresh.** Roughly 700,000 rows load in well under a minute.
 4. Save as `.pbix` when you want a single file to publish
    (**File → Save as → .pbix**), then publish to the Power BI service as usual.
@@ -87,7 +102,7 @@ for you).
 ```bash
 python3 generate_data.py    # regenerate the CSVs
 python3 build_pbip.py       # rebuild the PBIP from the CSVs
-python3 verify_pbip.py      # 1,893 correctness checks
+python3 verify_pbip.py      # 2,002 correctness checks
 ```
 
 `build_pbip.py` reads the real CSV headers, so column data types and the
@@ -108,11 +123,13 @@ two ways:
 - **Schema validation** — all 126 JSON files validate against Microsoft's
   published Fabric/PBIP JSON schemas, and the custom theme validates against the
   official report-theme schema (August 2026 build, exploration version 5.76).
-- **Semantic validation** — `verify_pbip.py` runs 1,893 checks for the failure
+- **Semantic validation** — `verify_pbip.py` runs 2,002 checks for the failure
   modes a schema cannot see: every field reference resolving to a real table,
   column or measure; measures wrapped as `Measure` and columns as `Column`;
   every measure attributed to the table that actually owns it; no ambiguous
-  relationship paths; page and visual folder names matching their `name`
+  relationship paths; no measure sharing a name with a column on its own
+  table (Tabular refuses to build the model); page and visual folder names
+  matching their `name`
   properties and the `[\w-]{1,50}` rule Power BI silently enforces; visuals
   inside the canvas; partition column counts matching the CSVs; UTF-8 without
   BOM.

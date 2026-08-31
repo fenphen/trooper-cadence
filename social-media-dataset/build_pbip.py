@@ -26,7 +26,7 @@ import pbip_theme
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "powerbi")
 PROJECT = "CampusPulse"
-DEFAULT_DATA_FOLDER = r"C:\CampusPulse\data"
+DEFAULT_DATA_FOLDER = r"C:\CampusPulse\social-media-dataset\data"
 BASE_THEME = "CY24SU10"
 
 SCHEMA = "https://developer.microsoft.com/json-schemas/fabric/"

@@ -3817,7 +3817,7 @@
       {
         "name": "DataFolder",
         "kind": "m",
-        "expression": "\"C:\\CampusPulse\\data\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "expression": "\"C:\\CampusPulse\\social-media-dataset\\data\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
         "description": "Folder holding the CampusPulse CSV files. Set this once, then refresh.",
         "annotations": [
           {
