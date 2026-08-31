@@ -1,0 +1,116 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "1d8877794535a2d57d1d",
+  "position": {
+    "x": 670,
+    "y": 222,
+    "z": 13000,
+    "height": 242,
+    "width": 600,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platform_profiles"
+                    }
+                  },
+                  "Property": "handle"
+                }
+              },
+              "queryRef": "dim_platform_profiles.handle",
+              "nativeQueryRef": "handle"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platform_profiles"
+                    }
+                  },
+                  "Property": "platform"
+                }
+              },
+              "queryRef": "dim_platform_profiles.platform",
+              "nativeQueryRef": "platform"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platform_profiles"
+                    }
+                  },
+                  "Property": "follower_count"
+                }
+              },
+              "queryRef": "dim_platform_profiles.follower_count",
+              "nativeQueryRef": "follower_count"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platform_profiles"
+                    }
+                  },
+                  "Property": "engagement_rate_pct"
+                }
+              },
+              "queryRef": "dim_platform_profiles.engagement_rate_pct",
+              "nativeQueryRef": "engagement_rate_pct"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platform_profiles"
+                    }
+                  },
+                  "Property": "posts_per_week"
+                }
+              },
+              "queryRef": "dim_platform_profiles.posts_per_week",
+              "nativeQueryRef": "posts_per_week"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Buy these students once and they sell all semester'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

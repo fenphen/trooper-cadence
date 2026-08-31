@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "211b1ff2f8536c94c85c",
+  "position": {
+    "x": 10,
+    "y": 490,
+    "z": 14000,
+    "height": 228,
+    "width": 344,
+    "tabOrder": 14000
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "segment_name"
+                }
+              },
+              "queryRef": "dim_segments.segment_name",
+              "nativeQueryRef": "segment_name"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "bridge_user_segments"
+                    }
+                  },
+                  "Property": "Segment Members"
+                }
+              },
+              "queryRef": "bridge_user_segments.Segment Members",
+              "nativeQueryRef": "Segment Members"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Members per segment'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

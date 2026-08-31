@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "7a722d97bc7a2d42859e",
+  "position": {
+    "x": 339,
+    "y": 470,
+    "z": 16000,
+    "height": 246,
+    "width": 319,
+    "tabOrder": 16000
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "data_dictionary"
+                    }
+                  },
+                  "Property": "sensitivity"
+                }
+              },
+              "queryRef": "data_dictionary.sensitivity",
+              "nativeQueryRef": "sensitivity"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "data_dictionary"
+                    }
+                  },
+                  "Property": "Columns Tracked"
+                }
+              },
+              "queryRef": "data_dictionary.Columns Tracked",
+              "nativeQueryRef": "Columns Tracked"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sensitivity mix'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

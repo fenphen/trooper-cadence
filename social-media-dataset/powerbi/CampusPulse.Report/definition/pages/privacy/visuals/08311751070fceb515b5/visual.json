@@ -1,0 +1,106 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "08311751070fceb515b5",
+  "position": {
+    "x": 898,
+    "y": 222,
+    "z": 14000,
+    "height": 238,
+    "width": 372,
+    "tabOrder": 14000
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platforms"
+                    }
+                  },
+                  "Property": "platform"
+                }
+              },
+              "queryRef": "dim_platforms.platform",
+              "nativeQueryRef": "platform"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platform_profiles"
+                    }
+                  },
+                  "Property": "% Ads Personalization On"
+                }
+              },
+              "queryRef": "dim_platform_profiles.% Ads Personalization On",
+              "nativeQueryRef": "% Ads Personalization On"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platform_profiles"
+                    }
+                  },
+                  "Property": "% Location Sharing On"
+                }
+              },
+              "queryRef": "dim_platform_profiles.% Location Sharing On",
+              "nativeQueryRef": "% Location Sharing On"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_platform_profiles"
+                    }
+                  },
+                  "Property": "% Contacts Uploaded"
+                }
+              },
+              "queryRef": "dim_platform_profiles.% Contacts Uploaded",
+              "nativeQueryRef": "% Contacts Uploaded"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Privacy settings students left switched on'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

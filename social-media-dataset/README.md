@@ -78,7 +78,20 @@ erDiagram
     dim_date ||--o{ fact_campaign_daily : date
 ```
 
-## Power BI quickstart
+## Prefer the ready-built Power BI file
+
+A complete Power BI project is already in **`powerbi/CampusPulse.pbip`** — the
+model, relationships, 109 DAX measures, a custom theme, and a six-page report
+with 112 visuals (Smart Narrative, Key Influencers and a Decomposition Tree
+included). Open it in Power BI Desktop, point the `DataFolder` parameter at
+`data/`, and refresh. See **[POWERBI.md](POWERBI.md)** for the walkthrough,
+including how it was validated and two deliberate modelling decisions that make
+good classroom discussion.
+
+The manual instructions below are still worth following if you want students to
+build the model themselves.
+
+## Power BI quickstart (building it by hand)
 
 1. **Get Data → Text/CSV** and load every file in `data/` (or **Get Data →
    Folder** pointed at `data/` and reference each file). Check that

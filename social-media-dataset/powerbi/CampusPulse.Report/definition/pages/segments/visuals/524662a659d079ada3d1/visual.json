@@ -1,0 +1,130 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "524662a659d079ada3d1",
+  "position": {
+    "x": 10,
+    "y": 222,
+    "z": 12000,
+    "height": 258,
+    "width": 725,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "segment_name"
+                }
+              },
+              "queryRef": "dim_segments.segment_name",
+              "nativeQueryRef": "segment_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "tagline"
+                }
+              },
+              "queryRef": "dim_segments.tagline",
+              "nativeQueryRef": "tagline"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "member_count"
+                }
+              },
+              "queryRef": "dim_segments.member_count",
+              "nativeQueryRef": "member_count"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "avg_match_strength"
+                }
+              },
+              "queryRef": "dim_segments.avg_match_strength",
+              "nativeQueryRef": "avg_match_strength"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "top_platform"
+                }
+              },
+              "queryRef": "dim_segments.top_platform",
+              "nativeQueryRef": "top_platform"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "suggested_cpm_usd"
+                }
+              },
+              "queryRef": "dim_segments.suggested_cpm_usd",
+              "nativeQueryRef": "suggested_cpm_usd"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'The rate card'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

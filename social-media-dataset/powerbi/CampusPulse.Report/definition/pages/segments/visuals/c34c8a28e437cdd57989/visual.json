@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "c34c8a28e437cdd57989",
+  "position": {
+    "x": 364,
+    "y": 490,
+    "z": 15000,
+    "height": 228,
+    "width": 344,
+    "tabOrder": 15000
+  },
+  "visual": {
+    "visualType": "treemap",
+    "query": {
+      "queryState": {
+        "Group": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_interests"
+                    }
+                  },
+                  "Property": "interest_category"
+                }
+              },
+              "queryRef": "dim_interests.interest_category",
+              "nativeQueryRef": "interest_category"
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "bridge_user_interests"
+                    }
+                  },
+                  "Property": "Interest Tags"
+                }
+              },
+              "queryRef": "bridge_user_interests.Interest Tags",
+              "nativeQueryRef": "Interest Tags"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Interest taxonomy'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

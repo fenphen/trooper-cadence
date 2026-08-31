@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "ff8b32e2c53fe92c3b76",
+  "position": {
+    "x": 339,
+    "y": 468,
+    "z": 17000,
+    "height": 248,
+    "width": 319,
+    "tabOrder": 17000
+  },
+  "visual": {
+    "visualType": "funnel",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_campaigns"
+                    }
+                  },
+                  "Property": "objective"
+                }
+              },
+              "queryRef": "dim_campaigns.objective",
+              "nativeQueryRef": "objective"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_campaign_daily"
+                    }
+                  },
+                  "Property": "Impressions"
+                }
+              },
+              "queryRef": "fact_campaign_daily.Impressions",
+              "nativeQueryRef": "Impressions"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Impressions by objective'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "98cfdc0de465fa936827",
+  "position": {
+    "x": 668,
+    "y": 474,
+    "z": 16000,
+    "height": 242,
+    "width": 319,
+    "tabOrder": 16000
+  },
+  "visual": {
+    "visualType": "keyDriversVisual",
+    "query": {
+      "queryState": {
+        "Target": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_psychographics"
+                    }
+                  },
+                  "Property": "content_creator_level"
+                }
+              },
+              "queryRef": "dim_psychographics.content_creator_level",
+              "nativeQueryRef": "content_creator_level"
+            }
+          ]
+        },
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_users"
+                    }
+                  },
+                  "Property": "class_year"
+                }
+              },
+              "queryRef": "dim_users.class_year",
+              "nativeQueryRef": "class_year"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_users"
+                    }
+                  },
+                  "Property": "housing_type"
+                }
+              },
+              "queryRef": "dim_users.housing_type",
+              "nativeQueryRef": "housing_type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_psychographics"
+                    }
+                  },
+                  "Property": "chronotype"
+                }
+              },
+              "queryRef": "dim_psychographics.chronotype",
+              "nativeQueryRef": "chronotype"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_psychographics"
+                    }
+                  },
+                  "Property": "values_segment"
+                }
+              },
+              "queryRef": "dim_psychographics.values_segment",
+              "nativeQueryRef": "values_segment"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'What predicts a creator'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

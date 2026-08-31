@@ -1,0 +1,114 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.5.0/schema.json",
+  "name": "3f54d6a2a096f50bfc25",
+  "position": {
+    "x": 745,
+    "y": 222,
+    "z": 13000,
+    "height": 258,
+    "width": 525,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "scatterChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "segment_name"
+                }
+              },
+              "queryRef": "dim_segments.segment_name",
+              "nativeQueryRef": "segment_name"
+            }
+          ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "bridge_user_segments"
+                    }
+                  },
+                  "Property": "Segment Members"
+                }
+              },
+              "queryRef": "bridge_user_segments.Segment Members",
+              "nativeQueryRef": "Segment Members"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "Avg Suggested CPM"
+                }
+              },
+              "queryRef": "dim_segments.Avg Suggested CPM",
+              "nativeQueryRef": "Avg Suggested CPM"
+            }
+          ]
+        },
+        "Size": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_segments"
+                    }
+                  },
+                  "Property": "Segment List Value"
+                }
+              },
+              "queryRef": "dim_segments.Segment List Value",
+              "nativeQueryRef": "Segment List Value"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Reach vs price - the bigger the bubble, the more it is worth'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

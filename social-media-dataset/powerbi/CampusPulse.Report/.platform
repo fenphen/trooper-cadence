@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "CampusPulse"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "f61c207b-3838-70b1-3739-24a64c181211"
+  }
+}

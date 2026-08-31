@@ -1,0 +1,3865 @@
+{
+  "compatibilityLevel": 1567,
+  "model": {
+    "culture": "en-US",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": true
+    },
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "en-US",
+    "tables": [
+      {
+        "name": "bridge_user_interests",
+        "columns": [
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "beb5ce73-83f0-935d-0d87-f012c9f41ed2"
+          },
+          {
+            "name": "interest_id",
+            "dataType": "string",
+            "sourceColumn": "interest_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "21b2c29d-7cd5-d582-0e75-a5aa3199905d"
+          },
+          {
+            "name": "affinity_score",
+            "dataType": "int64",
+            "sourceColumn": "affinity_score",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "ac9a0e35-b546-18d4-5f05-6fe6bdc50f92"
+          },
+          {
+            "name": "source",
+            "dataType": "string",
+            "sourceColumn": "source",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "b6316672-c489-e90d-3e36-21ae511b4d36"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "bridge_user_interests",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"bridge_user_interests.csv\"), [Delimiter=\",\", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"user_id\", type text}, {\"interest_id\", type text}, {\"affinity_score\", Int64.Type}, {\"source\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Students with Interest",
+            "expression": "DISTINCTCOUNT ( bridge_user_interests[user_id] )",
+            "formatString": "#,0",
+            "description": "Students carrying the selected interest tag(s).",
+            "lineageTag": "feb2a801-c023-26ec-7fba-fe0a3b3bcb48"
+          },
+          {
+            "name": "Avg Affinity",
+            "expression": "AVERAGE ( bridge_user_interests[affinity_score] )",
+            "formatString": "#,0.0",
+            "description": "Average strength of the interest signal.",
+            "lineageTag": "f102de24-779f-fd3a-7f7e-78a713b27535"
+          },
+          {
+            "name": "Interest Tags",
+            "expression": "COUNTROWS ( bridge_user_interests )",
+            "formatString": "#,0",
+            "description": "Interest tags applied.",
+            "lineageTag": "93708598-de47-b6b2-1633-53fc0d807c12"
+          },
+          {
+            "name": "Tags per Student",
+            "expression": "DIVIDE ( COUNTROWS ( bridge_user_interests ), DISTINCTCOUNT ( bridge_user_interests[user_id] ) )",
+            "formatString": "#,0.0",
+            "description": "Interest tags held per student.",
+            "lineageTag": "a24036aa-3071-b119-b365-14366dd23403"
+          },
+          {
+            "name": "% Inferred Not Declared",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( bridge_user_interests ), bridge_user_interests[source] <> \"Declared\" ), COUNTROWS ( bridge_user_interests ) )",
+            "formatString": "0.0%",
+            "description": "Share of interest tags the student never actually told anyone.",
+            "lineageTag": "ada49816-3102-9ff8-50b0-37fcc348ae83"
+          }
+        ],
+        "lineageTag": "c5018973-46dc-6238-bfcc-e727be19f74d"
+      },
+      {
+        "name": "bridge_user_segments",
+        "columns": [
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "0d62a095-c78b-9a45-922a-e3ba75b01a36"
+          },
+          {
+            "name": "segment_id",
+            "dataType": "string",
+            "sourceColumn": "segment_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "5a0ca536-6cfa-914c-46dc-fd0cba668c86"
+          },
+          {
+            "name": "match_strength",
+            "dataType": "int64",
+            "sourceColumn": "match_strength",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "0584ea24-7b99-186c-3673-12add2424afc"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "bridge_user_segments",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"bridge_user_segments.csv\"), [Delimiter=\",\", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"user_id\", type text}, {\"segment_id\", type text}, {\"match_strength\", Int64.Type}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Segment Members",
+            "expression": "DISTINCTCOUNT ( bridge_user_segments[user_id] )",
+            "formatString": "#,0",
+            "description": "Students in the selected segment(s).",
+            "lineageTag": "0a2bb1fb-7ce2-4df2-48df-43aa4c53cfa2"
+          },
+          {
+            "name": "Avg Match Strength",
+            "expression": "AVERAGE ( bridge_user_segments[match_strength] )",
+            "formatString": "#,0.0",
+            "description": "How strongly members fit the segment.",
+            "lineageTag": "f6ec5717-38c4-50fb-c7d0-1abac5bbfb58"
+          },
+          {
+            "name": "Segments per Student",
+            "expression": "DIVIDE ( COUNTROWS ( bridge_user_segments ), DISTINCTCOUNT ( bridge_user_segments[user_id] ) )",
+            "formatString": "#,0.00",
+            "description": "Average number of sellable segments each student falls into.",
+            "lineageTag": "455fb3ea-86c3-4bac-2f70-f6d67452842a"
+          }
+        ],
+        "lineageTag": "d60668ff-7508-f89d-fcb6-65f4a19932ec"
+      },
+      {
+        "name": "data_dictionary",
+        "columns": [
+          {
+            "name": "table_name",
+            "dataType": "string",
+            "sourceColumn": "table_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "3faefd5e-6efd-2b25-a202-e34524135ce1"
+          },
+          {
+            "name": "column_name",
+            "dataType": "string",
+            "sourceColumn": "column_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "8f9d170a-e0cb-2849-547c-6514a096b184"
+          },
+          {
+            "name": "data_type",
+            "dataType": "string",
+            "sourceColumn": "data_type",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "174f12ea-1aef-132a-5fa2-4f2e8500bce2"
+          },
+          {
+            "name": "description",
+            "dataType": "string",
+            "sourceColumn": "description",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "705f667c-f685-cfa1-7a3b-f751df734f9c"
+          },
+          {
+            "name": "collection_method",
+            "dataType": "string",
+            "sourceColumn": "collection_method",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "c7f12615-8fd3-4320-64d4-9fb9792f37e2"
+          },
+          {
+            "name": "sensitivity",
+            "dataType": "string",
+            "sourceColumn": "sensitivity",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "045d0178-9f2e-5c5c-d8ae-64f9ab196a7c"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "data_dictionary",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"data_dictionary.csv\"), [Delimiter=\",\", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"table_name\", type text}, {\"column_name\", type text}, {\"data_type\", type text}, {\"description\", type text}, {\"collection_method\", type text}, {\"sensitivity\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Columns Tracked",
+            "expression": "COUNTROWS ( data_dictionary )",
+            "formatString": "#,0",
+            "description": "Data points held on every student.",
+            "lineageTag": "de78c0b0-123a-9230-23b2-6749c701c7af"
+          },
+          {
+            "name": "Declared Columns",
+            "expression": "CALCULATE ( COUNTROWS ( data_dictionary ), data_dictionary[collection_method] = \"Declared by user\" )",
+            "formatString": "#,0",
+            "description": "Columns the user actually typed in themselves.",
+            "lineageTag": "d1b3cbe9-9025-6c3e-0dde-aee8dcc857cc"
+          },
+          {
+            "name": "Inferred Columns",
+            "expression": "CALCULATE ( COUNTROWS ( data_dictionary ), data_dictionary[collection_method] = \"Inferred by model\" )",
+            "formatString": "#,0",
+            "description": "Columns produced by a model, never volunteered.",
+            "lineageTag": "afc3a475-4d85-35fa-c978-056ecb628146"
+          },
+          {
+            "name": "Observed Columns",
+            "expression": "CALCULATE ( COUNTROWS ( data_dictionary ), data_dictionary[collection_method] = \"Observed behavior\" )",
+            "formatString": "#,0",
+            "description": "Columns recorded by watching behavior.",
+            "lineageTag": "a194294f-3788-4571-0ac2-f5a0a0db06df"
+          },
+          {
+            "name": "% Declared",
+            "expression": "DIVIDE ( [Declared Columns], [Columns Tracked] )",
+            "formatString": "0.0%",
+            "description": "Share of everything held that the student knowingly provided.",
+            "lineageTag": "a9c79d5e-b037-1b2f-c78a-9dfec2de8903"
+          },
+          {
+            "name": "% Inferred",
+            "expression": "DIVIDE ( [Inferred Columns], [Columns Tracked] )",
+            "formatString": "0.0%",
+            "description": "Share of everything held that was guessed by a model.",
+            "lineageTag": "0711d921-bd76-7f65-42c4-6b9c7a3d1608"
+          },
+          {
+            "name": "High Sensitivity Columns",
+            "expression": "CALCULATE ( COUNTROWS ( data_dictionary ), data_dictionary[sensitivity] = \"High\" )",
+            "formatString": "#,0",
+            "description": "Columns tagged high sensitivity.",
+            "lineageTag": "65e7b509-950e-e329-d3fa-85d3051529e7"
+          },
+          {
+            "name": "% High Sensitivity",
+            "expression": "DIVIDE ( [High Sensitivity Columns], [Columns Tracked] )",
+            "formatString": "0.0%",
+            "description": "Share of columns tagged high sensitivity.",
+            "lineageTag": "4c6bee42-6d83-f11e-45d5-be730d05af88"
+          }
+        ],
+        "lineageTag": "8d7affdc-4a32-6501-df8b-780a642ef4b0"
+      },
+      {
+        "name": "dim_campaigns",
+        "columns": [
+          {
+            "name": "campaign_id",
+            "dataType": "string",
+            "sourceColumn": "campaign_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "f6be8897-4ec7-5416-a411-c8893c6e3083"
+          },
+          {
+            "name": "advertiser_brand",
+            "dataType": "string",
+            "sourceColumn": "advertiser_brand",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "bc9aa27c-616e-ee39-3715-4efdaf7c37a5"
+          },
+          {
+            "name": "campaign_name",
+            "dataType": "string",
+            "sourceColumn": "campaign_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "791d3a92-c2a3-a92d-0137-d1519fd23b01"
+          },
+          {
+            "name": "advertiser_vertical",
+            "dataType": "string",
+            "sourceColumn": "advertiser_vertical",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "d067466c-d6b8-1b01-c471-17894feff83f"
+          },
+          {
+            "name": "objective",
+            "dataType": "string",
+            "sourceColumn": "objective",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "3e206251-695c-85f6-6841-12957d8c03f9"
+          },
+          {
+            "name": "primary_segment_id",
+            "dataType": "string",
+            "sourceColumn": "primary_segment_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "8e04425c-2dd8-288e-2bc3-bbc5f81c57ac"
+          },
+          {
+            "name": "platforms",
+            "dataType": "string",
+            "sourceColumn": "platforms",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "37da72e9-622b-fad2-87d0-f35002f7faaa"
+          },
+          {
+            "name": "flight_start",
+            "dataType": "dateTime",
+            "sourceColumn": "flight_start",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "yyyy-mm-dd",
+            "lineageTag": "9acd3cb8-725e-9579-6498-48b9d9f103b0"
+          },
+          {
+            "name": "flight_end",
+            "dataType": "dateTime",
+            "sourceColumn": "flight_end",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "yyyy-mm-dd",
+            "lineageTag": "17e7563f-3fea-c9db-bbec-9428e3346c45"
+          },
+          {
+            "name": "total_budget_usd",
+            "dataType": "double",
+            "sourceColumn": "total_budget_usd",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "0fecb984-cfa3-8d5d-d875-2b7674266407"
+          },
+          {
+            "name": "total_spend_usd",
+            "dataType": "double",
+            "sourceColumn": "total_spend_usd",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "3626a583-fb2f-39d8-a2b8-b3be77dee90e"
+          },
+          {
+            "name": "avg_cpm_usd",
+            "dataType": "double",
+            "sourceColumn": "avg_cpm_usd",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "91d05d57-b760-0c2b-9295-2911a1854fdd"
+          },
+          {
+            "name": "avg_order_value_usd",
+            "dataType": "double",
+            "sourceColumn": "avg_order_value_usd",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "4d42082e-425e-1d4f-758d-38d5d6e96106"
+          },
+          {
+            "name": "panel_scale_factor",
+            "dataType": "int64",
+            "sourceColumn": "panel_scale_factor",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "1c2bd5e1-2088-d762-364f-3e63fe5bc309"
+          },
+          {
+            "name": "status",
+            "dataType": "string",
+            "sourceColumn": "status",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "00004815-db90-5c88-285d-f01abc708ff7"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_campaigns",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_campaigns.csv\"), [Delimiter=\",\", Columns=15, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"campaign_id\", type text}, {\"advertiser_brand\", type text}, {\"campaign_name\", type text}, {\"advertiser_vertical\", type text}, {\"objective\", type text}, {\"primary_segment_id\", type text}, {\"platforms\", type text}, {\"flight_start\", type date}, {\"flight_end\", type date}, {\"total_budget_usd\", type number}, {\"total_spend_usd\", type number}, {\"avg_cpm_usd\", type number}, {\"avg_order_value_usd\", type number}, {\"panel_scale_factor\", Int64.Type}, {\"status\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "lineageTag": "73369ca5-5790-4756-8a6a-a72d2035e577"
+      },
+      {
+        "name": "dim_date",
+        "columns": [
+          {
+            "name": "date",
+            "dataType": "dateTime",
+            "sourceColumn": "date",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "yyyy-mm-dd",
+            "isKey": true,
+            "lineageTag": "e5f5330c-26a1-15b4-dcef-06db4d5b54cc"
+          },
+          {
+            "name": "year",
+            "dataType": "int64",
+            "sourceColumn": "year",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "33742ccb-3c3c-04d3-adc7-6ee7699e6eb1"
+          },
+          {
+            "name": "month_num",
+            "dataType": "int64",
+            "sourceColumn": "month_num",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "d81f2a5d-4d81-ceac-f47c-4d714dc82c7b"
+          },
+          {
+            "name": "month_name",
+            "dataType": "string",
+            "sourceColumn": "month_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "sortByColumn": "month_num",
+            "lineageTag": "5eee76b9-3c2d-2a5d-ec7d-8f60d0d85a53"
+          },
+          {
+            "name": "week_of_year",
+            "dataType": "int64",
+            "sourceColumn": "week_of_year",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "3fb3d513-05af-49f7-2c29-f9aefd311156"
+          },
+          {
+            "name": "day_of_week_num",
+            "dataType": "int64",
+            "sourceColumn": "day_of_week_num",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "93497e8d-267d-04ea-db64-33de6b165cfc"
+          },
+          {
+            "name": "day_name",
+            "dataType": "string",
+            "sourceColumn": "day_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "sortByColumn": "day_of_week_num",
+            "lineageTag": "e0ae97d9-26b7-e507-5ab0-793d2c22a42e"
+          },
+          {
+            "name": "is_weekend",
+            "dataType": "boolean",
+            "sourceColumn": "is_weekend",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "ae2507e9-54ac-1e49-6157-a0a774689ba5"
+          },
+          {
+            "name": "academic_period",
+            "dataType": "string",
+            "sourceColumn": "academic_period",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "1fb25f8f-fbea-9213-933c-3e8aafefb2a7"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_date",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_date.csv\"), [Delimiter=\",\", Columns=9, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"date\", type date}, {\"year\", Int64.Type}, {\"month_num\", Int64.Type}, {\"month_name\", type text}, {\"week_of_year\", Int64.Type}, {\"day_of_week_num\", Int64.Type}, {\"day_name\", type text}, {\"is_weekend\", type logical}, {\"academic_period\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "dataCategory": "Time",
+        "lineageTag": "b81f90a4-93e9-8668-3353-0fda23975c45"
+      },
+      {
+        "name": "dim_devices",
+        "columns": [
+          {
+            "name": "device_id",
+            "dataType": "string",
+            "sourceColumn": "device_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "125c9495-06b9-e17a-1b12-2a46104c516b"
+          },
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "7eb706ad-678a-b2e1-36da-b9a1b07ad3fb"
+          },
+          {
+            "name": "device_type",
+            "dataType": "string",
+            "sourceColumn": "device_type",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "5a819cc0-2be5-95bf-c541-788e6b335eff"
+          },
+          {
+            "name": "brand",
+            "dataType": "string",
+            "sourceColumn": "brand",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "dbcf402b-2bdc-7412-bee5-ab90beb7ba77"
+          },
+          {
+            "name": "model",
+            "dataType": "string",
+            "sourceColumn": "model",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "dbf3ad62-b925-bc1a-2d19-f8f54701c139"
+          },
+          {
+            "name": "operating_system",
+            "dataType": "string",
+            "sourceColumn": "operating_system",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "8e934d02-4792-39ab-b5e9-c881a9852aec"
+          },
+          {
+            "name": "is_primary_device",
+            "dataType": "boolean",
+            "sourceColumn": "is_primary_device",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "8bc2ac9b-ac00-6d49-1bb5-f6d2b6ab93ee"
+          },
+          {
+            "name": "mobile_advertising_id",
+            "dataType": "string",
+            "sourceColumn": "mobile_advertising_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "isHidden": true,
+            "lineageTag": "5fdd81f3-0f28-9a6e-52db-4314fe6cbe72"
+          },
+          {
+            "name": "ad_tracking_allowed",
+            "dataType": "boolean",
+            "sourceColumn": "ad_tracking_allowed",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "b5ecff82-df43-b13e-6962-dc304e785029"
+          },
+          {
+            "name": "avg_daily_pickups",
+            "dataType": "int64",
+            "sourceColumn": "avg_daily_pickups",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "6a84b01b-8b14-ddd0-13b8-4fd09de1037d"
+          },
+          {
+            "name": "pct_time_on_wifi",
+            "dataType": "int64",
+            "sourceColumn": "pct_time_on_wifi",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "66c3200e-445b-8715-77ad-581e928147d7"
+          },
+          {
+            "name": "carrier",
+            "dataType": "string",
+            "sourceColumn": "carrier",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "c30c9b5f-7ea5-85fd-86b0-5504c3928f69"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_devices",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_devices.csv\"), [Delimiter=\",\", Columns=12, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"device_id\", type text}, {\"user_id\", type text}, {\"device_type\", type text}, {\"brand\", type text}, {\"model\", type text}, {\"operating_system\", type text}, {\"is_primary_device\", type logical}, {\"mobile_advertising_id\", type text}, {\"ad_tracking_allowed\", type logical}, {\"avg_daily_pickups\", Int64.Type}, {\"pct_time_on_wifi\", Int64.Type}, {\"carrier\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Devices",
+            "expression": "COUNTROWS ( dim_devices )",
+            "formatString": "#,0",
+            "description": "Devices in the selection.",
+            "lineageTag": "12addce9-3a06-ea29-b9c6-0cb7b611cf0e"
+          },
+          {
+            "name": "% Ad Tracking Allowed",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( dim_devices ), dim_devices[ad_tracking_allowed] = TRUE ), CALCULATE ( COUNTROWS ( dim_devices ), dim_devices[device_type] = \"Smartphone\" ) )",
+            "formatString": "0.0%",
+            "description": "Phones allowing cross-app tracking (iOS asks, Android defaults on).",
+            "lineageTag": "7878b4d2-08e9-59c7-82e9-70ff2993b958"
+          },
+          {
+            "name": "Avg Daily Pickups",
+            "expression": "AVERAGE ( dim_devices[avg_daily_pickups] )",
+            "formatString": "#,0",
+            "description": "Times per day the phone is picked up.",
+            "lineageTag": "119a48b4-d258-401d-aff5-c2200b44f5b8"
+          },
+          {
+            "name": "Avg % Time on WiFi",
+            "expression": "DIVIDE ( AVERAGE ( dim_devices[pct_time_on_wifi] ), 100 )",
+            "formatString": "0%",
+            "description": "Share of usage on Wi-Fi rather than cellular.",
+            "lineageTag": "036b1d6b-cd8e-00f6-cab2-d9867acb3bd9"
+          }
+        ],
+        "lineageTag": "1d105cca-f5f3-e659-8e56-86c362aed192"
+      },
+      {
+        "name": "dim_interests",
+        "columns": [
+          {
+            "name": "interest_id",
+            "dataType": "string",
+            "sourceColumn": "interest_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "2fce96e4-73db-3b22-7371-3938787b9a10"
+          },
+          {
+            "name": "interest_name",
+            "dataType": "string",
+            "sourceColumn": "interest_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "becec07b-7542-0497-60c5-93244f154150"
+          },
+          {
+            "name": "interest_category",
+            "dataType": "string",
+            "sourceColumn": "interest_category",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "abe16f3b-3465-7578-60b7-f70ab553edc0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_interests",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_interests.csv\"), [Delimiter=\",\", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"interest_id\", type text}, {\"interest_name\", type text}, {\"interest_category\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "lineageTag": "e3c0c028-678c-2937-6683-34fbe54aecc3"
+      },
+      {
+        "name": "dim_platform_profiles",
+        "columns": [
+          {
+            "name": "profile_id",
+            "dataType": "string",
+            "sourceColumn": "profile_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "9e3a4e26-4a2d-0120-236b-0d2c34ba15d3"
+          },
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "bc0078a4-7c19-96ad-e410-2c1be209e923"
+          },
+          {
+            "name": "platform",
+            "dataType": "string",
+            "sourceColumn": "platform",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "2514af9b-d90c-4eae-c2f5-9ca183533495"
+          },
+          {
+            "name": "handle",
+            "dataType": "string",
+            "sourceColumn": "handle",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "abf62ae6-eeed-278f-7103-433e344d0949"
+          },
+          {
+            "name": "account_age_months",
+            "dataType": "int64",
+            "sourceColumn": "account_age_months",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "ac938ac6-5097-1c15-8803-2d09c13c95f1"
+          },
+          {
+            "name": "follower_count",
+            "dataType": "int64",
+            "sourceColumn": "follower_count",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "053a4ce1-4517-2006-6a15-519da75f54b7"
+          },
+          {
+            "name": "following_count",
+            "dataType": "int64",
+            "sourceColumn": "following_count",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "f46c591e-f11d-e5b5-e5a0-736028e6bee4"
+          },
+          {
+            "name": "engagement_rate_pct",
+            "dataType": "double",
+            "sourceColumn": "engagement_rate_pct",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "96da2c07-089e-3f96-079c-bc013d8ffb2e"
+          },
+          {
+            "name": "posts_per_week",
+            "dataType": "double",
+            "sourceColumn": "posts_per_week",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "f1903c8d-aefd-4abd-faa0-84bec5b54915"
+          },
+          {
+            "name": "avg_daily_minutes",
+            "dataType": "double",
+            "sourceColumn": "avg_daily_minutes",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "3c990733-cd6e-7b12-189e-6690d55af9cb"
+          },
+          {
+            "name": "primary_usage_daypart",
+            "dataType": "string",
+            "sourceColumn": "primary_usage_daypart",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "dec092b0-ca73-1dc0-f683-9467cfe8b887"
+          },
+          {
+            "name": "is_private_account",
+            "dataType": "boolean",
+            "sourceColumn": "is_private_account",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "d45dfdfb-4e8e-e411-cbc4-866360955375"
+          },
+          {
+            "name": "verified",
+            "dataType": "boolean",
+            "sourceColumn": "verified",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "f2fc501b-d685-4d4d-b2c2-7fddb3b9a632"
+          },
+          {
+            "name": "ad_personalization_enabled",
+            "dataType": "boolean",
+            "sourceColumn": "ad_personalization_enabled",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "d2f9048e-e5fd-da8c-312f-f0dbb2a3dbc9"
+          },
+          {
+            "name": "location_sharing_enabled",
+            "dataType": "boolean",
+            "sourceColumn": "location_sharing_enabled",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "d529da58-a0c4-9575-c9c3-1ee0edfa009a"
+          },
+          {
+            "name": "contacts_synced",
+            "dataType": "boolean",
+            "sourceColumn": "contacts_synced",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "f97181a8-f5d8-844e-dd28-0629919d3a58"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_platform_profiles",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_platform_profiles.csv\"), [Delimiter=\",\", Columns=16, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"profile_id\", type text}, {\"user_id\", type text}, {\"platform\", type text}, {\"handle\", type text}, {\"account_age_months\", Int64.Type}, {\"follower_count\", Int64.Type}, {\"following_count\", Int64.Type}, {\"engagement_rate_pct\", type number}, {\"posts_per_week\", type number}, {\"avg_daily_minutes\", type number}, {\"primary_usage_daypart\", type text}, {\"is_private_account\", type logical}, {\"verified\", type logical}, {\"ad_personalization_enabled\", type logical}, {\"location_sharing_enabled\", type logical}, {\"contacts_synced\", type logical}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Accounts",
+            "expression": "COUNTROWS ( dim_platform_profiles )",
+            "formatString": "#,0",
+            "description": "Social accounts held.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "90707bab-c5a9-2d00-7c61-f74e2e61a385"
+          },
+          {
+            "name": "Platforms per Student",
+            "expression": "DIVIDE ( COUNTROWS ( dim_platform_profiles ), DISTINCTCOUNT ( dim_platform_profiles[user_id] ) )",
+            "formatString": "#,0.00",
+            "description": "Average number of platforms each student is on.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "6d536fd7-5f4e-3345-c3d0-807f2eaf8a87"
+          },
+          {
+            "name": "Adoption %",
+            "expression": "DIVIDE ( DISTINCTCOUNT ( dim_platform_profiles[user_id] ), [Panel Size] )",
+            "formatString": "0.0%",
+            "description": "Share of the panel with an account here.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "7f7b32e1-2e78-bc50-161f-1de1a7bc5de2"
+          },
+          {
+            "name": "Total Followers",
+            "expression": "SUM ( dim_platform_profiles[follower_count] )",
+            "formatString": "#,0",
+            "description": "Combined follower count.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "ed5f0029-55fe-56a3-1ff2-b062dcfde1b7"
+          },
+          {
+            "name": "Avg Followers",
+            "expression": "AVERAGE ( dim_platform_profiles[follower_count] )",
+            "formatString": "#,0",
+            "description": "Average followers per account.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "6bf3bd38-6d0d-fe8d-8ca6-740c3ae07fef"
+          },
+          {
+            "name": "Median Followers",
+            "expression": "MEDIAN ( dim_platform_profiles[follower_count] )",
+            "formatString": "#,0",
+            "description": "Median followers - far below the average, because a few accounts are huge.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "11b28e6b-b010-53f0-5091-d53f0bf1d1de"
+          },
+          {
+            "name": "Avg Posts per Week",
+            "expression": "AVERAGE ( dim_platform_profiles[posts_per_week] )",
+            "formatString": "#,0.0",
+            "description": "Average posting frequency.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "2b985308-3ad0-cf8e-88fa-534f1179806a"
+          },
+          {
+            "name": "Avg Engagement Rate %",
+            "expression": "DIVIDE ( AVERAGE ( dim_platform_profiles[engagement_rate_pct] ), 100 )",
+            "formatString": "0.00%",
+            "description": "Engagements per follower per post - it falls as follower count rises.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "d5fcc886-ecda-c396-b964-75c2ef625c03"
+          },
+          {
+            "name": "% Ads Personalization On",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( dim_platform_profiles ), dim_platform_profiles[ad_personalization_enabled] = TRUE ), COUNTROWS ( dim_platform_profiles ) )",
+            "formatString": "0.0%",
+            "description": "Accounts that left personalized advertising switched on.",
+            "displayFolder": "2 Privacy settings",
+            "lineageTag": "731f36fc-a428-0e9f-d70e-70b03339f627"
+          },
+          {
+            "name": "% Location Sharing On",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( dim_platform_profiles ), dim_platform_profiles[location_sharing_enabled] = TRUE ), COUNTROWS ( dim_platform_profiles ) )",
+            "formatString": "0.0%",
+            "description": "Accounts sharing precise location with the app.",
+            "displayFolder": "2 Privacy settings",
+            "lineageTag": "0bab6f0c-c58d-0a05-cce9-0a4dc7a85440"
+          },
+          {
+            "name": "% Contacts Uploaded",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( dim_platform_profiles ), dim_platform_profiles[contacts_synced] = TRUE ), COUNTROWS ( dim_platform_profiles ) )",
+            "formatString": "0.0%",
+            "description": "Accounts that uploaded their phone contact list.",
+            "displayFolder": "2 Privacy settings",
+            "lineageTag": "1f2aafe3-63a8-ae63-fa78-689856a9eca9"
+          },
+          {
+            "name": "% Private Accounts",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( dim_platform_profiles ), dim_platform_profiles[is_private_account] = TRUE ), COUNTROWS ( dim_platform_profiles ) )",
+            "formatString": "0.0%",
+            "description": "Accounts set to private.",
+            "displayFolder": "2 Privacy settings",
+            "lineageTag": "977f7dde-9642-1440-8fda-42371ce143b2"
+          },
+          {
+            "name": "Micro-Influencers",
+            "expression": "CALCULATE ( DISTINCTCOUNT ( dim_platform_profiles[user_id] ), dim_platform_profiles[follower_count] >= 8000 )",
+            "formatString": "#,0",
+            "description": "Students with at least 8,000 followers somewhere.",
+            "displayFolder": "1 Reach",
+            "lineageTag": "aff7bf2b-4179-8d45-f7d0-ec7d4e3af567"
+          }
+        ],
+        "lineageTag": "a73c80cd-1d37-b04a-e95a-861848d0c545"
+      },
+      {
+        "name": "dim_platforms",
+        "columns": [
+          {
+            "name": "platform",
+            "dataType": "string",
+            "sourceColumn": "platform",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "e589a24d-7b0e-6982-e996-dbda8730d0e1"
+          },
+          {
+            "name": "parent_company",
+            "dataType": "string",
+            "sourceColumn": "parent_company",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "6ebd6d67-21f7-f87a-b629-811ccc3268bc"
+          },
+          {
+            "name": "headquarters",
+            "dataType": "string",
+            "sourceColumn": "headquarters",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "31b04a61-a94a-382c-2a0e-1f7068ffb5a7"
+          },
+          {
+            "name": "year_launched",
+            "dataType": "int64",
+            "sourceColumn": "year_launched",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "6b25b376-8df5-a4ea-4d85-5c34b23be660"
+          },
+          {
+            "name": "primary_content_format",
+            "dataType": "string",
+            "sourceColumn": "primary_content_format",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "98831b45-3a8e-d405-d04c-41cfc0b67001"
+          },
+          {
+            "name": "privacy_policy_url",
+            "dataType": "string",
+            "sourceColumn": "privacy_policy_url",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "WebUrl",
+            "lineageTag": "718e84f8-226a-df38-1452-dd632cfb2c6c"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_platforms",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_platforms.csv\"), [Delimiter=\",\", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"platform\", type text}, {\"parent_company\", type text}, {\"headquarters\", type text}, {\"year_launched\", Int64.Type}, {\"primary_content_format\", type text}, {\"privacy_policy_url\", type text}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "lineageTag": "69d130f2-7129-6885-e8da-4b9a336a1b72"
+      },
+      {
+        "name": "dim_psychographics",
+        "columns": [
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "51ed87b3-89d2-e40b-4888-df193f6b6f9b"
+          },
+          {
+            "name": "openness",
+            "dataType": "int64",
+            "sourceColumn": "openness",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "f11b5104-d455-8172-28cd-d1c75f658c16"
+          },
+          {
+            "name": "conscientiousness",
+            "dataType": "int64",
+            "sourceColumn": "conscientiousness",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "96ec9999-8e09-2968-3317-f4523bb64a07"
+          },
+          {
+            "name": "extraversion",
+            "dataType": "int64",
+            "sourceColumn": "extraversion",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "17fa6483-639c-5523-b01a-945dccc1fe0a"
+          },
+          {
+            "name": "agreeableness",
+            "dataType": "int64",
+            "sourceColumn": "agreeableness",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "8892e812-f666-c677-434a-1ace9a99c5f5"
+          },
+          {
+            "name": "neuroticism",
+            "dataType": "int64",
+            "sourceColumn": "neuroticism",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "29e8121d-2d57-1406-f284-3238a2224299"
+          },
+          {
+            "name": "chronotype",
+            "dataType": "string",
+            "sourceColumn": "chronotype",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "16a94867-9694-6f18-3ee5-18d9a76fc4d4"
+          },
+          {
+            "name": "attention_span_score",
+            "dataType": "int64",
+            "sourceColumn": "attention_span_score",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "90db4216-4542-9d88-d23a-12a85e8a423c"
+          },
+          {
+            "name": "impulse_buying_score",
+            "dataType": "int64",
+            "sourceColumn": "impulse_buying_score",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "3cbcd3a4-c708-0fde-62c4-e265ab54ae84"
+          },
+          {
+            "name": "social_influence_score",
+            "dataType": "int64",
+            "sourceColumn": "social_influence_score",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "3619f81d-f98b-21ef-15ca-b961152481b0"
+          },
+          {
+            "name": "content_creator_level",
+            "dataType": "string",
+            "sourceColumn": "content_creator_level",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "6129127f-300a-c937-be7a-bdbf6d6839fc"
+          },
+          {
+            "name": "values_segment",
+            "dataType": "string",
+            "sourceColumn": "values_segment",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "b5a07c39-11ea-3b7b-a107-253e3f1387cd"
+          },
+          {
+            "name": "inferred_political_lean",
+            "dataType": "string",
+            "sourceColumn": "inferred_political_lean",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "9081cb14-e246-b316-7c5c-504029f82cbf"
+          },
+          {
+            "name": "political_lean_confidence",
+            "dataType": "double",
+            "sourceColumn": "political_lean_confidence",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "d1da3358-8f5f-f125-d058-25dd83e42086"
+          },
+          {
+            "name": "intent_new_phone",
+            "dataType": "boolean",
+            "sourceColumn": "intent_new_phone",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "2015154c-f151-2944-6fae-f911d6f43fc8"
+          },
+          {
+            "name": "intent_travel_6mo",
+            "dataType": "boolean",
+            "sourceColumn": "intent_travel_6mo",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "f732a5a5-e330-1c1d-4974-99e6e3387884"
+          },
+          {
+            "name": "intent_meal_delivery",
+            "dataType": "boolean",
+            "sourceColumn": "intent_meal_delivery",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "183fcc2b-958d-55fa-06bd-d929efc5436d"
+          },
+          {
+            "name": "intent_gym_membership",
+            "dataType": "boolean",
+            "sourceColumn": "intent_gym_membership",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "29089177-7c2f-f8fd-0551-f36ae07d2fde"
+          },
+          {
+            "name": "intent_credit_card",
+            "dataType": "boolean",
+            "sourceColumn": "intent_credit_card",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "eb5f71bd-75b2-4e59-f1b3-5a93f0f87c80"
+          },
+          {
+            "name": "recently_moved",
+            "dataType": "boolean",
+            "sourceColumn": "recently_moved",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "2fd212c3-814c-8cbd-ea09-c998580c760b"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_psychographics",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_psychographics.csv\"), [Delimiter=\",\", Columns=20, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"user_id\", type text}, {\"openness\", Int64.Type}, {\"conscientiousness\", Int64.Type}, {\"extraversion\", Int64.Type}, {\"agreeableness\", Int64.Type}, {\"neuroticism\", Int64.Type}, {\"chronotype\", type text}, {\"attention_span_score\", Int64.Type}, {\"impulse_buying_score\", Int64.Type}, {\"social_influence_score\", Int64.Type}, {\"content_creator_level\", type text}, {\"values_segment\", type text}, {\"inferred_political_lean\", type text}, {\"political_lean_confidence\", type number}, {\"intent_new_phone\", type logical}, {\"intent_travel_6mo\", type logical}, {\"intent_meal_delivery\", type logical}, {\"intent_gym_membership\", type logical}, {\"intent_credit_card\", type logical}, {\"recently_moved\", type logical}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Avg Impulse Buying Score",
+            "expression": "AVERAGE ( dim_psychographics[impulse_buying_score] )",
+            "formatString": "#,0.0",
+            "description": "Modeled tendency to buy on impulse.",
+            "lineageTag": "0036927f-146a-d795-f911-3b4c19fd9d1e"
+          },
+          {
+            "name": "Avg Social Influence Score",
+            "expression": "AVERAGE ( dim_psychographics[social_influence_score] )",
+            "formatString": "#,0.0",
+            "description": "Modeled sway over the student's own network.",
+            "lineageTag": "dfa1d2ac-7560-407b-e51e-ca8ddab60f90"
+          },
+          {
+            "name": "Avg Attention Span Score",
+            "expression": "AVERAGE ( dim_psychographics[attention_span_score] )",
+            "formatString": "#,0.0",
+            "description": "Modeled attention span.",
+            "lineageTag": "f7e64b99-8a8f-089c-21bd-51cdcd614aaf"
+          },
+          {
+            "name": "Avg Openness",
+            "expression": "AVERAGE ( dim_psychographics[openness] )",
+            "formatString": "#,0.0",
+            "description": "Big Five openness.",
+            "displayFolder": "Big Five",
+            "lineageTag": "3093317c-5a79-3c94-d55b-a476be3971b2"
+          },
+          {
+            "name": "Avg Conscientiousness",
+            "expression": "AVERAGE ( dim_psychographics[conscientiousness] )",
+            "formatString": "#,0.0",
+            "description": "Big Five conscientiousness.",
+            "displayFolder": "Big Five",
+            "lineageTag": "400b0071-8f82-1f1a-3703-d649b877933c"
+          },
+          {
+            "name": "Avg Extraversion",
+            "expression": "AVERAGE ( dim_psychographics[extraversion] )",
+            "formatString": "#,0.0",
+            "description": "Big Five extraversion.",
+            "displayFolder": "Big Five",
+            "lineageTag": "800a265a-35fc-f421-24f2-bab592f95eb9"
+          },
+          {
+            "name": "Avg Agreeableness",
+            "expression": "AVERAGE ( dim_psychographics[agreeableness] )",
+            "formatString": "#,0.0",
+            "description": "Big Five agreeableness.",
+            "displayFolder": "Big Five",
+            "lineageTag": "184bd826-95ee-da29-8dd3-f6447887ee8d"
+          },
+          {
+            "name": "Avg Neuroticism",
+            "expression": "AVERAGE ( dim_psychographics[neuroticism] )",
+            "formatString": "#,0.0",
+            "description": "Big Five neuroticism.",
+            "displayFolder": "Big Five",
+            "lineageTag": "b6740f4b-6954-0c68-f671-18c9fec11d30"
+          },
+          {
+            "name": "% Political Lean Inferred",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( dim_psychographics ), dim_psychographics[inferred_political_lean] <> \"Not inferred\" ), COUNTROWS ( dim_psychographics ) )",
+            "formatString": "0.0%",
+            "description": "Share of students given a political label they never volunteered.",
+            "lineageTag": "7a7cb07b-747e-c7c7-e2a8-dad661d96e80"
+          },
+          {
+            "name": "Avg Political Lean Confidence",
+            "expression": "CALCULATE ( AVERAGE ( dim_psychographics[political_lean_confidence] ), dim_psychographics[inferred_political_lean] <> \"Not inferred\" )",
+            "formatString": "0.00",
+            "description": "Model confidence where a political label was assigned.",
+            "lineageTag": "833458ac-cd62-55b5-2e0d-7d75bcbc5a5d"
+          },
+          {
+            "name": "In-Market Students",
+            "expression": "CALCULATE ( COUNTROWS ( dim_psychographics ), FILTER ( dim_psychographics, dim_psychographics[intent_new_phone] = TRUE || dim_psychographics[intent_travel_6mo] = TRUE || dim_psychographics[intent_meal_delivery] = TRUE || dim_psychographics[intent_gym_membership] = TRUE || dim_psychographics[intent_credit_card] = TRUE ) )",
+            "formatString": "#,0",
+            "description": "Students flagged as in-market for at least one product category.",
+            "lineageTag": "fd943c8c-a5ce-30b8-4367-7bd0b0c52ae8"
+          }
+        ],
+        "lineageTag": "44c3afd6-9494-c51a-0344-92a8f4f1fc27"
+      },
+      {
+        "name": "dim_segments",
+        "columns": [
+          {
+            "name": "segment_id",
+            "dataType": "string",
+            "sourceColumn": "segment_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "3778154c-43ac-0fd1-3d26-c314b419bdb9"
+          },
+          {
+            "name": "segment_name",
+            "dataType": "string",
+            "sourceColumn": "segment_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "07c6b02d-4a2b-b493-68bd-1bc0dfdebdbc"
+          },
+          {
+            "name": "tagline",
+            "dataType": "string",
+            "sourceColumn": "tagline",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "d76c8c6f-c7b8-871a-ead2-7daf97446b55"
+          },
+          {
+            "name": "membership_rule",
+            "dataType": "string",
+            "sourceColumn": "membership_rule",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "2c4bf13b-8716-e030-4422-44edddf4d590"
+          },
+          {
+            "name": "member_count",
+            "dataType": "int64",
+            "sourceColumn": "member_count",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "da6d1e4b-a035-2ab9-f9e4-e91bb9471f97"
+          },
+          {
+            "name": "avg_match_strength",
+            "dataType": "double",
+            "sourceColumn": "avg_match_strength",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "a3d56aa0-1acb-e71f-1b3a-563c02871bc6"
+          },
+          {
+            "name": "top_platform",
+            "dataType": "string",
+            "sourceColumn": "top_platform",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "5c6886e5-28ce-3fad-2c70-5af496f97451"
+          },
+          {
+            "name": "suggested_cpm_usd",
+            "dataType": "double",
+            "sourceColumn": "suggested_cpm_usd",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "09fad769-2c8d-4f6d-cf9f-d61d37751331"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_segments",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_segments.csv\"), [Delimiter=\",\", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"segment_id\", type text}, {\"segment_name\", type text}, {\"tagline\", type text}, {\"membership_rule\", type text}, {\"member_count\", Int64.Type}, {\"avg_match_strength\", type number}, {\"top_platform\", type text}, {\"suggested_cpm_usd\", type number}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Segments",
+            "expression": "COUNTROWS ( dim_segments )",
+            "formatString": "#,0",
+            "description": "Packaged audiences.",
+            "lineageTag": "f533f746-2961-840b-838f-30672fa7ca41"
+          },
+          {
+            "name": "Avg Suggested CPM",
+            "expression": "AVERAGE ( dim_segments[suggested_cpm_usd] )",
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00",
+            "description": "Average rate card price per 1,000 impressions.",
+            "lineageTag": "a594bb38-43e7-31c6-2410-e6891dca96b7"
+          },
+          {
+            "name": "Segment List Value",
+            "expression": "SUMX ( dim_segments, dim_segments[member_count] * dim_segments[suggested_cpm_usd] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0",
+            "description": "Rate-card value of the audience: members x CPM.",
+            "lineageTag": "1c9cc58c-87d6-c2ba-607e-8d834b5bfc83"
+          }
+        ],
+        "lineageTag": "dd7fc506-b486-b19f-400e-6200adc259ce"
+      },
+      {
+        "name": "dim_users",
+        "columns": [
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "30ed5761-7878-df05-e158-74c5609b4bd6"
+          },
+          {
+            "name": "first_name",
+            "dataType": "string",
+            "sourceColumn": "first_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "6c39d684-1c12-6b73-b6c2-97305def6840"
+          },
+          {
+            "name": "last_name",
+            "dataType": "string",
+            "sourceColumn": "last_name",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "82ff5bb5-c963-1e69-cab6-b9287e9e6153"
+          },
+          {
+            "name": "gender",
+            "dataType": "string",
+            "sourceColumn": "gender",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "65715b08-b6d6-bf73-1ca9-f77fcc82fe64"
+          },
+          {
+            "name": "age",
+            "dataType": "int64",
+            "sourceColumn": "age",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "7a7780ec-c2b4-90f1-19c0-9f85fb136bcd"
+          },
+          {
+            "name": "birth_date",
+            "dataType": "dateTime",
+            "sourceColumn": "birth_date",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "yyyy-mm-dd",
+            "lineageTag": "dc22aae6-169e-5656-dbaa-bbf01d19e9de"
+          },
+          {
+            "name": "email",
+            "dataType": "string",
+            "sourceColumn": "email",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "isHidden": true,
+            "lineageTag": "828062ad-6659-3cbb-6db8-45d695d5f247"
+          },
+          {
+            "name": "phone",
+            "dataType": "string",
+            "sourceColumn": "phone",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "isHidden": true,
+            "lineageTag": "773d4050-2319-1c8c-b483-ec4ab771cc82"
+          },
+          {
+            "name": "hashed_email",
+            "dataType": "string",
+            "sourceColumn": "hashed_email",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "isHidden": true,
+            "lineageTag": "abc26fe1-9a10-2edd-2d03-00eb9947b12d"
+          },
+          {
+            "name": "university",
+            "dataType": "string",
+            "sourceColumn": "university",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "56d9ecb8-c12a-1a83-00da-5aef1851d254"
+          },
+          {
+            "name": "campus_city",
+            "dataType": "string",
+            "sourceColumn": "campus_city",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "City",
+            "lineageTag": "dfb44b81-d9a0-594c-d2b8-cf5fe2f05f97"
+          },
+          {
+            "name": "campus_state",
+            "dataType": "string",
+            "sourceColumn": "campus_state",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "StateOrProvince",
+            "lineageTag": "3710bb57-d5d4-9b48-d596-38c9a34c2b45"
+          },
+          {
+            "name": "campus_lat",
+            "dataType": "double",
+            "sourceColumn": "campus_lat",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "dataCategory": "Latitude",
+            "lineageTag": "726aee48-992d-497e-09ab-42e6ce8cb8cb"
+          },
+          {
+            "name": "campus_lon",
+            "dataType": "double",
+            "sourceColumn": "campus_lon",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "dataCategory": "Longitude",
+            "lineageTag": "ea9bf96d-e52b-8fc1-a0bd-7acd2216c835"
+          },
+          {
+            "name": "housing_type",
+            "dataType": "string",
+            "sourceColumn": "housing_type",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "7c093dfb-3dcd-b740-f7e0-cd0c87111f6b"
+          },
+          {
+            "name": "class_year",
+            "dataType": "string",
+            "sourceColumn": "class_year",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "a9cde88a-c4b9-2d17-cc7d-9e3e4110fdb7"
+          },
+          {
+            "name": "major",
+            "dataType": "string",
+            "sourceColumn": "major",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "83ba8a53-92d6-d98d-6c8f-cb791b106f08"
+          },
+          {
+            "name": "hometown_city",
+            "dataType": "string",
+            "sourceColumn": "hometown_city",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "City",
+            "lineageTag": "d1bc889f-2564-b660-51d5-8466719c56a4"
+          },
+          {
+            "name": "hometown_state",
+            "dataType": "string",
+            "sourceColumn": "hometown_state",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "dataCategory": "StateOrProvince",
+            "lineageTag": "363d094a-87e4-4c23-d9f4-8240a8748be4"
+          },
+          {
+            "name": "hometown_lat",
+            "dataType": "double",
+            "sourceColumn": "hometown_lat",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "dataCategory": "Latitude",
+            "lineageTag": "0e061847-c19d-e726-428c-e48601511edf"
+          },
+          {
+            "name": "hometown_lon",
+            "dataType": "double",
+            "sourceColumn": "hometown_lon",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "dataCategory": "Longitude",
+            "lineageTag": "1088ce3d-ac50-f9b8-8f3c-5712bec9def9"
+          },
+          {
+            "name": "relationship_status",
+            "dataType": "string",
+            "sourceColumn": "relationship_status",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "429ada55-6294-54c6-9492-d64a823e2898"
+          },
+          {
+            "name": "has_part_time_job",
+            "dataType": "boolean",
+            "sourceColumn": "has_part_time_job",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "dd4124c9-7cff-cd10-fcfd-e1a0e0386c90"
+          },
+          {
+            "name": "est_monthly_discretionary_spend_usd",
+            "dataType": "int64",
+            "sourceColumn": "est_monthly_discretionary_spend_usd",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "3ae9ba2a-14a4-e566-205e-8cc27440841d"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "dim_users",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"dim_users.csv\"), [Delimiter=\",\", Columns=24, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"user_id\", type text}, {\"first_name\", type text}, {\"last_name\", type text}, {\"gender\", type text}, {\"age\", Int64.Type}, {\"birth_date\", type date}, {\"email\", type text}, {\"phone\", type text}, {\"hashed_email\", type text}, {\"university\", type text}, {\"campus_city\", type text}, {\"campus_state\", type text}, {\"campus_lat\", type number}, {\"campus_lon\", type number}, {\"housing_type\", type text}, {\"class_year\", type text}, {\"major\", type text}, {\"hometown_city\", type text}, {\"hometown_state\", type text}, {\"hometown_lat\", type number}, {\"hometown_lon\", type number}, {\"relationship_status\", type text}, {\"has_part_time_job\", type logical}, {\"est_monthly_discretionary_spend_usd\", Int64.Type}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Panel Size",
+            "expression": "DISTINCTCOUNT ( dim_users[user_id] )",
+            "formatString": "#,0",
+            "description": "Students in the research panel.",
+            "lineageTag": "f8b46971-ffdd-7e8f-1eff-a0b92eab3dc9"
+          },
+          {
+            "name": "Avg Age",
+            "expression": "AVERAGE ( dim_users[age] )",
+            "formatString": "#,0.0",
+            "description": "Average age.",
+            "lineageTag": "df9c3877-8507-1223-b2b9-734acc22bca8"
+          },
+          {
+            "name": "Avg Discretionary Spend",
+            "expression": "AVERAGE ( dim_users[est_monthly_discretionary_spend_usd] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0",
+            "description": "Modeled monthly spending power.",
+            "lineageTag": "5488412e-8900-a6b8-12ff-2de11d4f6ecc"
+          },
+          {
+            "name": "Total Discretionary Spend",
+            "expression": "SUM ( dim_users[est_monthly_discretionary_spend_usd] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0",
+            "description": "Combined monthly spending power of the selection.",
+            "lineageTag": "bbeb9a90-f9ae-9e3a-4919-31d1106a4a5a"
+          },
+          {
+            "name": "% With Part-Time Job",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( dim_users ), dim_users[has_part_time_job] = TRUE ), COUNTROWS ( dim_users ) )",
+            "formatString": "0.0%",
+            "description": "Share holding a part-time job.",
+            "lineageTag": "f9b72c1e-6738-b920-fafd-6263f166c757"
+          },
+          {
+            "name": "Universities",
+            "expression": "DISTINCTCOUNT ( dim_users[university] )",
+            "formatString": "#,0",
+            "description": "Campuses represented.",
+            "lineageTag": "15f1324d-709a-43c1-8f8c-b3913e175aa9"
+          }
+        ],
+        "lineageTag": "13dd412c-acb7-43f7-9509-bb5b9485a6d0"
+      },
+      {
+        "name": "fact_ad_exposures",
+        "columns": [
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "eb02f163-3df2-58eb-b1c4-dab45ee28afc"
+          },
+          {
+            "name": "campaign_id",
+            "dataType": "string",
+            "sourceColumn": "campaign_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "0e598665-3d2a-d047-fe53-b4e4fca5cd29"
+          },
+          {
+            "name": "platform",
+            "dataType": "string",
+            "sourceColumn": "platform",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "37ef6800-5d8d-bd63-d636-1fd6ce9fb98a"
+          },
+          {
+            "name": "impressions",
+            "dataType": "int64",
+            "sourceColumn": "impressions",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "fb274f2b-c371-c967-a7a3-0739d3d56d78"
+          },
+          {
+            "name": "clicks",
+            "dataType": "int64",
+            "sourceColumn": "clicks",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "b4b4866a-1cf0-c96a-9baf-fdf54d2d558e"
+          },
+          {
+            "name": "video_completions",
+            "dataType": "int64",
+            "sourceColumn": "video_completions",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "0e75efff-9a07-f10c-d350-680d0c0e3144"
+          },
+          {
+            "name": "conversions",
+            "dataType": "int64",
+            "sourceColumn": "conversions",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "127023db-4bd2-802d-52aa-1e696994b8bc"
+          },
+          {
+            "name": "first_exposure_date",
+            "dataType": "dateTime",
+            "sourceColumn": "first_exposure_date",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "yyyy-mm-dd",
+            "lineageTag": "529cbf40-283b-ca31-d23f-d833597ffead"
+          },
+          {
+            "name": "last_exposure_date",
+            "dataType": "dateTime",
+            "sourceColumn": "last_exposure_date",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "yyyy-mm-dd",
+            "lineageTag": "fb622349-df7c-61ac-4385-f8a2e6716383"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_ad_exposures",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"fact_ad_exposures.csv\"), [Delimiter=\",\", Columns=9, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"user_id\", type text}, {\"campaign_id\", type text}, {\"platform\", type text}, {\"impressions\", Int64.Type}, {\"clicks\", Int64.Type}, {\"video_completions\", Int64.Type}, {\"conversions\", Int64.Type}, {\"first_exposure_date\", type date}, {\"last_exposure_date\", type date}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Panel Reach",
+            "expression": "DISTINCTCOUNT ( fact_ad_exposures[user_id] )",
+            "formatString": "#,0",
+            "description": "Panel members who saw the campaign at least once.",
+            "lineageTag": "b969136c-efbd-3364-c011-7480c9948417"
+          },
+          {
+            "name": "Panel Impressions",
+            "expression": "SUM ( fact_ad_exposures[impressions] )",
+            "formatString": "#,0",
+            "description": "Impressions measured on the research panel.",
+            "lineageTag": "45b7db83-b928-a797-f8bc-fa77ac2a5fd9"
+          },
+          {
+            "name": "Avg Frequency",
+            "expression": "DIVIDE ( [Panel Impressions], [Panel Reach] )",
+            "formatString": "#,0.0",
+            "description": "Average times one person saw the campaign.",
+            "lineageTag": "5f3f0369-b7bd-4863-3e04-9fdfe26b9d7a"
+          },
+          {
+            "name": "Panel Converters",
+            "expression": "CALCULATE ( DISTINCTCOUNT ( fact_ad_exposures[user_id] ), fact_ad_exposures[conversions] > 0 )",
+            "formatString": "#,0",
+            "description": "Panel members who converted.",
+            "lineageTag": "0ffcfd53-8e46-938e-e231-093409b9849b"
+          },
+          {
+            "name": "Panel Conversion Rate %",
+            "expression": "DIVIDE ( [Panel Converters], [Panel Reach] )",
+            "formatString": "0.0%",
+            "description": "Share of reached panel members who converted.",
+            "lineageTag": "d55f6eba-798e-e9b8-c098-155edbd77eb5"
+          },
+          {
+            "name": "Reach %",
+            "expression": "DIVIDE ( [Panel Reach], [Panel Size] )",
+            "formatString": "0.0%",
+            "description": "Share of the whole panel this campaign reached.",
+            "lineageTag": "5cf12671-21ca-7201-28cb-edcc4249e17e"
+          }
+        ],
+        "lineageTag": "ff623bd1-a9fe-f677-429d-0d8801d1334d"
+      },
+      {
+        "name": "fact_campaign_daily",
+        "columns": [
+          {
+            "name": "activity_date",
+            "dataType": "dateTime",
+            "sourceColumn": "activity_date",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "yyyy-mm-dd",
+            "lineageTag": "3c2c2302-b955-d6eb-9a4b-8b5c98ae8be0"
+          },
+          {
+            "name": "campaign_id",
+            "dataType": "string",
+            "sourceColumn": "campaign_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "5e46c934-f086-a8ae-50b8-c25e91f07511"
+          },
+          {
+            "name": "platform",
+            "dataType": "string",
+            "sourceColumn": "platform",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "adbf1b9d-c123-cf2c-014a-4ea8b0c6f787"
+          },
+          {
+            "name": "impressions",
+            "dataType": "int64",
+            "sourceColumn": "impressions",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "2795e5a5-6754-855e-df53-f5232aa16184"
+          },
+          {
+            "name": "clicks",
+            "dataType": "int64",
+            "sourceColumn": "clicks",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "cc80feae-3f95-427d-8685-2f052bda7a50"
+          },
+          {
+            "name": "video_completions",
+            "dataType": "int64",
+            "sourceColumn": "video_completions",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "c8eb42c6-0d49-73fb-e438-73212e6dc069"
+          },
+          {
+            "name": "conversions",
+            "dataType": "int64",
+            "sourceColumn": "conversions",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "00ebd9f3-2bda-325f-1996-fa0dca72ce79"
+          },
+          {
+            "name": "spend_usd",
+            "dataType": "double",
+            "sourceColumn": "spend_usd",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "1ba03853-82fd-86e1-785d-231d4358e6e3"
+          },
+          {
+            "name": "revenue_usd",
+            "dataType": "double",
+            "sourceColumn": "revenue_usd",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "42f65c4e-7294-83f3-f502-f8874fda2f16"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_campaign_daily",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"fact_campaign_daily.csv\"), [Delimiter=\",\", Columns=9, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"activity_date\", type date}, {\"campaign_id\", type text}, {\"platform\", type text}, {\"impressions\", Int64.Type}, {\"clicks\", Int64.Type}, {\"video_completions\", Int64.Type}, {\"conversions\", Int64.Type}, {\"spend_usd\", type number}, {\"revenue_usd\", type number}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Impressions",
+            "expression": "SUM ( fact_campaign_daily[impressions] )",
+            "formatString": "#,0",
+            "description": "Ad impressions delivered.",
+            "displayFolder": "1 Delivery",
+            "lineageTag": "6074d23a-7aea-3da4-3837-7b2e6481b4d0"
+          },
+          {
+            "name": "Clicks",
+            "expression": "SUM ( fact_campaign_daily[clicks] )",
+            "formatString": "#,0",
+            "description": "Ad clicks.",
+            "displayFolder": "1 Delivery",
+            "lineageTag": "c10caaaf-2d88-b33c-80e3-17ddeb5606b3"
+          },
+          {
+            "name": "Campaign Video Completions",
+            "expression": "SUM ( fact_campaign_daily[video_completions] )",
+            "formatString": "#,0",
+            "description": "Campaign videos watched to the end.",
+            "displayFolder": "1 Delivery",
+            "lineageTag": "4a24a7d2-cec3-3bf2-ad5c-09a17ddee252"
+          },
+          {
+            "name": "Conversions",
+            "expression": "SUM ( fact_campaign_daily[conversions] )",
+            "formatString": "#,0",
+            "description": "Purchases or installs attributed to the campaign.",
+            "displayFolder": "1 Delivery",
+            "lineageTag": "5482012d-1c6f-7a34-9e59-665079e2cf64"
+          },
+          {
+            "name": "Spend",
+            "expression": "SUM ( fact_campaign_daily[spend_usd] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0",
+            "description": "Media spend delivered.",
+            "displayFolder": "2 Money",
+            "lineageTag": "3c7a67b7-f6f7-c2f0-666f-fce1a45f377c"
+          },
+          {
+            "name": "Revenue",
+            "expression": "SUM ( fact_campaign_daily[revenue_usd] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0",
+            "description": "Revenue attributed to the campaign.",
+            "displayFolder": "2 Money",
+            "lineageTag": "4c5010e9-5bb9-fef6-688d-839648430d14"
+          },
+          {
+            "name": "Profit",
+            "expression": "[Revenue] - [Spend]",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0",
+            "description": "Attributed revenue minus media spend.",
+            "displayFolder": "2 Money",
+            "lineageTag": "7924c4fc-96e8-18f9-d6aa-faa24a6115bb"
+          },
+          {
+            "name": "ROAS",
+            "expression": "DIVIDE ( [Revenue], [Spend] )",
+            "formatString": "#,0.00",
+            "description": "Return on ad spend: revenue per dollar spent.",
+            "displayFolder": "2 Money",
+            "lineageTag": "d67e00bf-bc15-0719-a802-75c0408c48ee"
+          },
+          {
+            "name": "CTR %",
+            "expression": "DIVIDE ( [Clicks], [Impressions] )",
+            "formatString": "0.00%",
+            "description": "Campaign click-through rate.",
+            "displayFolder": "3 Efficiency",
+            "lineageTag": "70b46082-7b8e-9446-73cd-a6976348a7c2"
+          },
+          {
+            "name": "CPM",
+            "expression": "DIVIDE ( [Spend] * 1000, [Impressions] )",
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00",
+            "description": "Cost per 1,000 impressions.",
+            "displayFolder": "3 Efficiency",
+            "lineageTag": "a7f501cb-c708-c1d9-c46e-591cfb121f3d"
+          },
+          {
+            "name": "CPC",
+            "expression": "DIVIDE ( [Spend], [Clicks] )",
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00",
+            "description": "Cost per click.",
+            "displayFolder": "3 Efficiency",
+            "lineageTag": "bd84cfaa-2226-ec97-57ba-845da8833290"
+          },
+          {
+            "name": "CPA",
+            "expression": "DIVIDE ( [Spend], [Conversions] )",
+            "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00",
+            "description": "Cost per acquisition.",
+            "displayFolder": "3 Efficiency",
+            "lineageTag": "56890c67-4ac9-770f-c606-b87283842a62"
+          },
+          {
+            "name": "Conversion Rate %",
+            "expression": "DIVIDE ( [Conversions], [Clicks] )",
+            "formatString": "0.0%",
+            "description": "Share of clicks that convert.",
+            "displayFolder": "3 Efficiency",
+            "lineageTag": "4c81602e-b5bf-58b0-8edd-341086f607e5"
+          },
+          {
+            "name": "Campaign Video Completion Rate %",
+            "expression": "DIVIDE ( [Campaign Video Completions], [Impressions] )",
+            "formatString": "0.0%",
+            "description": "Share of impressions watched to the end.",
+            "displayFolder": "3 Efficiency",
+            "lineageTag": "9b07b408-27c2-64eb-651f-ac865873376d"
+          },
+          {
+            "name": "Budget",
+            "expression": "SUM ( dim_campaigns[total_budget_usd] )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0",
+            "description": "Budget committed by the advertiser.",
+            "displayFolder": "2 Money",
+            "lineageTag": "c19af5fa-c5e1-6668-37f6-ec373ac319c9"
+          },
+          {
+            "name": "Budget Used %",
+            "expression": "DIVIDE ( [Spend], [Budget] )",
+            "formatString": "0.0%",
+            "description": "Share of committed budget actually delivered.",
+            "displayFolder": "2 Money",
+            "lineageTag": "fd7e45ce-73af-e837-03a5-336eb2dfbbce"
+          },
+          {
+            "name": "Spend Running Total",
+            "expression": "CALCULATE ( [Spend], FILTER ( ALLSELECTED ( dim_date[date] ), dim_date[date] <= MAX ( dim_date[date] ) ) )",
+            "formatString": "\\$#,0;(\\$#,0);\\$#,0",
+            "description": "Cumulative spend across the selected period.",
+            "displayFolder": "2 Money",
+            "lineageTag": "c160e0b2-88b0-0be0-6d95-e94c38492ba7"
+          },
+          {
+            "name": "Conversions Running Total",
+            "expression": "CALCULATE ( [Conversions], FILTER ( ALLSELECTED ( dim_date[date] ), dim_date[date] <= MAX ( dim_date[date] ) ) )",
+            "formatString": "#,0",
+            "description": "Cumulative conversions across the selected period.",
+            "displayFolder": "1 Delivery",
+            "lineageTag": "25955eea-9f20-e4f8-cce6-d72a707c4d49"
+          }
+        ],
+        "lineageTag": "09b5c021-7260-1fe0-31bc-48794bdbe1cb"
+      },
+      {
+        "name": "fact_connections",
+        "columns": [
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "967b20db-dcf3-0d04-9c28-94610a396fb8"
+          },
+          {
+            "name": "connected_user_id",
+            "dataType": "string",
+            "sourceColumn": "connected_user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "8aeef415-d12a-1f6b-b63e-d7ea881ea4fb"
+          },
+          {
+            "name": "platform",
+            "dataType": "string",
+            "sourceColumn": "platform",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "02d85b0e-2d2c-b592-9511-761437e548e9"
+          },
+          {
+            "name": "connection_type",
+            "dataType": "string",
+            "sourceColumn": "connection_type",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "4ba4f8fe-b4bf-6e7e-894b-72fb44082649"
+          },
+          {
+            "name": "interaction_strength",
+            "dataType": "double",
+            "sourceColumn": "interaction_strength",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "80146b65-7e54-6498-48e8-deb1d13c2bfd"
+          },
+          {
+            "name": "same_university",
+            "dataType": "boolean",
+            "sourceColumn": "same_university",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "84b74aa0-1ecb-daec-1884-24bbb0698eb0"
+          },
+          {
+            "name": "shared_top_interest",
+            "dataType": "boolean",
+            "sourceColumn": "shared_top_interest",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "f5765c42-9a6f-1af4-f037-ab0320b84f94"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_connections",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"fact_connections.csv\"), [Delimiter=\",\", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"user_id\", type text}, {\"connected_user_id\", type text}, {\"platform\", type text}, {\"connection_type\", type text}, {\"interaction_strength\", type number}, {\"same_university\", type logical}, {\"shared_top_interest\", type logical}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Friendships",
+            "expression": "DIVIDE ( COUNTROWS ( fact_connections ), 2 )",
+            "formatString": "#,0",
+            "description": "Unique friendships (each edge is stored in both directions).",
+            "lineageTag": "51b9253d-3cc4-bcbf-ceab-5e343eaa021c"
+          },
+          {
+            "name": "Connections",
+            "expression": "COUNTROWS ( fact_connections )",
+            "formatString": "#,0",
+            "description": "Directed connection rows.",
+            "lineageTag": "794fe166-e7e0-e212-cc8d-9f7980447fd7"
+          },
+          {
+            "name": "Avg Connections per Student",
+            "expression": "DIVIDE ( COUNTROWS ( fact_connections ), DISTINCTCOUNT ( fact_connections[user_id] ) )",
+            "formatString": "#,0.0",
+            "description": "Average network size.",
+            "lineageTag": "f4a8198a-1e44-573f-a7f2-e3361af36524"
+          },
+          {
+            "name": "% Same University",
+            "expression": "DIVIDE ( CALCULATE ( COUNTROWS ( fact_connections ), fact_connections[same_university] = TRUE ), COUNTROWS ( fact_connections ) )",
+            "formatString": "0.0%",
+            "description": "Share of friendships that are same-campus (homophily).",
+            "lineageTag": "2c68fad1-c5e7-d672-1e18-c58b443aed34"
+          },
+          {
+            "name": "Avg Interaction Strength",
+            "expression": "AVERAGE ( fact_connections[interaction_strength] )",
+            "formatString": "#,0.000",
+            "description": "How often connected students actually interact.",
+            "lineageTag": "14f13da6-5891-72a3-75e2-c482f0e8718c"
+          }
+        ],
+        "lineageTag": "a7a5e8e0-7f5d-852f-a36a-adf10eba351f"
+      },
+      {
+        "name": "fact_engagement_daily",
+        "columns": [
+          {
+            "name": "activity_date",
+            "dataType": "dateTime",
+            "sourceColumn": "activity_date",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "yyyy-mm-dd",
+            "lineageTag": "1c10b71f-d66e-7b3e-7452-65ab3adbd369"
+          },
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "98c9c73a-f59d-3936-b3b2-6d6059d9151d"
+          },
+          {
+            "name": "platform",
+            "dataType": "string",
+            "sourceColumn": "platform",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "bfce7325-6b35-6cf4-cbb4-5e1cd1dd2c34"
+          },
+          {
+            "name": "active_minutes",
+            "dataType": "int64",
+            "sourceColumn": "active_minutes",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "1a8afdd4-89d7-ff1a-0769-5c4e911a9cd6"
+          },
+          {
+            "name": "sessions",
+            "dataType": "int64",
+            "sourceColumn": "sessions",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "87d8b1c8-256a-295f-e9de-aef086adf53c"
+          },
+          {
+            "name": "posts_viewed",
+            "dataType": "int64",
+            "sourceColumn": "posts_viewed",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "c3388b3a-2e60-3b47-4157-517f40464fda"
+          },
+          {
+            "name": "videos_viewed",
+            "dataType": "int64",
+            "sourceColumn": "videos_viewed",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "58e13c0f-81c5-48a0-b10a-cf9c8f1b1e82"
+          },
+          {
+            "name": "avg_video_completion_pct",
+            "dataType": "double",
+            "sourceColumn": "avg_video_completion_pct",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "cdc2909b-77af-051e-2a40-193df240bc8f"
+          },
+          {
+            "name": "videos_forwarded",
+            "dataType": "int64",
+            "sourceColumn": "videos_forwarded",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "db7a37ab-3ef9-2e22-da91-99896c65ac47"
+          },
+          {
+            "name": "likes_given",
+            "dataType": "int64",
+            "sourceColumn": "likes_given",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "0a7023c7-de8e-56f5-0844-2b9ee3341d59"
+          },
+          {
+            "name": "comments_written",
+            "dataType": "int64",
+            "sourceColumn": "comments_written",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "caeb772d-950a-058b-3ef4-2d89af0360ea"
+          },
+          {
+            "name": "posts_created",
+            "dataType": "int64",
+            "sourceColumn": "posts_created",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "fd727d17-49a9-5ea7-e7f5-154df6d0291d"
+          },
+          {
+            "name": "stories_viewed",
+            "dataType": "int64",
+            "sourceColumn": "stories_viewed",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "6891f910-18e2-8baa-9df3-874393e80cd3"
+          },
+          {
+            "name": "ads_seen",
+            "dataType": "int64",
+            "sourceColumn": "ads_seen",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "26f16fc8-151f-5524-68f3-dcf5fb2cd6bb"
+          },
+          {
+            "name": "ads_clicked",
+            "dataType": "int64",
+            "sourceColumn": "ads_clicked",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "c865ae91-4596-7091-6e1b-ff632239b305"
+          },
+          {
+            "name": "late_night_minutes",
+            "dataType": "int64",
+            "sourceColumn": "late_night_minutes",
+            "summarizeBy": "sum",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "1364016f-4d88-2af6-fe2f-eb29de820dff"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_engagement_daily",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"fact_engagement_daily.csv\"), [Delimiter=\",\", Columns=16, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"activity_date\", type date}, {\"user_id\", type text}, {\"platform\", type text}, {\"active_minutes\", Int64.Type}, {\"sessions\", Int64.Type}, {\"posts_viewed\", Int64.Type}, {\"videos_viewed\", Int64.Type}, {\"avg_video_completion_pct\", type number}, {\"videos_forwarded\", Int64.Type}, {\"likes_given\", Int64.Type}, {\"comments_written\", Int64.Type}, {\"posts_created\", Int64.Type}, {\"stories_viewed\", Int64.Type}, {\"ads_seen\", Int64.Type}, {\"ads_clicked\", Int64.Type}, {\"late_night_minutes\", Int64.Type}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Total Minutes",
+            "expression": "SUM ( fact_engagement_daily[active_minutes] )",
+            "formatString": "#,0",
+            "description": "Total minutes spent in social apps.",
+            "displayFolder": "1 Volume",
+            "lineageTag": "90e08c83-0270-97bf-143f-69c931e6a457"
+          },
+          {
+            "name": "Total Hours",
+            "expression": "DIVIDE ( [Total Minutes], 60 )",
+            "formatString": "#,0",
+            "description": "Total minutes expressed in hours.",
+            "displayFolder": "1 Volume",
+            "lineageTag": "3d522160-552d-0817-dbdf-0501c0dbc36d"
+          },
+          {
+            "name": "Active Students",
+            "expression": "DISTINCTCOUNT ( fact_engagement_daily[user_id] )",
+            "formatString": "#,0",
+            "description": "Distinct students with activity in the selected period.",
+            "displayFolder": "1 Volume",
+            "lineageTag": "d0ad155c-00c0-e97e-5406-e5b47d3295fa"
+          },
+          {
+            "name": "Active Days",
+            "expression": "COUNTROWS ( fact_engagement_daily )",
+            "formatString": "#,0",
+            "description": "User-platform-days recorded.",
+            "displayFolder": "1 Volume",
+            "lineageTag": "18a18023-18c6-2e7e-3aca-1e0ae05874f0"
+          },
+          {
+            "name": "Avg Minutes per Student per Day",
+            "expression": "DIVIDE ( [Total Minutes], [Active Days] )",
+            "formatString": "#,0.0",
+            "description": "Average minutes on one platform on one active day.",
+            "displayFolder": "2 Rates",
+            "lineageTag": "ec6ddcd9-9f95-fd02-703c-b20277109295"
+          },
+          {
+            "name": "Avg Daily Minutes per Student",
+            "expression": "DIVIDE ( [Total Minutes], DISTINCTCOUNT ( fact_engagement_daily[activity_date] ) * [Active Students] )",
+            "formatString": "#,0.0",
+            "description": "Average total minutes per student per calendar day, all platforms.",
+            "displayFolder": "2 Rates",
+            "lineageTag": "15a138a5-6341-c1f9-46c0-23e2677d5ae5"
+          },
+          {
+            "name": "Sessions",
+            "expression": "SUM ( fact_engagement_daily[sessions] )",
+            "formatString": "#,0",
+            "description": "App opens.",
+            "displayFolder": "1 Volume",
+            "lineageTag": "4d5ab5bf-efb2-4a8e-9346-1b09fc902c0f"
+          },
+          {
+            "name": "Avg Session Length",
+            "expression": "DIVIDE ( [Total Minutes], [Sessions] )",
+            "formatString": "#,0.0",
+            "description": "Average minutes per app session.",
+            "displayFolder": "2 Rates",
+            "lineageTag": "c36ca946-9092-eea7-da5f-59785c5a5dfa"
+          },
+          {
+            "name": "Posts Viewed",
+            "expression": "SUM ( fact_engagement_daily[posts_viewed] )",
+            "formatString": "#,0",
+            "description": "Pieces of content served.",
+            "displayFolder": "1 Volume",
+            "lineageTag": "eb2d6ee6-9a00-8d30-0b72-482527098db6"
+          },
+          {
+            "name": "Videos Viewed",
+            "expression": "SUM ( fact_engagement_daily[videos_viewed] )",
+            "formatString": "#,0",
+            "description": "Videos served.",
+            "displayFolder": "3 Video",
+            "lineageTag": "173d93e9-dab7-5e0b-47df-8ccde1a44628"
+          },
+          {
+            "name": "Video Completion %",
+            "expression": "DIVIDE ( SUMX ( fact_engagement_daily, fact_engagement_daily[videos_viewed] * fact_engagement_daily[avg_video_completion_pct] ), [Videos Viewed] * 100 )",
+            "formatString": "0.0%",
+            "description": "Average share of each video watched, weighted by videos viewed.",
+            "displayFolder": "3 Video",
+            "lineageTag": "71497fa3-8bb0-ddb7-551a-ebf74a9b4c30"
+          },
+          {
+            "name": "Videos Forwarded",
+            "expression": "SUM ( fact_engagement_daily[videos_forwarded] )",
+            "formatString": "#,0",
+            "description": "Videos shared or forwarded to someone else.",
+            "displayFolder": "3 Video",
+            "lineageTag": "620faa3b-422a-af23-5044-c232782eab43"
+          },
+          {
+            "name": "Forward Rate per 1K Videos",
+            "expression": "DIVIDE ( [Videos Forwarded], [Videos Viewed] ) * 1000",
+            "formatString": "#,0.0",
+            "description": "Videos forwarded for every 1,000 videos watched.",
+            "displayFolder": "3 Video",
+            "lineageTag": "48b2deb8-c4d0-ed5d-472b-bc88189f4dc2"
+          },
+          {
+            "name": "Forward Rate %",
+            "expression": "DIVIDE ( [Videos Forwarded], [Videos Viewed] )",
+            "formatString": "0.00%",
+            "description": "Share of watched videos that get forwarded.",
+            "displayFolder": "3 Video",
+            "lineageTag": "5cee3e66-b42f-6c8b-2ac8-23699c55e91f"
+          },
+          {
+            "name": "Likes Given",
+            "expression": "SUM ( fact_engagement_daily[likes_given] )",
+            "formatString": "#,0",
+            "description": "Likes and reactions given.",
+            "displayFolder": "4 Interaction",
+            "lineageTag": "6990fdd4-133a-342c-4caa-4f5d06fe9736"
+          },
+          {
+            "name": "Comments Written",
+            "expression": "SUM ( fact_engagement_daily[comments_written] )",
+            "formatString": "#,0",
+            "description": "Comments posted.",
+            "displayFolder": "4 Interaction",
+            "lineageTag": "199e2246-493f-e913-e663-5c4431a667d2"
+          },
+          {
+            "name": "Posts Created",
+            "expression": "SUM ( fact_engagement_daily[posts_created] )",
+            "formatString": "#,0",
+            "description": "Original posts published.",
+            "displayFolder": "4 Interaction",
+            "lineageTag": "2e9d172f-7fae-c1af-d10e-f42e5fb5b7cf"
+          },
+          {
+            "name": "Stories Viewed",
+            "expression": "SUM ( fact_engagement_daily[stories_viewed] )",
+            "formatString": "#,0",
+            "description": "Stories viewed (zero on platforms without stories).",
+            "displayFolder": "4 Interaction",
+            "lineageTag": "b8900c2d-1cc3-6023-8a5e-486c1650814d"
+          },
+          {
+            "name": "Interaction Rate %",
+            "expression": "DIVIDE ( [Likes Given] + [Comments Written], [Posts Viewed] )",
+            "formatString": "0.0%",
+            "description": "Share of served content the student reacts to.",
+            "displayFolder": "4 Interaction",
+            "lineageTag": "b06cd1fe-2c06-004d-ceba-c9cbf8f3c748"
+          },
+          {
+            "name": "Ads Seen",
+            "expression": "SUM ( fact_engagement_daily[ads_seen] )",
+            "formatString": "#,0",
+            "description": "Ads served by all advertisers, not just CampusPulse campaigns.",
+            "displayFolder": "5 Advertising",
+            "lineageTag": "eb74cb5d-1708-98f9-42e7-5c072cba8434"
+          },
+          {
+            "name": "Ads Clicked",
+            "expression": "SUM ( fact_engagement_daily[ads_clicked] )",
+            "formatString": "#,0",
+            "description": "Ads clicked.",
+            "displayFolder": "5 Advertising",
+            "lineageTag": "b60793d0-0cdd-7262-e797-e38b7decb43e"
+          },
+          {
+            "name": "Ad CTR %",
+            "expression": "DIVIDE ( [Ads Clicked], [Ads Seen] )",
+            "formatString": "0.00%",
+            "description": "Click-through rate across all ads served.",
+            "displayFolder": "5 Advertising",
+            "lineageTag": "139480ff-23c0-63d9-5f32-4383d4baf4a5"
+          },
+          {
+            "name": "Ads Seen per Day",
+            "expression": "DIVIDE ( [Ads Seen], [Active Days] )",
+            "formatString": "#,0.0",
+            "description": "Ads served per student per active day.",
+            "displayFolder": "5 Advertising",
+            "lineageTag": "612b7b6f-a1ac-953a-ff3b-bf3a6076d999"
+          },
+          {
+            "name": "Late Night Minutes",
+            "expression": "SUM ( fact_engagement_daily[late_night_minutes] )",
+            "formatString": "#,0",
+            "description": "Minutes between 10 p.m. and 2 a.m.",
+            "displayFolder": "6 Late night",
+            "lineageTag": "ddb54af9-f42a-f0e1-9e7f-dbade691267d"
+          },
+          {
+            "name": "Late-Night Share %",
+            "expression": "DIVIDE ( [Late Night Minutes], [Total Minutes] )",
+            "formatString": "0.0%",
+            "description": "Share of all screen time that happens late at night.",
+            "displayFolder": "6 Late night",
+            "lineageTag": "83e648e4-eef4-31f6-052b-19d06f74038a"
+          }
+        ],
+        "lineageTag": "007dec1b-8410-9e17-bbea-28f298a9b800"
+      },
+      {
+        "name": "fact_hourly_usage",
+        "columns": [
+          {
+            "name": "user_id",
+            "dataType": "string",
+            "sourceColumn": "user_id",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "cb43a9ff-89cb-9406-a478-3c81209e2d04"
+          },
+          {
+            "name": "day_type",
+            "dataType": "string",
+            "sourceColumn": "day_type",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "lineageTag": "e3ed921c-20e2-b159-07cb-15a502fb42df"
+          },
+          {
+            "name": "hour_of_day",
+            "dataType": "int64",
+            "sourceColumn": "hour_of_day",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0",
+            "lineageTag": "7d6d77ab-a2c3-cafd-63a6-a34e23e6cd0c"
+          },
+          {
+            "name": "avg_minutes",
+            "dataType": "double",
+            "sourceColumn": "avg_minutes",
+            "summarizeBy": "none",
+            "annotations": [
+              {
+                "name": "SummarizationSetBy",
+                "value": "Automatic"
+              }
+            ],
+            "formatString": "#,0.00",
+            "lineageTag": "3246cec9-1ba7-941e-3527-347fc3e531e0"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "fact_hourly_usage",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(DataFile(\"fact_hourly_usage.csv\"), [Delimiter=\",\", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),",
+                "    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
+                "    Typed = Table.TransformColumnTypes(Headers, {{\"user_id\", type text}, {\"day_type\", type text}, {\"hour_of_day\", Int64.Type}, {\"avg_minutes\", type number}}, \"en-US\")",
+                "in",
+                "    Typed"
+              ]
+            }
+          }
+        ],
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Table"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Avg Minutes in Hour",
+            "expression": "SUM ( fact_hourly_usage[avg_minutes] )",
+            "formatString": "#,0.0",
+            "description": "Typical minutes online in the selected hour(s).",
+            "lineageTag": "47ccd8f2-be2f-1fca-5c14-5661f8415670"
+          },
+          {
+            "name": "Avg Minutes per Student in Hour",
+            "expression": "DIVIDE ( SUM ( fact_hourly_usage[avg_minutes] ), DISTINCTCOUNT ( fact_hourly_usage[user_id] ) )",
+            "formatString": "#,0.00",
+            "description": "Per-student minutes in the selected hour(s).",
+            "lineageTag": "8600ad8f-5e63-5819-85d4-cdbbb56a85c6"
+          }
+        ],
+        "lineageTag": "7bd7776f-4e78-99fe-77fe-ddcce2bd78b9"
+      }
+    ],
+    "relationships": [
+      {
+        "name": "85f1eb5e-03a2-2feb-36d8-59608ec9227a",
+        "fromTable": "fact_engagement_daily",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id"
+      },
+      {
+        "name": "b1eafadd-a9bf-510d-4b35-4cb6bdd5897e",
+        "fromTable": "fact_engagement_daily",
+        "fromColumn": "platform",
+        "toTable": "dim_platforms",
+        "toColumn": "platform"
+      },
+      {
+        "name": "eb9f5a7c-40d6-5f99-acc3-fcb9a9c83e26",
+        "fromTable": "fact_engagement_daily",
+        "fromColumn": "activity_date",
+        "toTable": "dim_date",
+        "toColumn": "date"
+      },
+      {
+        "name": "5ff8fa2d-bc05-0f49-7357-14166a71d149",
+        "fromTable": "fact_hourly_usage",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id"
+      },
+      {
+        "name": "3dbfd0b5-7551-a783-a704-921dd8894f3b",
+        "fromTable": "fact_ad_exposures",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id"
+      },
+      {
+        "name": "eb0b23af-ee6a-0bcb-2806-82dceba2abd9",
+        "fromTable": "fact_ad_exposures",
+        "fromColumn": "campaign_id",
+        "toTable": "dim_campaigns",
+        "toColumn": "campaign_id"
+      },
+      {
+        "name": "5fafc359-0ed3-4b68-d733-defde0662a37",
+        "fromTable": "fact_ad_exposures",
+        "fromColumn": "platform",
+        "toTable": "dim_platforms",
+        "toColumn": "platform"
+      },
+      {
+        "name": "25249262-d4ee-cc0c-056b-dba95e466d06",
+        "fromTable": "fact_campaign_daily",
+        "fromColumn": "campaign_id",
+        "toTable": "dim_campaigns",
+        "toColumn": "campaign_id"
+      },
+      {
+        "name": "24a92767-bc26-c262-45ec-8c0fd2221535",
+        "fromTable": "fact_campaign_daily",
+        "fromColumn": "platform",
+        "toTable": "dim_platforms",
+        "toColumn": "platform"
+      },
+      {
+        "name": "b02c2898-1953-f023-2f48-34d4172f5cbd",
+        "fromTable": "fact_campaign_daily",
+        "fromColumn": "activity_date",
+        "toTable": "dim_date",
+        "toColumn": "date"
+      },
+      {
+        "name": "7820a4d1-649b-2118-a933-eaa4982a9094",
+        "fromTable": "fact_connections",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id"
+      },
+      {
+        "name": "9f04314d-aa12-34b1-953b-ce7af88a5240",
+        "fromTable": "fact_connections",
+        "fromColumn": "platform",
+        "toTable": "dim_platforms",
+        "toColumn": "platform"
+      },
+      {
+        "name": "527a7705-fb74-bcc5-ddec-cb03e63948b9",
+        "fromTable": "dim_platform_profiles",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id"
+      },
+      {
+        "name": "b3c12d10-d179-3c7d-c84a-96fc3c8c7b39",
+        "fromTable": "dim_platform_profiles",
+        "fromColumn": "platform",
+        "toTable": "dim_platforms",
+        "toColumn": "platform"
+      },
+      {
+        "name": "ee598ad1-7d8d-0b68-2813-6000aa2e490f",
+        "fromTable": "dim_psychographics",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id",
+        "fromCardinality": "one",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "bothDirections"
+      },
+      {
+        "name": "34d99f7b-1900-200d-c7f5-0cb58bbce8ca",
+        "fromTable": "dim_devices",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id",
+        "crossFilteringBehavior": "bothDirections"
+      },
+      {
+        "name": "b3936680-62ea-b26b-5197-1b64d55cb53f",
+        "fromTable": "bridge_user_segments",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id",
+        "crossFilteringBehavior": "bothDirections"
+      },
+      {
+        "name": "902750ce-3515-17f1-5de8-d794682cadbf",
+        "fromTable": "bridge_user_segments",
+        "fromColumn": "segment_id",
+        "toTable": "dim_segments",
+        "toColumn": "segment_id"
+      },
+      {
+        "name": "395c4e04-03b7-5146-d73c-47b611037eb1",
+        "fromTable": "bridge_user_interests",
+        "fromColumn": "user_id",
+        "toTable": "dim_users",
+        "toColumn": "user_id",
+        "crossFilteringBehavior": "bothDirections"
+      },
+      {
+        "name": "61fb090b-43f6-5c73-f108-937fc134bcb2",
+        "fromTable": "bridge_user_interests",
+        "fromColumn": "interest_id",
+        "toTable": "dim_interests",
+        "toColumn": "interest_id"
+      }
+    ],
+    "expressions": [
+      {
+        "name": "DataFolder",
+        "kind": "m",
+        "expression": "\"C:\\CampusPulse\\data\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "description": "Folder holding the CampusPulse CSV files. Set this once, then refresh.",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Text"
+          }
+        ],
+        "lineageTag": "a24d0aad-e819-5dc5-1432-ac4f61770656"
+      },
+      {
+        "name": "DataFile",
+        "kind": "m",
+        "expression": [
+          "let",
+          "    Fn = (fileName as text) as binary =>",
+          "        let",
+          "            Sep = if Text.EndsWith(DataFolder, \"\\\") or Text.EndsWith(DataFolder, \"/\") then \"\" else \"\\\",",
+          "            Path = DataFolder & Sep & fileName",
+          "        in",
+          "            File.Contents(Path)",
+          "in",
+          "    Fn"
+        ],
+        "description": "Reads one CSV from DataFolder, with or without a trailing slash.",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Function"
+          }
+        ],
+        "lineageTag": "88b6a740-1eff-53c6-c734-2644c787de27"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "PBI_QueryOrder",
+        "value": "[\"DataFolder\",\"DataFile\",\"bridge_user_interests\",\"bridge_user_segments\",\"data_dictionary\",\"dim_campaigns\",\"dim_date\",\"dim_devices\",\"dim_interests\",\"dim_platform_profiles\",\"dim_platforms\",\"dim_psychographics\",\"dim_segments\",\"dim_users\",\"fact_ad_exposures\",\"fact_campaign_daily\",\"fact_connections\",\"fact_engagement_daily\",\"fact_hourly_usage\"]"
+      },
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      }
+    ]
+  }
+}
