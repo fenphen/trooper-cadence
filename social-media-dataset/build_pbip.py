@@ -12,6 +12,7 @@ Stdlib only. Deterministic. Every JSON file is written UTF-8 without BOM,
 which Power BI requires for externally edited PBIP files.
 """
 
+import argparse
 import hashlib
 import json
 import os
@@ -25,6 +26,7 @@ import pbip_theme
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "powerbi")
 PROJECT = "CampusPulse"
+DEFAULT_DATA_FOLDER = r"C:\CampusPulse\data"
 BASE_THEME = "CY24SU10"
 
 SCHEMA = "https://developer.microsoft.com/json-schemas/fabric/"
@@ -70,16 +72,18 @@ def find_base_theme():
     return None
 
 
-def main():
-    if os.path.isdir(OUT):
-        shutil.rmtree(OUT)
+def main(out=OUT, data_folder=DEFAULT_DATA_FOLDER):
+    global written
+    written = []
+    if os.path.isdir(out):
+        shutil.rmtree(out)
 
-    report_dir = os.path.join(OUT, f"{PROJECT}.Report")
-    model_dir = os.path.join(OUT, f"{PROJECT}.SemanticModel")
+    report_dir = os.path.join(out, f"{PROJECT}.Report")
+    model_dir = os.path.join(out, f"{PROJECT}.SemanticModel")
 
     # ---------------------------------------------------------- semantic model
     print("Building semantic model...")
-    model = pbip_model.build_model()
+    model = pbip_model.build_model(default_folder=data_folder)
     # Power BI writes currency masks with an escaped dollar and a negative /
     # zero branch; match that so numbers format the same as a native report.
     for t in model["model"]["tables"]:
@@ -156,18 +160,24 @@ def main():
               "Power BI will fall back to its built-in copy")
 
     # ------------------------------------------------------------- project file
-    wjson(os.path.join(OUT, f"{PROJECT}.pbip"),
+    wjson(os.path.join(out, f"{PROJECT}.pbip"),
           {"$schema": S_PBIP, "version": "1.0",
            "artifacts": [{"report": {"path": f"{PROJECT}.Report"}}],
            "settings": {"enableAutoRecovery": True}})
 
-    with open(os.path.join(OUT, ".gitignore"), "w", encoding="utf-8",
+    with open(os.path.join(out, ".gitignore"), "w", encoding="utf-8",
               newline="\n") as f:
         f.write("**/.pbi/localSettings.json\n**/.pbi/cache.abf\n")
 
     total = sum(os.path.getsize(p) for p in written)
-    print(f"\nWrote {len(written)} files ({total/1024:.0f} KB) to {OUT}")
+    print(f"\nWrote {len(written)} files ({total/1024:.0f} KB) to {out}")
+    print(f"  DataFolder default: {data_folder}")
 
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--out", default=OUT, help="output folder for the project")
+    ap.add_argument("--data-folder", default=DEFAULT_DATA_FOLDER,
+                    help="default value baked into the DataFolder parameter")
+    a = ap.parse_args()
+    main(a.out, a.data_folder)
