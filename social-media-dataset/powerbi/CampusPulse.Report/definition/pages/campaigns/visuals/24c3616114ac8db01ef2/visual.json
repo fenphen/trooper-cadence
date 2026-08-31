@@ -23,11 +23,11 @@
                       "Entity": "fact_campaign_daily"
                     }
                   },
-                  "Property": "Conversions"
+                  "Property": "Total Conversions"
                 }
               },
-              "queryRef": "fact_campaign_daily.Conversions",
-              "nativeQueryRef": "Conversions"
+              "queryRef": "fact_campaign_daily.Total Conversions",
+              "nativeQueryRef": "Total Conversions"
             }
           ]
         },

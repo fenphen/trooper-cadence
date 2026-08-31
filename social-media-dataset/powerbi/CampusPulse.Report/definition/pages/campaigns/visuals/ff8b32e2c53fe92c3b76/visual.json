@@ -41,11 +41,11 @@
                       "Entity": "fact_campaign_daily"
                     }
                   },
-                  "Property": "Impressions"
+                  "Property": "Total Impressions"
                 }
               },
-              "queryRef": "fact_campaign_daily.Impressions",
-              "nativeQueryRef": "Impressions"
+              "queryRef": "fact_campaign_daily.Total Impressions",
+              "nativeQueryRef": "Total Impressions"
             }
           ]
         }

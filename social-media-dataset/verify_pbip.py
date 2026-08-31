@@ -46,6 +46,16 @@ def main():
                   f"duplicate measure name {meas['name']}")
             measures[meas["name"]] = t["name"]
 
+    # ---- 0. a measure may not share a name with a column on its own table --
+    # Tabular compares case-insensitively and refuses to create the model,
+    # so e.g. an "Impressions" measure beside an "impressions" column is fatal.
+    for t in m["tables"]:
+        cols_ci = {c["name"].lower() for c in t["columns"]}
+        for meas in t.get("measures", []):
+            check(meas["name"].lower() not in cols_ci,
+                  f"{t['name']}: measure '{meas['name']}' collides with a "
+                  f"column of the same name (case-insensitive)")
+
     # ---- 1. measure DAX only references things that exist ------------------
     for t in m["tables"]:
         for meas in t.get("measures", []):

@@ -2808,20 +2808,20 @@
         ],
         "measures": [
           {
-            "name": "Impressions",
+            "name": "Total Impressions",
             "expression": "SUM ( fact_campaign_daily[impressions] )",
             "formatString": "#,0",
             "description": "Ad impressions delivered.",
             "displayFolder": "1 Delivery",
-            "lineageTag": "6074d23a-7aea-3da4-3837-7b2e6481b4d0"
+            "lineageTag": "d0702776-390d-c852-e128-cf7ce3146722"
           },
           {
-            "name": "Clicks",
+            "name": "Total Clicks",
             "expression": "SUM ( fact_campaign_daily[clicks] )",
             "formatString": "#,0",
             "description": "Ad clicks.",
             "displayFolder": "1 Delivery",
-            "lineageTag": "c10caaaf-2d88-b33c-80e3-17ddeb5606b3"
+            "lineageTag": "4f8b174b-84f8-49f7-13db-76e5ff7cb628"
           },
           {
             "name": "Campaign Video Completions",
@@ -2832,12 +2832,12 @@
             "lineageTag": "4a24a7d2-cec3-3bf2-ad5c-09a17ddee252"
           },
           {
-            "name": "Conversions",
+            "name": "Total Conversions",
             "expression": "SUM ( fact_campaign_daily[conversions] )",
             "formatString": "#,0",
             "description": "Purchases or installs attributed to the campaign.",
             "displayFolder": "1 Delivery",
-            "lineageTag": "5482012d-1c6f-7a34-9e59-665079e2cf64"
+            "lineageTag": "a4b770ea-3415-e5d5-2b34-c183c125b086"
           },
           {
             "name": "Spend",
@@ -2873,7 +2873,7 @@
           },
           {
             "name": "CTR %",
-            "expression": "DIVIDE ( [Clicks], [Impressions] )",
+            "expression": "DIVIDE ( [Total Clicks], [Total Impressions] )",
             "formatString": "0.00%",
             "description": "Campaign click-through rate.",
             "displayFolder": "3 Efficiency",
@@ -2881,7 +2881,7 @@
           },
           {
             "name": "CPM",
-            "expression": "DIVIDE ( [Spend] * 1000, [Impressions] )",
+            "expression": "DIVIDE ( [Spend] * 1000, [Total Impressions] )",
             "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00",
             "description": "Cost per 1,000 impressions.",
             "displayFolder": "3 Efficiency",
@@ -2889,7 +2889,7 @@
           },
           {
             "name": "CPC",
-            "expression": "DIVIDE ( [Spend], [Clicks] )",
+            "expression": "DIVIDE ( [Spend], [Total Clicks] )",
             "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00",
             "description": "Cost per click.",
             "displayFolder": "3 Efficiency",
@@ -2897,7 +2897,7 @@
           },
           {
             "name": "CPA",
-            "expression": "DIVIDE ( [Spend], [Conversions] )",
+            "expression": "DIVIDE ( [Spend], [Total Conversions] )",
             "formatString": "\\$#,0.00;(\\$#,0.00);\\$#,0.00",
             "description": "Cost per acquisition.",
             "displayFolder": "3 Efficiency",
@@ -2905,7 +2905,7 @@
           },
           {
             "name": "Conversion Rate %",
-            "expression": "DIVIDE ( [Conversions], [Clicks] )",
+            "expression": "DIVIDE ( [Total Conversions], [Total Clicks] )",
             "formatString": "0.0%",
             "description": "Share of clicks that convert.",
             "displayFolder": "3 Efficiency",
@@ -2913,7 +2913,7 @@
           },
           {
             "name": "Campaign Video Completion Rate %",
-            "expression": "DIVIDE ( [Campaign Video Completions], [Impressions] )",
+            "expression": "DIVIDE ( [Campaign Video Completions], [Total Impressions] )",
             "formatString": "0.0%",
             "description": "Share of impressions watched to the end.",
             "displayFolder": "3 Efficiency",
@@ -2945,7 +2945,7 @@
           },
           {
             "name": "Conversions Running Total",
-            "expression": "CALCULATE ( [Conversions], FILTER ( ALLSELECTED ( dim_date[date] ), dim_date[date] <= MAX ( dim_date[date] ) ) )",
+            "expression": "CALCULATE ( [Total Conversions], FILTER ( ALLSELECTED ( dim_date[date] ), dim_date[date] <= MAX ( dim_date[date] ) ) )",
             "formatString": "#,0",
             "description": "Cumulative conversions across the selected period.",
             "displayFolder": "1 Delivery",
@@ -3411,16 +3411,16 @@
             "lineageTag": "15a138a5-6341-c1f9-46c0-23e2677d5ae5"
           },
           {
-            "name": "Sessions",
+            "name": "Total Sessions",
             "expression": "SUM ( fact_engagement_daily[sessions] )",
             "formatString": "#,0",
             "description": "App opens.",
             "displayFolder": "1 Volume",
-            "lineageTag": "4d5ab5bf-efb2-4a8e-9346-1b09fc902c0f"
+            "lineageTag": "5862d637-055d-1a32-6eff-e08b627e6892"
           },
           {
             "name": "Avg Session Length",
-            "expression": "DIVIDE ( [Total Minutes], [Sessions] )",
+            "expression": "DIVIDE ( [Total Minutes], [Total Sessions] )",
             "formatString": "#,0.0",
             "description": "Average minutes per app session.",
             "displayFolder": "2 Rates",

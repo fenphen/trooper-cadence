@@ -126,13 +126,13 @@ Forward Rate per 1K Videos = DIVIDE ( SUM ( fact_engagement_daily[videos_forward
 Late-Night Share %   = DIVIDE ( SUM ( fact_engagement_daily[late_night_minutes] ), [Total Minutes] )
 
 -- campaign metrics
-Impressions          = SUM ( fact_campaign_daily[impressions] )
-Clicks               = SUM ( fact_campaign_daily[clicks] )
+Total Impressions    = SUM ( fact_campaign_daily[impressions] )
+Total Clicks         = SUM ( fact_campaign_daily[clicks] )
 Spend                = SUM ( fact_campaign_daily[spend_usd] )
 Revenue              = SUM ( fact_campaign_daily[revenue_usd] )
-CTR %                = DIVIDE ( [Clicks], [Impressions] )
-CPM                  = DIVIDE ( [Spend] * 1000, [Impressions] )
-CPC                  = DIVIDE ( [Spend], [Clicks] )
+CTR %                = DIVIDE ( [Total Clicks], [Total Impressions] )
+CPM                  = DIVIDE ( [Spend] * 1000, [Total Impressions] )
+CPC                  = DIVIDE ( [Spend], [Total Clicks] )
 ROAS                 = DIVIDE ( [Revenue], [Spend] )
 Panel Reach          = DISTINCTCOUNT ( fact_ad_exposures[user_id] )
 Avg Frequency        = DIVIDE ( SUM ( fact_ad_exposures[impressions] ), [Panel Reach] )
