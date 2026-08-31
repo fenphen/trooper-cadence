@@ -558,7 +558,24 @@ RELATIONSHIPS = [
 ]
 
 
-def build_model(default_folder=r"C:\CampusPulse\data"):
+# Folders the model will search for the CSVs, in order, if the DataFolder
+# parameter itself does not resolve. Lets the file work unchanged from any of
+# the usual unpack locations.
+FALLBACK_FOLDERS = [
+    r"C:\Users\Admin\Documents\CampusPulse\data",
+    r"C:\Users\Admin\Downloads\CampusPulse\data",
+    r"C:\Users\Admin\Desktop\CampusPulse\data",
+    r"C:\Users\Admin\CampusPulse\data",
+    r"C:\Users\Public\CampusPulse\data",
+    r"C:\CampusPulse\data",
+    r"C:\CampusPulse\social-media-dataset\data",
+    r"G:\My Drive\FAU\socialmedia\social-media-dataset\data",
+]
+
+
+def build_model(default_folder=r"C:\CampusPulse\data",
+                fallbacks=None):
+    cands = list(fallbacks if fallbacks is not None else FALLBACK_FOLDERS)
     tables = []
     table_names = sorted(f[:-4] for f in os.listdir(DATA_DIR) if f.endswith(".csv"))
 
@@ -626,18 +643,30 @@ def build_model(default_folder=r"C:\CampusPulse\data"):
             "kind": "m",
             "expression": [
                 "let",
+                "    // Strip any trailing separator so both forms work.",
+                "    Trim = (p as text) as text =>",
+                "        if Text.EndsWith(p, \"\\\") or Text.EndsWith(p, \"/\")",
+                "        then Text.Start(p, Text.Length(p) - 1)",
+                "        else p,",
+                "    // DataFolder is tried first; the rest are common places",
+                "    // the CampusPulse data folder gets unpacked to.",
+                "    Candidates = List.Distinct(List.Transform({",
+            ] + ["        DataFolder,"] + [
+                f'        "{f}"' + ("," if n < len(cands) - 1 else "")
+                for n, f in enumerate(cands)
+            ] + [
+                "    }, Trim)),",
+                "    Usable = List.Select(Candidates,",
+                "        each (try Folder.Files(_) otherwise null) <> null),",
+                "    Root = if List.IsEmpty(Usable) then Trim(DataFolder) else Usable{0},",
                 "    Fn = (fileName as text) as binary =>",
-                "        let",
-                "            Sep = if Text.EndsWith(DataFolder, \"\\\") or "
-                "Text.EndsWith(DataFolder, \"/\") then \"\" else \"\\\",",
-                "            Path = DataFolder & Sep & fileName",
-                "        in",
-                "            File.Contents(Path)",
+                "        File.Contents(Root & \"\\\" & fileName)",
                 "in",
                 "    Fn",
             ],
-            "description": "Reads one CSV from DataFolder, with or without a "
-                           "trailing slash.",
+            "description": "Finds the CampusPulse data folder - DataFolder "
+                           "first, then a list of common locations - and reads "
+                           "one CSV from it.",
             "annotations": [{"name": "PBI_ResultType", "value": "Function"}],
         },
     ]
