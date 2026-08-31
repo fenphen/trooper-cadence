@@ -1,0 +1,51 @@
+interest_id,interest_name,interest_category
+INT01,Fitness & Gym Life,Sports & Fitness
+INT02,Running & Outdoor Cardio,Sports & Fitness
+INT03,College Football,Sports & Fitness
+INT04,College Basketball,Sports & Fitness
+INT05,Pro Sports,Sports & Fitness
+INT06,Intramural & Rec Sports,Sports & Fitness
+INT07,Foodie & Restaurants,Food & Drink
+INT08,Cooking & Easy Recipes,Food & Drink
+INT09,Coffee Culture,Food & Drink
+INT10,Late-Night Food Delivery,Food & Drink
+INT11,Streaming TV & Movies,Entertainment
+INT12,Anime & Manga,Entertainment
+INT13,Reality TV,Entertainment
+INT14,Stand-up & Comedy Clips,Entertainment
+INT15,Celebrity & Pop Culture,Entertainment
+INT16,Video Games,Gaming & Tech
+INT17,Esports,Gaming & Tech
+INT18,PC Building & Hardware,Gaming & Tech
+INT19,New Tech & Gadgets,Gaming & Tech
+INT20,AI Tools & Apps,Gaming & Tech
+INT21,Coding & Software Dev,Gaming & Tech
+INT22,Streetwear & Sneakers,Fashion & Beauty
+INT23,Thrifting & Vintage Fashion,Fashion & Beauty
+INT24,Beauty & Skincare,Fashion & Beauty
+INT25,Fast Fashion Hauls,Fashion & Beauty
+INT26,Live Music & Festivals,Music
+INT27,Hip-Hop & R&B,Music
+INT28,Pop & Charts,Music
+INT29,Indie & Alt,Music
+INT30,K-Pop,Music
+INT31,Country,Music
+INT32,EDM & House,Music
+INT33,Travel & Adventure,Travel
+INT34,Study Abroad,Travel
+INT35,Road Trips & National Parks,Travel
+INT36,Personal Finance & Investing,Money & Career
+INT37,Side Hustles & Entrepreneurship,Money & Career
+INT38,Internships & Career Prep,Money & Career
+INT39,Crypto & Trading,Money & Career
+INT40,Mental Health & Mindfulness,Lifestyle & Wellness
+INT41,Yoga & Pilates,Lifestyle & Wellness
+INT42,Healthy Eating & Meal Prep,Lifestyle & Wellness
+INT43,Greek Life,Lifestyle & Wellness
+INT44,Campus Events & Nightlife,Lifestyle & Wellness
+INT45,Pets & Animals,Lifestyle & Wellness
+INT46,Photography & Content Creation,Lifestyle & Wellness
+INT47,Study Hacks & Productivity,Lifestyle & Wellness
+INT48,Climate & Sustainability,Causes & News
+INT49,Politics & Current Events,Causes & News
+INT50,Volunteering & Social Impact,Causes & News

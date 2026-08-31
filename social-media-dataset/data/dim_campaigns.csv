@@ -1,0 +1,13 @@
+campaign_id,advertiser_brand,campaign_name,advertiser_vertical,objective,primary_segment_id,platforms,flight_start,flight_end,total_budget_usd,total_spend_usd,avg_cpm_usd,avg_order_value_usd,panel_scale_factor,status
+CMP01,Voltberry Energy,Summer Session All-Nighters,Food & Beverage,Awareness,SEG01,TikTok; Instagram,2026-06-08,2026-07-05,113200.00,109779.80,9.69,12.00,350,Completed
+CMP02,IronLeaf Fitness,Summer Shred Student Pass,Health & Fitness,Conversions,SEG02,Instagram; TikTok,2026-06-01,2026-07-15,133200.00,123046.35,10.04,89.00,400,Completed
+CMP03,SnackOwl Delivery,"Midnight Munchies, Delivered",Food Delivery,App Installs,SEG03,Snapchat; TikTok,2026-06-15,2026-08-15,129500.00,121763.59,7.68,24.00,300,Completed
+CMP04,PixelForge Gear,Level Up Summer Drop,Gaming & Tech,Conversions,SEG04,X (Twitter); TikTok,2026-07-01,2026-07-28,36000.00,32755.84,11.26,65.00,250,Completed
+CMP05,Thriftle,Back-to-Campus Fits,Fashion Retail,Conversions,SEG05,Instagram; TikTok,2026-08-01,2026-08-31,132600.00,115953.49,13.38,42.00,400,Live
+CMP06,Wanderloop,Book Fall Break Early,Travel,App Installs,SEG06,Instagram,2026-06-20,2026-07-25,55600.00,47456.90,10.57,31.00,400,Completed
+CMP07,StackStart Financial,"Your First Credit Card, Minus the Trap",Fintech,Conversions,SEG07,Instagram; X (Twitter),2026-07-10,2026-08-31,68900.00,63878.83,11.87,75.00,250,Live
+CMP08,StadiumStash,Game Day Delivered to Your Seat,Food Delivery,App Installs,SEG08,Snapchat; X (Twitter),2026-08-14,2026-08-31,30900.00,26761.82,7.03,18.00,500,Live
+CMP09,EchoPass Events,Fall Fest Presale Access,Live Events,Traffic,SEG09,TikTok; Instagram,2026-07-15,2026-08-20,248300.00,213543.46,10.17,96.00,550,Completed
+CMP10,Calmello,Beat the Syllabus Scaries,Wellness Apps,App Installs,SEG10,Instagram; TikTok,2026-08-10,2026-08-31,58600.00,51412.95,10.11,38.00,400,Live
+CMP11,SwipeSaver,Campus Deals All Summer,Coupons & Deals,Awareness,SEG11,Snapchat; TikTok,2026-06-01,2026-08-31,180800.00,165219.03,9.72,9.00,450,Live
+CMP12,CreatorLoft,Turn Followers Into Rent Money,Creator Tools,Conversions,SEG12,Instagram; X (Twitter),2026-07-01,2026-08-31,30700.00,28198.42,17.93,144.00,300,Live

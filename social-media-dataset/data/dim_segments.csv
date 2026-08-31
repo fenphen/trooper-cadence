@@ -1,0 +1,13 @@
+segment_id,segment_name,tagline,membership_rule,member_count,avg_match_strength,top_platform,suggested_cpm_usd
+SEG01,Late-Night Scrollers,They're awake at 1 a.m. - your brand should be too.,Night-owl chronotype; >45% of usage after 10 p.m.,592,62.6,TikTok,7.50
+SEG02,Campus Gym Rats,"Fitness-first students who buy gear, supplements and memberships.",High fitness engagement and gym-related interest affinity.,352,59.6,TikTok,9.00
+SEG03,Budget Foodies,"Big cravings, student budgets - delivery deals win them over.",Strong food content engagement with low discretionary spend.,549,62.5,Instagram,8.00
+SEG04,Gamers & Streamers,"Console, PC and mobile players with strong brand loyalty.",High gaming interest affinity and gaming content dwell time.,314,58.3,TikTok,10.50
+SEG05,Trend-Setting Fashionistas,First to every micro-trend; haul and outfit content daily.,High fashion/beauty affinity and shopping content engagement.,357,59.5,Instagram,11.00
+SEG06,Wanderlust Planners,Already saving for the next trip - reach them before they book.,High travel-content affinity and trip-planning signals.,363,60.7,Instagram,9.50
+SEG07,Money-Minded Strivers,Future founders and finance nerds building credit early.,Finance/business interest affinity or business-school major.,309,46.3,Instagram,12.00
+SEG08,Game-Day Superfans,Live and die with the team; peak activity on game days.,High college-sports affinity and game-day usage spikes.,349,59.6,TikTok,8.50
+SEG09,Festival & Live Music Crowd,Ticket buyers and merch collectors who travel for shows.,High live-music affinity and event-content engagement.,571,62.6,TikTok,9.00
+SEG10,Mindful & Wellness-Focused,"Self-care spenders: apps, journals, matcha and mats.",High wellness-content affinity and mindfulness app signals.,298,59.8,Instagram,8.50
+SEG11,Impulse Deal Hunters,"See it, want it, buy it - highest CTR audience we sell.",High impulse-buying score and shopping-ad click history.,332,59.0,Instagram,10.00
+SEG12,Micro-Influencers & Creators,"8k+ followings; buy them once, they sell for you all semester.","Creator behavior or 8,000+ followers on any platform.",57,45.4,Snapchat,18.00

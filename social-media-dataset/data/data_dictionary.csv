@@ -1,0 +1,166 @@
+table_name,column_name,data_type,description,collection_method,sensitivity
+dim_users,user_id,text,Unique synthetic person ID; joins to every other table,Derived / packaged,Low
+dim_users,first_name,text,First name provided at signup,Declared by user,High
+dim_users,last_name,text,Last name provided at signup,Declared by user,High
+dim_users,gender,text,Self-reported gender,Declared by user,Medium
+dim_users,age,int,"Age in years, from date of birth",Declared by user,Medium
+dim_users,birth_date,date,Date of birth provided at signup,Declared by user,High
+dim_users,email,text,Signup email address (fake @example.edu),Declared by user,High
+dim_users,phone,text,Phone number on file (fictional 555 range),Declared by user,High
+dim_users,hashed_email,text,MD5 of email - how identity is matched between ad systems,Derived / packaged,High
+dim_users,university,text,"School attended, from profile + geo signals",Inferred by model,Medium
+dim_users,campus_city,text,City of campus,Inferred by model,Medium
+dim_users,campus_state,text,State of campus,Inferred by model,Medium
+dim_users,campus_lat,decimal,Campus latitude for mapping,Inferred by model,High
+dim_users,campus_lon,decimal,Campus longitude for mapping,Inferred by model,High
+dim_users,housing_type,text,"Dorm / apartment / at home, inferred from location patterns",Inferred by model,High
+dim_users,class_year,text,Freshman through Graduate,Inferred by model,Low
+dim_users,major,text,"Field of study, from bio text and page follows",Inferred by model,Medium
+dim_users,hometown_city,text,Hometown from profile and holiday location patterns,Inferred by model,Medium
+dim_users,hometown_state,text,Hometown state,Inferred by model,Medium
+dim_users,hometown_lat,decimal,Hometown latitude,Inferred by model,High
+dim_users,hometown_lon,decimal,Hometown longitude,Inferred by model,High
+dim_users,relationship_status,text,Declared or inferred relationship status,Inferred by model,High
+dim_users,has_part_time_job,bool,Employment signal from activity patterns,Inferred by model,Medium
+dim_users,est_monthly_discretionary_spend_usd,int,Modeled spending power,Inferred by model,High
+dim_psychographics,user_id,text,Joins to dim_users,Derived / packaged,Low
+dim_psychographics,openness,int 0-100,Big Five: openness to experience,Inferred by model,High
+dim_psychographics,conscientiousness,int 0-100,Big Five: conscientiousness,Inferred by model,High
+dim_psychographics,extraversion,int 0-100,Big Five: extraversion,Inferred by model,High
+dim_psychographics,agreeableness,int 0-100,Big Five: agreeableness,Inferred by model,High
+dim_psychographics,neuroticism,int 0-100,Big Five: neuroticism,Inferred by model,High
+dim_psychographics,chronotype,text,Early Bird / Flexible / Night Owl from usage times,Inferred by model,Medium
+dim_psychographics,attention_span_score,int 0-100,Modeled from scroll speed and completion rates,Inferred by model,Medium
+dim_psychographics,impulse_buying_score,int 0-100,Modeled from ad-click and checkout behavior,Inferred by model,High
+dim_psychographics,social_influence_score,int 0-100,How much this person sways their network,Inferred by model,Medium
+dim_psychographics,content_creator_level,text,Lurker / Casual / Active / Creator,Observed behavior,Low
+dim_psychographics,values_segment,text,Marketing values archetype,Inferred by model,Medium
+dim_psychographics,inferred_political_lean,text,Political leaning inferred from follows and engagement,Inferred by model,High
+dim_psychographics,political_lean_confidence,decimal 0-1,Model confidence in the political inference,Inferred by model,High
+dim_psychographics,intent_new_phone,bool,In-market signal: shopping for a phone,Inferred by model,Medium
+dim_psychographics,intent_travel_6mo,bool,In-market signal: planning travel,Inferred by model,Medium
+dim_psychographics,intent_meal_delivery,bool,In-market signal: food delivery,Inferred by model,Medium
+dim_psychographics,intent_gym_membership,bool,In-market signal: fitness services,Inferred by model,Medium
+dim_psychographics,intent_credit_card,bool,In-market signal: first credit card,Inferred by model,High
+dim_psychographics,recently_moved,bool,Life event flag from address/geo change,Inferred by model,High
+dim_platforms,platform,text,Platform name; joins to profiles and facts,Platform metadata,Low
+dim_platforms,parent_company,text,Owning company (note Meta owns two of the five),Platform metadata,Low
+dim_platforms,headquarters,text,Company HQ location,Platform metadata,Low
+dim_platforms,year_launched,int,Year the platform launched,Platform metadata,Low
+dim_platforms,primary_content_format,text,Dominant content type,Platform metadata,Low
+dim_platforms,privacy_policy_url,text,Real privacy policy for classroom reference,Platform metadata,Low
+dim_platform_profiles,profile_id,text,Unique account ID,Derived / packaged,Low
+dim_platform_profiles,user_id,text,Joins to dim_users,Derived / packaged,Low
+dim_platform_profiles,platform,text,Which platform this account is on,Platform metadata,Low
+dim_platform_profiles,handle,text,Public username,Declared by user,Medium
+dim_platform_profiles,account_age_months,int,How long the account has existed,Platform metadata,Low
+dim_platform_profiles,follower_count,int,Followers (friend count on Snapchat/Facebook),Observed behavior,Low
+dim_platform_profiles,following_count,int,Accounts followed,Observed behavior,Low
+dim_platform_profiles,engagement_rate_pct,decimal,Avg engagements per follower per post,Observed behavior,Low
+dim_platform_profiles,posts_per_week,decimal,Posting frequency,Observed behavior,Low
+dim_platform_profiles,avg_daily_minutes,decimal,Typical minutes per active day,Observed behavior,Medium
+dim_platform_profiles,primary_usage_daypart,text,When this account is most active,Observed behavior,Medium
+dim_platform_profiles,is_private_account,bool,Whether the account is private,Declared by user,Low
+dim_platform_profiles,verified,bool,Verification badge,Platform metadata,Low
+dim_platform_profiles,ad_personalization_enabled,bool,User left personalized ads ON,Declared by user,Medium
+dim_platform_profiles,location_sharing_enabled,bool,Precise location shared with the app,Declared by user,High
+dim_platform_profiles,contacts_synced,bool,Phone contact list uploaded to the platform,Declared by user,High
+dim_devices,device_id,text,Unique device ID,Derived / packaged,Low
+dim_devices,user_id,text,Joins to dim_users,Derived / packaged,Low
+dim_devices,device_type,text,Smartphone / Laptop / Tablet,Observed behavior,Low
+dim_devices,brand,text,Device manufacturer,Observed behavior,Low
+dim_devices,model,text,Device model,Observed behavior,Low
+dim_devices,operating_system,text,OS and version,Observed behavior,Low
+dim_devices,is_primary_device,bool,Main device used for social apps,Observed behavior,Low
+dim_devices,mobile_advertising_id,text,IDFA/GAID-style ad identifier (phones only),Platform metadata,High
+dim_devices,ad_tracking_allowed,bool,Cross-app tracking permitted (ATT opt-in on iOS),Declared by user,High
+dim_devices,avg_daily_pickups,int,Times per day the phone is picked up,Observed behavior,Medium
+dim_devices,pct_time_on_wifi,int,Share of usage on Wi-Fi vs cellular,Observed behavior,Low
+dim_devices,carrier,text,Mobile carrier (phones only),Platform metadata,Medium
+dim_interests,interest_id,text,Interest taxonomy ID,Derived / packaged,Low
+dim_interests,interest_name,text,"Interest label, like real ad-platform targeting categories",Derived / packaged,Low
+dim_interests,interest_category,text,Taxonomy grouping,Derived / packaged,Low
+bridge_user_interests,user_id,text,Joins to dim_users,Derived / packaged,Low
+bridge_user_interests,interest_id,text,Joins to dim_interests,Derived / packaged,Low
+bridge_user_interests,affinity_score,int 0-100,Strength of the interest signal,Inferred by model,Medium
+bridge_user_interests,source,text,Declared vs engagement-inferred vs lookalike model,Derived / packaged,Medium
+dim_segments,segment_id,text,Packaged audience segment ID,Derived / packaged,Low
+dim_segments,segment_name,text,Name CampusPulse sells this audience under,Derived / packaged,Low
+dim_segments,tagline,text,Sales pitch shown to advertisers,Derived / packaged,Low
+dim_segments,membership_rule,text,Plain-language qualification rule,Derived / packaged,Low
+dim_segments,member_count,int,Students currently in the segment,Derived / packaged,Low
+dim_segments,avg_match_strength,decimal,Average membership strength (0-100),Derived / packaged,Low
+dim_segments,top_platform,text,Where this segment spends the most time,Derived / packaged,Low
+dim_segments,suggested_cpm_usd,decimal,"Price per 1,000 impressions we charge",Derived / packaged,Low
+bridge_user_segments,user_id,text,Joins to dim_users,Derived / packaged,Low
+bridge_user_segments,segment_id,text,Joins to dim_segments,Derived / packaged,Low
+bridge_user_segments,match_strength,int 0-100,How strongly the student fits the segment,Derived / packaged,Medium
+dim_campaigns,campaign_id,text,Ad campaign ID,Derived / packaged,Low
+dim_campaigns,advertiser_brand,text,Fictional advertiser who bought the audience,Derived / packaged,Low
+dim_campaigns,campaign_name,text,Campaign name,Derived / packaged,Low
+dim_campaigns,advertiser_vertical,text,Advertiser industry,Derived / packaged,Low
+dim_campaigns,objective,text,Awareness / Traffic / Conversions / App Installs,Derived / packaged,Low
+dim_campaigns,primary_segment_id,text,Segment the campaign targeted; joins to dim_segments,Derived / packaged,Low
+dim_campaigns,platforms,text,Platforms the campaign ran on (display only),Derived / packaged,Low
+dim_campaigns,flight_start,date,First day of the campaign,Derived / packaged,Low
+dim_campaigns,flight_end,date,Last day of the campaign,Derived / packaged,Low
+dim_campaigns,total_budget_usd,decimal,Budget the advertiser committed,Derived / packaged,Low
+dim_campaigns,total_spend_usd,decimal,Actual delivered spend (full campaign),Derived / packaged,Low
+dim_campaigns,avg_cpm_usd,decimal,"Realized cost per 1,000 impressions",Derived / packaged,Low
+dim_campaigns,avg_order_value_usd,decimal,Average value of one conversion,Derived / packaged,Low
+dim_campaigns,panel_scale_factor,int,Students in the full audience represented by each panel member,Derived / packaged,Low
+dim_campaigns,status,text,"Completed or Live as of Aug 31, 2026",Derived / packaged,Low
+fact_engagement_daily,activity_date,date,Day of activity; joins to dim_date,Observed behavior,Low
+fact_engagement_daily,user_id,text,Joins to dim_users,Derived / packaged,Low
+fact_engagement_daily,platform,text,Joins to dim_platforms,Platform metadata,Low
+fact_engagement_daily,active_minutes,int,Minutes in the app that day,Observed behavior,Medium
+fact_engagement_daily,sessions,int,Times the app was opened,Observed behavior,Medium
+fact_engagement_daily,posts_viewed,int,Pieces of content served,Observed behavior,Medium
+fact_engagement_daily,videos_viewed,int,Videos among the content served,Observed behavior,Medium
+fact_engagement_daily,avg_video_completion_pct,decimal,Average % of each video watched,Observed behavior,Medium
+fact_engagement_daily,videos_forwarded,int,Videos shared/forwarded to others,Observed behavior,Medium
+fact_engagement_daily,likes_given,int,Likes/reactions given,Observed behavior,Medium
+fact_engagement_daily,comments_written,int,Comments posted,Observed behavior,Medium
+fact_engagement_daily,posts_created,int,Original posts published,Observed behavior,Low
+fact_engagement_daily,stories_viewed,int,Stories viewed (0 on platforms without stories),Observed behavior,Medium
+fact_engagement_daily,ads_seen,int,Ads served that day (all advertisers),Observed behavior,Medium
+fact_engagement_daily,ads_clicked,int,Ads clicked that day,Observed behavior,High
+fact_engagement_daily,late_night_minutes,int,Minutes between 10 p.m. and 2 a.m.,Observed behavior,High
+fact_hourly_usage,user_id,text,Joins to dim_users,Derived / packaged,Low
+fact_hourly_usage,day_type,text,Weekday or Weekend profile,Derived / packaged,Low
+fact_hourly_usage,hour_of_day,int 0-23,Hour of the day,Observed behavior,Low
+fact_hourly_usage,avg_minutes,decimal,Typical minutes online in that hour (all platforms),Observed behavior,High
+fact_ad_exposures,user_id,text,Panel member who saw the ads; joins to dim_users,Observed behavior,High
+fact_ad_exposures,campaign_id,text,Joins to dim_campaigns,Derived / packaged,Low
+fact_ad_exposures,platform,text,Where the ads were shown,Platform metadata,Low
+fact_ad_exposures,impressions,int,Ads from this campaign shown to this person,Observed behavior,High
+fact_ad_exposures,clicks,int,Times this person clicked the campaign,Observed behavior,High
+fact_ad_exposures,video_completions,int,Campaign videos watched to completion,Observed behavior,Medium
+fact_ad_exposures,conversions,int,Purchases/installs attributed to this person,Observed behavior,High
+fact_ad_exposures,first_exposure_date,date,First time the person saw the campaign,Observed behavior,Medium
+fact_ad_exposures,last_exposure_date,date,Most recent exposure,Observed behavior,Medium
+fact_campaign_daily,activity_date,date,Delivery day; joins to dim_date,Derived / packaged,Low
+fact_campaign_daily,campaign_id,text,Joins to dim_campaigns,Derived / packaged,Low
+fact_campaign_daily,platform,text,Joins to dim_platforms,Derived / packaged,Low
+fact_campaign_daily,impressions,int,Impressions delivered that day (full campaign = panel x scale factor),Derived / packaged,Low
+fact_campaign_daily,clicks,int,Clicks that day,Derived / packaged,Low
+fact_campaign_daily,video_completions,int,Completed video views that day,Derived / packaged,Low
+fact_campaign_daily,conversions,int,Attributed conversions that day,Derived / packaged,Low
+fact_campaign_daily,spend_usd,decimal,Ad spend that day,Derived / packaged,Low
+fact_campaign_daily,revenue_usd,decimal,Attributed revenue that day,Derived / packaged,Low
+fact_connections,user_id,text,Person A; joins to dim_users,Observed behavior,High
+fact_connections,connected_user_id,text,Person B (each friendship appears in both directions),Observed behavior,High
+fact_connections,platform,text,Where the connection exists,Platform metadata,Low
+fact_connections,connection_type,text,Mutual follow / Snap friends / Facebook friends,Observed behavior,Low
+fact_connections,interaction_strength,decimal 0-1,How often the two interact,Observed behavior,High
+fact_connections,same_university,bool,Both attend the same school,Inferred by model,Medium
+fact_connections,shared_top_interest,bool,Both share the same #1 interest,Inferred by model,Medium
+dim_date,date,date,"Calendar date (Jun 1 - Aug 31, 2026)",Derived / packaged,Low
+dim_date,year,int,Year,Derived / packaged,Low
+dim_date,month_num,int,Month number for sorting,Derived / packaged,Low
+dim_date,month_name,text,Month name,Derived / packaged,Low
+dim_date,week_of_year,int,ISO week number,Derived / packaged,Low
+dim_date,day_of_week_num,int 1-7,Monday=1 for sorting,Derived / packaged,Low
+dim_date,day_name,text,Day of week,Derived / packaged,Low
+dim_date,is_weekend,bool,Saturday or Sunday,Derived / packaged,Low
+dim_date,academic_period,text,Summer Break vs Fall Semester (starts Aug 24),Derived / packaged,Low
