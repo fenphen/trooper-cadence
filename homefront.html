@@ -1,0 +1,1858 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A tiny-task decluttering game for the whole house — rooms, cars, dogs and laundry, five minutes at a time.">
+<meta name="theme-color" content="#0a1f38">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Saira+Condensed:wght@600;700;800&display=swap">
+<title>Homefront HQ</title>
+<!--ARTIFACT-HEAD-START-->
+<style>
+/* ============================================================
+   Homefront HQ — drafting-table identity
+   light = white-print graph paper · dark = cyanotype blueprint
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box}
+
+:root{
+  color-scheme:light;
+  --bg:#e6e9ee;
+  --surface:#f7f8fa;
+  --surface-2:#ffffff;
+  --sunk:#dfe3e9;
+  --ink:#131e2a;
+  --muted:#546374;
+  --faint:#8593a3;
+  --rule:#c6cfd9;
+  --rule-soft:#dbe1e8;
+  --grid:rgba(19,30,42,.05);
+  --accent:#c74c1d;
+  --accent-ink:#ffffff;
+  --accent-soft:rgba(199,76,29,.11);
+  --go:#1c7457;
+  --go-soft:rgba(28,116,87,.13);
+  --flag:#a2720c;
+  --flag-soft:rgba(162,114,12,.13);
+  --shadow:0 1px 0 rgba(19,30,42,.05), 0 10px 22px -18px rgba(19,30,42,.75);
+  --tab-h:64px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#081d34;
+    --surface:#0e2a49;
+    --surface-2:#133457;
+    --sunk:#0a2340;
+    --ink:#e8f1fb;
+    --muted:#a6c1da;
+    --faint:#7396b6;
+    --rule:#245081;
+    --rule-soft:#1a3d66;
+    --grid:rgba(160,196,226,.085);
+    --accent:#ff7f43;
+    --accent-ink:#1d0d04;
+    --accent-soft:rgba(255,127,67,.15);
+    --go:#43c298;
+    --go-soft:rgba(67,194,152,.15);
+    --flag:#e9bd52;
+    --flag-soft:rgba(233,189,82,.15);
+    --shadow:0 1px 0 rgba(255,255,255,.04), 0 12px 26px -20px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#081d34;
+  --surface:#0e2a49;
+  --surface-2:#133457;
+  --sunk:#0a2340;
+  --ink:#e8f1fb;
+  --muted:#a6c1da;
+  --faint:#7396b6;
+  --rule:#245081;
+  --rule-soft:#1a3d66;
+  --grid:rgba(160,196,226,.085);
+  --accent:#ff7f43;
+  --accent-ink:#1d0d04;
+  --accent-soft:rgba(255,127,67,.15);
+  --go:#43c298;
+  --go-soft:rgba(67,194,152,.15);
+  --flag:#e9bd52;
+  --flag-soft:rgba(233,189,82,.15);
+  --shadow:0 1px 0 rgba(255,255,255,.04), 0 12px 26px -20px rgba(0,0,0,.9);
+}
+
+body{
+  margin:0;
+  background-color:var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;
+  color:var(--ink);
+  font-family:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px;
+  line-height:1.45;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- type roles ---------- */
+.d{font-family:"Saira Condensed","Archivo Narrow",system-ui,sans-serif;font-weight:800;letter-spacing:.005em;text-wrap:balance}
+.m{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+.key{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:9.5px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--faint)}
+
+/* ---------- shell ---------- */
+.app{max-width:640px;margin-inline:auto;padding-inline:16px}
+main{padding-block:14px 0;padding-bottom:calc(var(--tab-h) + 26px + env(safe-area-inset-bottom))}
+.view{display:none;flex-direction:column;gap:14px}
+.view.on{display:flex}
+
+/* ---------- drafting title block ---------- */
+.tb{border:1.5px solid var(--rule);background:var(--surface);box-shadow:var(--shadow);margin-top:12px}
+.tb-row{display:flex;border-bottom:1px solid var(--rule-soft)}
+.tb-row:last-child{border-bottom:0}
+.tb-cell{flex:1 1 0;min-width:0;padding:7px 10px 8px;border-right:1px solid var(--rule-soft)}
+.tb-cell:last-child{border-right:0}
+.tb-cell.wide{flex:2 1 0}
+.tb-val{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:19px;line-height:1.12;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-val.num{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:17px;font-variant-numeric:tabular-nums}
+.tb-val .sub{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:11px;color:var(--faint)}
+.tb-flag{color:var(--flag)}
+.tb-name{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;max-width:100%;display:flex;align-items:baseline;gap:5px}
+.tb-name::after{content:"\25BE";font-size:10px;color:var(--faint)}
+
+/* ruler / scale bar */
+.scale{position:relative;height:11px;background:var(--sunk);border:1px solid var(--rule);overflow:hidden}
+.scale-fill{height:100%;background:var(--accent);transition:width .55s cubic-bezier(.2,.8,.25,1)}
+.scale-fill.go{background:var(--go)}
+.scale::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),var(--rule) calc(10% - 1px),var(--rule) 10%);opacity:.75}
+.tb-scale{padding:9px 10px 10px}
+.tb-scale .legend{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface);border:1.5px solid var(--rule);box-shadow:var(--shadow)}
+.card-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid var(--rule-soft);background:var(--surface-2)}
+.card-bd{padding:12px}
+h2.sec{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin:0;color:var(--muted)}
+
+/* ---------- buttons ---------- */
+button{font-family:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:16px;letter-spacing:.06em;text-transform:uppercase;
+  padding:12px 16px;min-height:46px;border:1.5px solid var(--ink);background:var(--surface-2);color:var(--ink);
+  border-radius:3px;cursor:pointer;transition:transform .09s ease,background .15s ease,color .15s ease}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.go{background:var(--go);border-color:var(--go);color:#fff}
+.btn.ghost{border-color:var(--rule);color:var(--muted);background:transparent}
+.btn.sm{font-size:13px;padding:8px 11px;min-height:36px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row .btn{flex:1 1 130px}
+
+/* time chips */
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.chip{border:1.5px solid var(--rule);background:var(--surface-2);color:var(--ink);border-radius:3px;
+  padding:9px 4px 8px;cursor:pointer;text-align:center;transition:border-color .14s,background .14s}
+.chip .n{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:22px;line-height:1}
+.chip .u{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.chip[aria-pressed="true"] .u{color:var(--accent)}
+
+/* ---------- work order ---------- */
+.wo{border:1.5px dashed var(--accent);background:var(--accent-soft);padding:13px;border-radius:3px;position:relative;overflow:hidden}
+.wo .zone{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.wo .title{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:25px;line-height:1.1;text-wrap:balance;margin:2px 0 9px}
+.wo .meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.empty{padding:22px 12px;text-align:center;color:var(--muted)}
+.empty .big{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:20px;color:var(--ink);display:block;margin-bottom:4px}
+
+/* pills */
+.pill{display:inline-flex;align-items:center;gap:4px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:500;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 7px;border:1px solid var(--rule);border-radius:2px;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+.pill.xp{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.pill.due{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.pill.rest{color:var(--faint)}
+.pill.once{color:var(--go);border-color:var(--go);background:var(--go-soft)}
+.pill.boss{color:var(--flag);border-color:var(--flag);background:var(--flag-soft)}
+
+/* ---------- timer ---------- */
+.timer{display:flex;align-items:center;gap:13px;padding:12px;border:1.5px solid var(--rule);background:var(--surface-2);border-radius:3px}
+.timer svg{flex:none;display:block}
+.timer .ring-bg{stroke:var(--rule)}
+.timer .ring-fg{stroke:var(--accent);transition:stroke-dashoffset 1s linear}
+.timer .read{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.timer .what{min-width:0;flex:1}
+.timer .what .n{font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:16px;line-height:1.15}
+
+/* ---------- zone list ---------- */
+.zones{display:grid;gap:9px}
+@media (min-width:545px){.zones{grid-template-columns:1fr 1fr}}
+.zrow{display:block;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--rule);border-radius:3px;
+  padding:10px 11px;cursor:pointer;color:inherit;box-shadow:var(--shadow);transition:border-color .14s,transform .09s}
+.zrow:active{transform:translateY(1px)}
+.zrow.cleared{border-color:var(--go)}
+.zrow .top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:7px}
+.zrow .nm{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:17px;line-height:1.12;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zrow .pct{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:12px;color:var(--muted);flex:none}
+.zrow .bot{display:flex;align-items:center;gap:6px;margin-top:7px;flex-wrap:wrap}
+.group-hd{display:flex;align-items:center;gap:9px;margin:6px 0 -2px}
+.group-hd::after{content:"";flex:1;height:1px;background:var(--rule)}
+
+/* ---------- task list ---------- */
+.tasks{display:flex;flex-direction:column;gap:0}
+.task{display:flex;align-items:flex-start;gap:11px;padding:11px 12px;border-bottom:1px solid var(--rule-soft);background:var(--surface)}
+.task:last-child{border-bottom:0}
+.task.resting{opacity:.5}
+.task.flash{animation:flash .5s ease}
+@keyframes flash{0%{background:var(--go-soft)}100%{background:var(--surface)}}
+.stamp{flex:none;width:34px;height:34px;border:1.5px solid var(--rule);background:var(--surface-2);border-radius:2px;cursor:pointer;
+  display:grid;place-items:center;color:var(--faint);transition:border-color .14s,background .14s,color .14s}
+.stamp:hover{border-color:var(--go);color:var(--go)}
+.stamp.done{border-color:var(--go);background:var(--go);color:#fff}
+.stamp svg{width:17px;height:17px;opacity:.28;transition:opacity .14s}
+.stamp:hover svg,.stamp.done svg{opacity:1}
+.task .body{min-width:0;flex:1}
+.task .n{font-weight:500;line-height:1.3;word-break:break-word}
+.task.done-once .n{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--go)}
+.task .meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+
+/* cleared stamp graphic */
+.cleared-mark{position:absolute;right:8px;top:50%;transform:translateY(-50%) rotate(-9deg);
+  border:2px solid var(--go);color:var(--go);border-radius:3px;padding:2px 8px;
+  font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:13px;letter-spacing:.16em;opacity:.85}
+
+/* ---------- streak grid ---------- */
+.days{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}
+.day{aspect-ratio:1;border:1px solid var(--rule);background:var(--sunk);border-radius:1px}
+.day.l1{background:var(--go-soft);border-color:var(--go)}
+.day.l2{background:color-mix(in srgb,var(--go) 55%,transparent);border-color:var(--go)}
+.day.l3{background:var(--go);border-color:var(--go)}
+.day.today{outline:2px solid var(--accent);outline-offset:1px}
+
+/* ---------- badges ---------- */
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.badge{border:1.5px solid var(--rule);background:var(--surface-2);border-radius:3px;padding:9px 8px;text-align:center;opacity:.42}
+.badge.got{opacity:1;border-color:var(--flag);background:var(--flag-soft)}
+.badge .g{font-size:19px;line-height:1.2}
+.badge .n{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:12.5px;line-height:1.15;margin-top:3px}
+.badge .h{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--faint);line-height:1.3;margin-top:3px}
+
+/* ---------- crew ---------- */
+.crew{display:flex;flex-direction:column;gap:9px}
+.player{border:1.5px solid var(--rule);background:var(--surface);border-radius:3px;padding:11px 12px;box-shadow:var(--shadow)}
+.player.me{border-color:var(--accent)}
+.player .hd{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.player .nm{font-family:"Saira Condensed",sans-serif;font-weight:800;font-size:19px;display:flex;align-items:center;gap:7px;min-width:0}
+.player .stats{display:flex;gap:14px;margin-top:9px;flex-wrap:wrap}
+.stat .v{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:17px;line-height:1.1}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.2)}
+
+/* ---------- forms ---------- */
+label.f{display:block}
+label.f .key{display:block;margin-bottom:3px}
+input[type=text],input[type=number],select,textarea{
+  width:100%;padding:9px 10px;border:1.5px solid var(--rule);background:var(--surface-2);color:var(--ink);
+  border-radius:3px;font-family:inherit;font-size:15px}
+textarea{font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.4;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.zrow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.stack{display:flex;flex-direction:column;gap:10px}
+
+/* ---------- tab bar ---------- */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1.5px solid var(--rule);
+  padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -8px 22px -20px rgba(0,0,0,.8)}
+.tabbar .inner{max-width:640px;margin-inline:auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{height:var(--tab-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:none;border:0;border-top:3px solid transparent;color:var(--faint);cursor:pointer;padding:0}
+.tab svg{width:21px;height:21px}
+.tab .lab{font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.tab[aria-selected="true"]{color:var(--accent);border-top-color:var(--accent)}
+
+/* ---------- toast ---------- */
+.toasts{position:fixed;left:0;right:0;bottom:calc(var(--tab-h) + 12px + env(safe-area-inset-bottom));z-index:60;
+  display:flex;flex-direction:column;align-items:center;gap:7px;pointer-events:none;padding-inline:16px}
+.toast{background:var(--ink);color:var(--bg);border-radius:3px;padding:9px 14px;box-shadow:0 10px 30px -12px rgba(0,0,0,.6);
+  font-family:"Saira Condensed",sans-serif;font-weight:700;font-size:15px;letter-spacing:.03em;max-width:100%;text-align:center;
+  animation:rise .32s cubic-bezier(.2,.9,.3,1)}
+.toast.win{background:var(--accent);color:var(--accent-ink)}
+.toast .x{font-family:"IBM Plex Mono",monospace;font-size:12px;opacity:.85;margin-left:6px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---------- misc ---------- */
+.sub{color:var(--muted);font-size:13.5px;line-height:1.45}
+.back{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 0;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.hide{display:none !important}
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.note{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--faint);line-height:1.5}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+<!--ARTIFACT-HEAD-END-->
+</head>
+<body>
+<!--ARTIFACT-BODY-START-->
+<div class="app">
+
+  <!-- ===== drafting title block: the player's status ===== -->
+  <header class="tb" id="titleblock">
+    <div class="tb-row">
+      <div class="tb-cell wide">
+        <span class="key">Operator</span>
+        <div class="tb-val"><button class="tb-name d" id="whoBtn" type="button"><span id="whoName">—</span></button></div>
+      </div>
+      <div class="tb-cell">
+        <span class="key">Streak</span>
+        <div class="tb-val num tb-flag" id="tbStreak">0<span class="sub"> d</span></div>
+      </div>
+      <div class="tb-cell">
+        <span class="key">Today</span>
+        <div class="tb-val num" id="tbToday">0<span class="sub"> tasks</span></div>
+      </div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell wide">
+        <span class="key">Rank</span>
+        <div class="tb-val" id="tbRank">Recruit</div>
+      </div>
+      <div class="tb-cell">
+        <span class="key">Level</span>
+        <div class="tb-val num" id="tbLevel">1</div>
+      </div>
+      <div class="tb-cell">
+        <span class="key">Points</span>
+        <div class="tb-val num" id="tbXp">0</div>
+      </div>
+    </div>
+    <div class="tb-row">
+      <div class="tb-cell tb-scale" style="flex:1">
+        <div class="legend"><span class="key" id="tbNextLab">Next rank</span><span class="key m" id="tbNextNum">0 / 150</span></div>
+        <div class="scale"><div class="scale-fill" id="tbBar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ================= QUEST ================= -->
+    <section class="view on" id="v-quest" aria-label="Quest">
+
+      <!-- first-run setup (dismissible, house-level) -->
+      <div class="card hide" id="setupCard">
+        <div class="card-hd"><h2 class="sec">Set up your house</h2><span class="key">Optional</span></div>
+        <div class="card-bd stack">
+          <p class="sub" style="margin:0">Names are just labels — change them any time. Everything else is ready to play.</p>
+          <div class="grid2">
+            <label class="f"><span class="key">Your name</span><input type="text" id="suMe" placeholder="You" autocomplete="off"></label>
+            <label class="f"><span class="key">Partner (adds player 2)</span><input type="text" id="suPartner" placeholder="optional" autocomplete="off"></label>
+            <label class="f"><span class="key">Dog 1</span><input type="text" id="suDog1" placeholder="Dog 1" autocomplete="off"></label>
+            <label class="f"><span class="key">Dog 2</span><input type="text" id="suDog2" placeholder="Dog 2" autocomplete="off"></label>
+            <label class="f"><span class="key">Son's room 1</span><input type="text" id="suSon1" placeholder="Son's Room 1" autocomplete="off"></label>
+            <label class="f"><span class="key">Son's room 2</span><input type="text" id="suSon2" placeholder="Son's Room 2" autocomplete="off"></label>
+            <label class="f"><span class="key">Car 1</span><input type="text" id="suCar1" placeholder="Car 1" autocomplete="off"></label>
+            <label class="f"><span class="key">Car 2</span><input type="text" id="suCar2" placeholder="Car 2" autocomplete="off"></label>
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="suSave" type="button">Save &amp; start</button>
+            <button class="btn ghost sm" id="suSkip" type="button" style="flex:0 0 auto">Skip</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- the roller -->
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">How long have you got?</h2><span class="key" id="poolCount">—</span></div>
+        <div class="card-bd stack">
+          <div class="chips" id="timeChips">
+            <button class="chip" type="button" data-b="5" aria-pressed="false"><span class="n">5</span><span class="u">min</span></button>
+            <button class="chip" type="button" data-b="15" aria-pressed="true"><span class="n">15</span><span class="u">min</span></button>
+            <button class="chip" type="button" data-b="30" aria-pressed="false"><span class="n">30</span><span class="u">min</span></button>
+            <button class="chip" type="button" data-b="90" aria-pressed="false"><span class="n">All</span><span class="u">in</span></button>
+          </div>
+          <div id="woSlot"></div>
+        </div>
+      </div>
+
+      <!-- live timer -->
+      <div class="card hide" id="timerCard">
+        <div class="card-hd"><h2 class="sec">On the clock</h2><button class="back" id="timerStop" type="button">Cancel</button></div>
+        <div class="card-bd">
+          <div class="timer">
+            <svg width="58" height="58" viewBox="0 0 58 58" aria-hidden="true">
+              <circle class="ring-bg" cx="29" cy="29" r="25" fill="none" stroke-width="4"></circle>
+              <circle class="ring-fg" id="ring" cx="29" cy="29" r="25" fill="none" stroke-width="4"
+                      stroke-linecap="butt" transform="rotate(-90 29 29)"
+                      stroke-dasharray="157.08" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="what">
+              <div class="read m" id="timerRead">00:00</div>
+              <div class="n d" id="timerName">—</div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:11px">
+            <button class="btn go" id="timerDone" type="button">Log it</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- today's work order -->
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">Today's work order</h2><span class="key">3 picks · resets daily</span></div>
+        <div class="tasks" id="dailyList"></div>
+      </div>
+
+      <!-- what's due -->
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">Falling behind</h2><span class="key" id="dueCount">—</span></div>
+        <div class="tasks" id="overdueList"></div>
+      </div>
+    </section>
+
+    <!-- ================= MAP ================= -->
+    <section class="view" id="v-map" aria-label="Map">
+      <div id="mapList"></div>
+      <div id="zoneDetail" class="hide"></div>
+    </section>
+
+    <!-- ================= LOG ================= -->
+    <section class="view" id="v-log" aria-label="Log">
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">Last 28 days</h2><span class="key" id="logStreak">—</span></div>
+        <div class="card-bd stack">
+          <div class="days" id="dayGrid"></div>
+          <div class="row-between">
+            <span class="note">Each square is a day you moved the needle.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">Career totals</h2></div>
+        <div class="card-bd">
+          <div class="player" style="border:0;box-shadow:none;padding:0">
+            <div class="stats" id="totals"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">Medals</h2><span class="key" id="badgeCount">—</span></div>
+        <div class="card-bd"><div class="badges" id="badgeGrid"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">Recent activity</h2><span class="key">Tap to undo</span></div>
+        <div class="tasks" id="historyList"></div>
+      </div>
+    </section>
+
+    <!-- ================= CREW ================= -->
+    <section class="view" id="v-crew" aria-label="Crew">
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">This week</h2><span class="key">Points since Monday</span></div>
+        <div class="card-bd"><div class="crew" id="crewList"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">Add a player</h2></div>
+        <div class="card-bd">
+          <div class="btn-row">
+            <input type="text" id="newPlayer" placeholder="Name" autocomplete="off" style="flex:1 1 150px">
+            <button class="btn sm" id="addPlayer" type="button" style="flex:0 0 auto">Add</button>
+          </div>
+          <p class="note" style="margin:9px 0 0">Everyone on one phone shares the same house progress but keeps their own points, rank and streak. Open this page on a second phone and that player gets a fresh house of their own.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><h2 class="sec">House settings</h2></div>
+        <div class="card-bd stack">
+          <div class="row-between">
+            <span class="sub">Sound effects</span>
+            <button class="btn ghost sm" id="soundBtn" type="button">On</button>
+          </div>
+          <div class="row-between">
+            <span class="sub">Backup / move to another phone</span>
+            <div class="btn-row" style="flex:0 0 auto">
+              <button class="btn ghost sm" id="expBtn" type="button">Copy</button>
+              <button class="btn ghost sm" id="impBtn" type="button">Paste</button>
+            </div>
+          </div>
+          <textarea id="backupBox" class="hide" rows="4" spellcheck="false" aria-label="Backup data"></textarea>
+          <div class="row-between">
+            <span class="sub">Wipe this player's progress</span>
+            <button class="btn ghost sm" id="wipeBtn" type="button" style="flex:0 0 auto">Reset</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav class="tabbar" aria-label="Sections">
+  <div class="inner" role="tablist">
+    <button class="tab" role="tab" data-v="quest" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
+      <span class="lab">Quest</span>
+    </button>
+    <button class="tab" role="tab" data-v="map" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4.8 9 3l6 1.8L21 3v16.2L15 21l-6-1.8L3 21z"/><path d="M9 3v16.2M15 4.8V21"/></svg>
+      <span class="lab">Map</span>
+    </button>
+    <button class="tab" role="tab" data-v="log" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h13l3 3v13H4z"/><path d="M8 10h8M8 14h8M8 18h5"/></svg>
+      <span class="lab">Log</span>
+    </button>
+    <button class="tab" role="tab" data-v="crew" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="8" r="3.3"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16.5 5.6a3.3 3.3 0 0 1 0 6.3M17.5 14.9c2.1.6 3.5 2.4 3.5 5.1"/></svg>
+      <span class="lab">Crew</span>
+    </button>
+  </div>
+</nav>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   1. THE HOUSE — zones and their tasks
+   task tuple: [name, minutes, everyDays (0 = one-and-done), grit 0-2]
+   ============================================================ */
+
+const ZONES = [
+  {id:'garage',  name:'The Garage',        group:'The Boss Zone', boss:true},
+  {id:'bed',     name:'Primary Bedroom',   group:'Upstairs'},
+  {id:'bath1',   name:'Primary Bathroom',  group:'Upstairs'},
+  {id:'bath2',   name:'Hall Bathroom',     group:'Upstairs'},
+  {id:'office',  name:'The Office',        group:'Upstairs'},
+  {id:'son1',    name:"Son's Room 1",      group:'Upstairs'},
+  {id:'son2',    name:"Son's Room 2",      group:'Upstairs'},
+  {id:'kitchen', name:'Kitchen',           group:'Downstairs'},
+  {id:'family',  name:'Family Room',       group:'Downstairs'},
+  {id:'gaming',  name:'Gaming Room',       group:'Downstairs'},
+  {id:'laundry', name:'Laundry',           group:'Every Day'},
+  {id:'daily',   name:'Daily Reset',       group:'Every Day'},
+  {id:'car1',    name:'Car 1',             group:'Vehicles'},
+  {id:'car2',    name:'Car 2',             group:'Vehicles'},
+  {id:'dog1',    name:'Dog 1',             group:'The Dogs'},
+  {id:'dog2',    name:'Dog 2',             group:'The Dogs'},
+  {id:'outside', name:'Outside the House', group:'Outside'},
+  {id:'yard',    name:'Yard & Systems',    group:'Outside'}
+];
+
+const RAW = {
+
+garage:[
+  ["Put a box by the door and write DONATE on it",5,0,0],
+  ["Fill one trash bag with the obvious garbage",10,0,0],
+  ["Clear one square metre of floor. Just one",10,0,1],
+  ["Break down every loose cardboard box",15,0,0],
+  ["Collect every loose screw, nail and bolt into one jar",10,0,0],
+  ["Round up the tools that aren't in a toolbox",10,0,0],
+  ["Shelf 1: empty it, wipe it, put back only keepers",20,0,2],
+  ["Shelf 2: same drill",20,0,2],
+  ["Shelf 3: same drill",20,0,2],
+  ["Corral all the sports gear into one bin",15,0,1],
+  ["Stand every garden tool in one corner",15,0,0],
+  ["Pull the dead paint cans and chemicals into a disposal pile",15,0,1],
+  ["Plug in every extension cord, bin the dead ones",10,0,0],
+  ["Bag up the old rags and towels",5,0,0],
+  ["The 'I'll fix it someday' pile: decide on three items",15,0,2],
+  ["Empty and sort one storage bin",15,0,1],
+  ["Empty and sort a second storage bin",15,0,1],
+  ["Hang anything that can live on a wall hook",15,0,1],
+  ["Consolidate the holiday decorations into labelled bins",20,0,1],
+  ["Wipe down the workbench until you can see it",10,0,0],
+  ["Label the leftover paint with the room it belongs to",15,0,0],
+  ["Clear a walkable path from car door to house door",10,0,1],
+  ["Sort the hardware bins: screws here, anchors there",15,0,1],
+  ["Deal with the bike pile: air, oil, or out",15,0,1],
+  ["Sweep the left half of the floor",10,0,0],
+  ["Sweep the right half of the floor",10,0,0],
+  ["Carry the donate box out to the car",5,0,0],
+  ["Actually drop the donation off",20,0,1],
+  ["Load the car for a dump run",20,0,1],
+  ["Make the dump run",30,0,2],
+  ["Knock down the cobwebs along the ceiling",10,0,0],
+  ["Ten-minute garage reset",10,7,0],
+  ["Sweep the garage floor",15,30,0]
+],
+
+bed:[
+  ["Clear the top of one dresser",10,0,0],
+  ["Nightstand drawer: dump it out, sort it, put it back",10,0,0],
+  ["Second nightstand: same",10,0,0],
+  ["The chair. Deal with the clothes on the chair",10,0,1],
+  ["Closet: pull ten things you haven't worn in a year",15,0,1],
+  ["Closet shelf: purge what's up there",15,0,1],
+  ["Pair up the shoes, donate the dead ones",15,0,0],
+  ["Under the bed: pull it all out and decide",20,0,1],
+  ["Sock and underwear drawer amnesty",10,0,0],
+  ["T-shirt drawer: fold and thin out",15,0,0],
+  ["Pants drawer: if it doesn't fit, it goes",15,0,1],
+  ["Jewellery / watch dish: untangle and sort",10,0,0],
+  ["Corral the charging cables to one spot",5,0,0],
+  ["Hang up whatever is draped over the door",5,0,0],
+  ["Dust the surfaces and the ceiling fan",10,0,0],
+  ["Wash the curtains or blinds",20,0,1],
+  ["Make the bed",3,1,0],
+  ["Change the sheets",10,10,0],
+  ["Clear the nightstand surface",5,7,0],
+  ["Vacuum the bedroom",10,7,0]
+],
+
+bath1:[
+  ["Medicine cabinet: everything expired goes",10,0,0],
+  ["Under the sink: bin the empties",10,0,0],
+  ["Drawer 1: dump, sort, return the keepers",10,0,0],
+  ["Drawer 2: same",10,0,0],
+  ["Shower: toss the almost-empty bottles",5,0,0],
+  ["Hair tools and appliances: one drawer, one home",10,0,0],
+  ["Sort the linen closet shelf",15,0,1],
+  ["Thin out the towel collection",10,0,0],
+  ["Descale the shower head",15,0,1],
+  ["Wipe the mirror and the counter",5,7,0],
+  ["Scrub the toilet",6,7,0],
+  ["Scrub the shower or tub",15,10,1],
+  ["Fresh towels out",5,7,0],
+  ["Restock toilet paper and soap",5,14,0],
+  ["Mop the floor",10,14,0],
+  ["Empty the bathroom trash",3,7,0]
+],
+
+bath2:[
+  ["Medicine cabinet: everything expired goes",10,0,0],
+  ["Under the sink: bin the empties",10,0,0],
+  ["Drawer purge: dump, sort, return",10,0,0],
+  ["Shower: toss the almost-empty bottles",5,0,0],
+  ["Thin out the towels and washcloths",10,0,0],
+  ["Kids' bath toys: bin the mouldy ones",10,0,0],
+  ["Wipe the mirror and the counter",5,7,0],
+  ["Scrub the toilet",6,7,0],
+  ["Scrub the shower or tub",15,10,1],
+  ["Fresh towels out",5,7,0],
+  ["Restock toilet paper and soap",5,14,0],
+  ["Mop the floor",10,14,0],
+  ["Empty the bathroom trash",3,7,0]
+],
+
+office:[
+  ["Clear the desktop surface. All of it",15,0,1],
+  ["Paper pile: shred, file or bin — fifteen minutes only",15,0,2],
+  ["Cable drawer: untangle, label, bin the dead",15,0,1],
+  ["Box up the old electronics for e-waste",15,0,1],
+  ["Drop the e-waste at recycling",20,0,1],
+  ["Bookshelf: pull ten books to donate",15,0,0],
+  ["Desk drawer 1",10,0,0],
+  ["Desk drawer 2",10,0,0],
+  ["File cabinet: one drawer, bin anything over seven years old",20,0,2],
+  ["Test every pen, bin the dead ones",5,0,0],
+  ["Supply shelf: consolidate the duplicates",15,0,0],
+  ["Cable-manage under the desk",20,0,1],
+  ["Sort the external drives and USB sticks",15,0,1],
+  ["Clear the whiteboard and the sticky notes",5,0,0],
+  ["Deal with the chair pile of 'to deal with'",10,0,1],
+  ["Dust the monitors and wipe the keyboard",10,21,0],
+  ["Empty the office bin and vacuum",10,14,0],
+  ["Back up anything that only exists in one place",15,30,1]
+],
+
+son1:[
+  ["Ten-minute floor sweep: everything off the floor",10,0,0],
+  ["Get the clothes into the laundry basket",5,0,0],
+  ["Toy or gear bin: purge the outgrown stuff with him",15,0,1],
+  ["Closet: pull everything he's grown out of",15,0,1],
+  ["Dresser drawer 1: outgrown clothes out",10,0,0],
+  ["Dresser drawer 2: same",10,0,0],
+  ["Clear the desk surface",10,0,0],
+  ["Under the bed: pull it out, decide",10,0,1],
+  ["Bookshelf: donate what he's outgrown",15,0,0],
+  ["Corral the charging cables and electronics",10,0,0],
+  ["Sort the art, awards and paper keepsakes",15,0,1],
+  ["Return the dishes and cups to the kitchen",5,7,0],
+  ["Empty his trash can",3,7,0],
+  ["Change his sheets",10,14,0],
+  ["Vacuum his room",10,10,0],
+  ["Floor check before bed",5,3,0]
+],
+
+son2:[
+  ["Ten-minute floor sweep: everything off the floor",10,0,0],
+  ["Get the clothes into the laundry basket",5,0,0],
+  ["Toy or gear bin: purge the outgrown stuff with him",15,0,1],
+  ["Closet: pull everything he's grown out of",15,0,1],
+  ["Dresser drawer 1: outgrown clothes out",10,0,0],
+  ["Dresser drawer 2: same",10,0,0],
+  ["Clear the desk surface",10,0,0],
+  ["Under the bed: pull it out, decide",10,0,1],
+  ["Bookshelf: donate what he's outgrown",15,0,0],
+  ["Corral the charging cables and electronics",10,0,0],
+  ["Sort the art, awards and paper keepsakes",15,0,1],
+  ["Return the dishes and cups to the kitchen",5,7,0],
+  ["Empty his trash can",3,7,0],
+  ["Change his sheets",10,14,0],
+  ["Vacuum his room",10,10,0],
+  ["Floor check before bed",5,3,0]
+],
+
+kitchen:[
+  ["Clear and wipe one section of counter",10,0,0],
+  ["The junk drawer. You know the one",15,0,1],
+  ["Utensil drawer: you don't need four spatulas",10,0,0],
+  ["Food container cabinet: match the lids, bin the orphans",15,0,1],
+  ["Under the sink: bin the empties, corral the cleaners",15,0,1],
+  ["Spice cabinet: anything older than you remember goes",10,0,0],
+  ["Pantry shelf 1: expired food sweep",15,0,1],
+  ["Pantry shelf 2: expired food sweep",15,0,1],
+  ["Pantry shelf 3: expired food sweep",15,0,1],
+  ["Fridge: anything past its date goes",10,0,0],
+  ["Fridge door: condiment amnesty",10,0,0],
+  ["Freezer: bin the freezer-burned mysteries",15,0,1],
+  ["Mug and glass cabinet: keep only what gets used",15,0,0],
+  ["Consolidate the grocery bag stash",5,0,0],
+  ["Small appliances: donate the one you never use",15,0,1],
+  ["Bakeware cabinet purge",15,0,0],
+  ["Pots and pans: nest them properly",15,0,0],
+  ["Kids' water bottles: pair the lids, bin the rest",10,0,0],
+  ["Cookbook and paper pile on the counter",10,0,1],
+  ["Dish towel drawer: keep the good ones",5,0,0],
+  ["Reset and restock the coffee station",10,0,0],
+  ["Clean out the cabinet above the fridge",15,0,1],
+  ["Sharpen the knives, bin the bad ones",15,0,0],
+  ["Run or empty the dishwasher",8,1,0],
+  ["Wipe every counter before bed",5,1,0],
+  ["Take out the kitchen trash and recycling",5,2,0],
+  ["Empty, scrub and shine the sink",10,7,0],
+  ["Wipe the fridge front and handles",5,14,0],
+  ["Mop the kitchen floor",15,10,1],
+  ["Wipe out the microwave",8,14,0]
+],
+
+family:[
+  ["Couch cushions off, vacuum underneath",15,0,0],
+  ["Blanket basket: fold them, thin them out",10,0,0],
+  ["Media cabinet: sort the cables, remotes and discs",15,0,1],
+  ["Shelf of decor and photos: dust and thin out",15,0,0],
+  ["Toy or gear basket purge",15,0,1],
+  ["Coffee table drawer",10,0,0],
+  ["The magazine and mail pile",10,0,0],
+  ["Sort the board games, bin the ones missing pieces",15,0,0],
+  ["Window sills and baseboards, one wall",15,0,1],
+  ["Ten-minute reset: everything back to its home",10,1,0],
+  ["Dust the TV and the electronics",10,14,0],
+  ["Vacuum the family room",10,7,0],
+  ["Fluff and straighten the cushions",5,3,0]
+],
+
+gaming:[
+  ["Controller round-up: find them all, charge them all",10,0,0],
+  ["Cable management behind the setup",20,0,2],
+  ["Game shelf: sort it, donate what you won't replay",15,0,0],
+  ["Headset and peripheral drawer",10,0,0],
+  ["Old consoles and cords: keep or e-waste",15,0,1],
+  ["Sort the loose discs back into cases",10,0,0],
+  ["Wipe down the desk and table surfaces",5,0,0],
+  ["Chairs: wipe them down",10,0,0],
+  ["Fix or bin the dead LED strip",10,0,0],
+  ["Snack patrol: cups and wrappers out",5,1,0],
+  ["Dust the screens and the consoles",10,14,0],
+  ["Vacuum the gaming room",10,7,0],
+  ["Put the controllers back on the charger",3,3,0]
+],
+
+laundry:[
+  ["Zero out the laundry room floor",10,0,1],
+  ["Sort the orphan sock bin. Ruthlessly",10,0,0],
+  ["Thin out the hangers you never use",10,0,0],
+  ["Shelf above the machines: sort and restock",15,0,0],
+  ["Start a load",5,1,0],
+  ["Move the wash to the dryer",3,1,0],
+  ["Fold one load",15,1,0],
+  ["Put one load away. All the way into drawers",10,1,0],
+  ["Clear the dryer lint trap properly",5,3,0],
+  ["Wash the towels",10,7,0],
+  ["Wash the bedding for one bed",15,10,0],
+  ["Steam or iron whatever's been waiting",15,14,0],
+  ["Restock detergent and supplies",5,30,0],
+  ["Clean the washer gasket and drum",15,30,1]
+],
+
+daily:[
+  ["Ten-minute whole-house tidy sweep",10,1,0],
+  ["Sort today's mail and papers",5,1,0],
+  ["Dishes into the dishwasher before bed",5,1,0],
+  ["One surface, cleared. Any surface",5,1,0],
+  ["Put five things back where they live",5,1,0],
+  ["Take out all the trash cans",10,7,0],
+  ["Water the houseplants",10,7,0],
+  ["Wipe the light switches and door handles",10,30,0],
+  ["Walk the house and replace the dead bulbs",15,60,0],
+  ["Vacuum the stairs",10,10,1],
+  ["Dust the picture frames and shelves",15,21,0],
+  ["Wipe down the interior doors",15,90,0],
+  ["Clean the inside of the windows, one room",20,90,1]
+],
+
+car1:[
+  ["Remove everything that doesn't live in the car",10,0,0],
+  ["Glove box and console purge",10,0,0],
+  ["Clear out the trunk",15,0,0],
+  ["Bin the old receipts and paperwork",5,0,0],
+  ["Put a small trash bin in the car",5,0,0],
+  ["Build or refresh the emergency kit",15,0,1],
+  ["Trash bag sweep",5,7,0],
+  ["Vacuum the interior",20,30,1],
+  ["Wipe the dash and door panels",10,30,0],
+  ["Clean the inside of the windows",10,30,0],
+  ["Run it through the car wash",20,30,0],
+  ["Check tyre pressure and fluids",10,30,1],
+  ["Wash the floor mats",15,60,0]
+],
+
+car2:[
+  ["Remove everything that doesn't live in the car",10,0,0],
+  ["Glove box and console purge",10,0,0],
+  ["Clear out the trunk",15,0,0],
+  ["Bin the old receipts and paperwork",5,0,0],
+  ["Put a small trash bin in the car",5,0,0],
+  ["Build or refresh the emergency kit",15,0,1],
+  ["Trash bag sweep",5,7,0],
+  ["Vacuum the interior",20,30,1],
+  ["Wipe the dash and door panels",10,30,0],
+  ["Clean the inside of the windows",10,30,0],
+  ["Run it through the car wash",20,30,0],
+  ["Check tyre pressure and fluids",10,30,1],
+  ["Wash the floor mats",15,60,0]
+],
+
+dog1:[
+  ["Sort the toy bin, bin the shredded ones",10,0,0],
+  ["Set up one spot for leash, food and meds",15,0,0],
+  ["Full brush-out",10,4,0],
+  ["Ten-minute training session",10,1,0],
+  ["Brush the teeth",5,2,0],
+  ["Practise one new command until it sticks",15,7,1],
+  ["Loose-leash walk, focused on manners",20,7,0],
+  ["Clean the ears",10,14,0],
+  ["Trim the nails",15,30,2],
+  ["Bath",30,30,1],
+  ["Wash the bed and blankets",15,14,0],
+  ["Wash the food and water bowls",5,7,0],
+  ["Flea and tick treatment",5,30,0],
+  ["Check meds, shots and vet dates",10,90,0]
+],
+
+dog2:[
+  ["Sort the toy bin, bin the shredded ones",10,0,0],
+  ["Set up one spot for leash, food and meds",15,0,0],
+  ["Full brush-out",10,4,0],
+  ["Ten-minute training session",10,1,0],
+  ["Brush the teeth",5,2,0],
+  ["Practise one new command until it sticks",15,7,1],
+  ["Loose-leash walk, focused on manners",20,7,0],
+  ["Clean the ears",10,14,0],
+  ["Trim the nails",15,30,2],
+  ["Bath",30,30,1],
+  ["Wash the bed and blankets",15,14,0],
+  ["Wash the food and water bowls",5,7,0],
+  ["Flea and tick treatment",5,30,0],
+  ["Check meds, shots and vet dates",10,90,0]
+],
+
+outside:[
+  ["Clear the junk off the porch",10,0,0],
+  ["Sort the shed or deck box",20,0,1],
+  ["Coil and store the hoses properly",10,0,0],
+  ["Clean the gutters: front of the house",45,180,2],
+  ["Clean the gutters: back of the house",45,180,2],
+  ["Clear the downspouts and check the drainage",20,180,1],
+  ["Spray the perimeter for pests",30,90,1],
+  ["Treat for wasps and knock down the nests",15,120,1],
+  ["Sweep the front porch and entry",10,7,0],
+  ["Sweep the back patio or deck",10,7,0],
+  ["Hose down one wall of siding",20,180,1],
+  ["Wash the outside windows, one side of the house",30,180,2],
+  ["Clean out the grill",20,90,0],
+  ["Wipe down the outdoor furniture",20,120,0],
+  ["Bins to the curb",5,7,0],
+  ["Wash out the trash cans",15,90,1]
+],
+
+yard:[
+  ["Pull weeds. Fifteen minutes, then stop",15,7,0],
+  ["Mow the lawn",45,10,1],
+  ["Trim one bush or one section of hedge",20,30,0],
+  ["Bag the yard waste",15,14,0],
+  ["Edge the walkway and driveway",20,30,0],
+  ["Change the HVAC filter",10,90,0],
+  ["Test the smoke and CO detectors",15,90,1],
+  ["Clean out the dryer vent",20,120,1],
+  ["Lube the garage door tracks and test the reverse",15,180,0],
+  ["Check the water heater for leaks and sediment",15,180,1],
+  ["Flush the outdoor spigots before the freeze",15,365,0],
+  ["Re-caulk one window or door that needs it",20,365,1],
+  ["Walk the perimeter and note what needs fixing",15,90,0]
+]
+
+};
+
+/* ============================================================
+   2. RANKS & MEDALS
+   ============================================================ */
+
+const RANKS = ["Recruit","Drawer Cadet","Bin Wrangler","Shelf Sergeant","Cabinet Corporal",
+  "Laundry Lieutenant","Closet Captain","Zone Major","Garage Gladiator","Deep-Clean Colonel",
+  "Chaos Breaker","Clutter Slayer","Household General","Baron of Bins","Duke of Declutter",
+  "Sultan of Sort","Marshal of Mops","Warden of the Linen Closet","Domestic Overlord","Keeper of the Clear Floor"];
+
+const BADGES = [
+  {id:'first', g:'\u{1F3C1}', n:'First Move',      h:'Log one task',            t:c=>c.total>=1},
+  {id:'trio',  g:'\u{1F3AF}', n:'Triple Play',     h:'3 in one day',            t:c=>c.bestDay>=3},
+  {id:'blitz', g:'\u{26A1}',  n:'Blitz',           h:'5 in one day',            t:c=>c.bestDay>=5},
+  {id:'hour',  g:'\u{23F1}',  n:'Power Hour',      h:'60 min in a day',         t:c=>c.bestDayMins>=60},
+  {id:'s3',    g:'\u{1F525}', n:'Ignition',        h:'3-day streak',            t:c=>c.bestStreak>=3},
+  {id:'s7',    g:'\u{1F4C5}', n:'Week One',        h:'7-day streak',            t:c=>c.bestStreak>=7},
+  {id:'s14',   g:'\u{1F5FF}', n:'Fortnight',       h:'14-day streak',           t:c=>c.bestStreak>=14},
+  {id:'s30',   g:'\u{1F451}', n:'Month of Motion', h:'30-day streak',           t:c=>c.bestStreak>=30},
+  {id:'g5',    g:'\u{1F6E0}', n:'Beachhead',       h:'5 garage tasks',          t:c=>(c.zone.garage||0)>=5},
+  {id:'g15',   g:'\u{1F4AA}', n:'Dug In',          h:'15 garage tasks',         t:c=>(c.zone.garage||0)>=15},
+  {id:'gboss', g:'\u{1F3C6}', n:'Garage Boss',     h:'Clear the garage',        t:c=>c.cleared.has('garage')},
+  {id:'z1',    g:'\u{2705}',  n:'Zone Cleared',    h:'Clear any zone',          t:c=>c.cleared.size>=1},
+  {id:'z3',    g:'\u{1F3E0}', n:'Three Down',      h:'Clear three zones',       t:c=>c.cleared.size>=3},
+  {id:'cars',  g:'\u{1F697}', n:'Motor Pool',      h:'Clear both cars',         t:c=>c.cleared.has('car1')&&c.cleared.has('car2')},
+  {id:'dogs',  g:'\u{1F415}', n:'Good Dogs',       h:'20 dog tasks',            t:c=>((c.zone.dog1||0)+(c.zone.dog2||0))>=20},
+  {id:'fold',  g:'\u{1F9FA}', n:'Fold Master',     h:'25 laundry tasks',        t:c=>(c.zone.laundry||0)>=25},
+  {id:'bags',  g:'\u{1F5D1}', n:'Bag Man',         h:'40 declutter tasks',      t:c=>c.once>=40},
+  {id:'c100',  g:'\u{1F4AF}', n:'Century',         h:'100 tasks logged',        t:c=>c.total>=100},
+  {id:'c250',  g:'\u{1F31F}', n:'Double Century',  h:'250 tasks logged',        t:c=>c.total>=250},
+  {id:'early', g:'\u{1F305}', n:'Early Bird',      h:'A task before 8am',       t:c=>c.early},
+  {id:'late',  g:'\u{1F319}', n:'Night Owl',       h:'A task after 10pm',       t:c=>c.late},
+  {id:'mins',  g:'\u{1F6E1}', n:'Ten Hours In',    h:'600 minutes total',       t:c=>c.mins>=600}
+];
+
+const COLORS = ['#c74c1d','#1c7457','#2f5fa8','#8a3ca8','#a2720c','#0f8a8a'];
+
+/* ============================================================
+   3. UTILITIES
+   ============================================================ */
+
+const $  = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.prototype.slice.call((r||document).querySelectorAll(s));
+const DAY = 86400000;
+const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
+
+function startOfDay(ts){ const d=new Date(ts); d.setHours(0,0,0,0); return d.getTime() }
+function dayKey(ts){ const d=new Date(ts);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') }
+function daysSince(ts){ return Math.floor((startOfDay(Date.now()) - startOfDay(ts)) / DAY) }
+function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4) }
+function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,30) }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296 } }
+function hashStr(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619) } return h>>>0 }
+function plural(n,w){ return n+' '+w+(n===1?'':'s') }
+
+function cadenceLabel(every){
+  if(every===0) return 'one &amp; done';
+  if(every===1) return 'daily';
+  if(every<=3)  return 'every '+every+' days';
+  if(every===7) return 'weekly';
+  if(every<=14) return 'every '+every+' days';
+  if(every<=31) return 'monthly';
+  if(every<=100) return 'quarterly';
+  if(every<=200) return 'twice a year';
+  return 'yearly';
+}
+
+/* ---- build the task table ---- */
+const ZONE = {};
+ZONES.forEach(z => ZONE[z.id] = z);
+
+const BASE_TASKS = [];
+Object.keys(RAW).forEach(function(zid){
+  const seen = {};
+  RAW[zid].forEach(function(t){
+    let id = zid + ':' + slug(t[0]);
+    if(seen[id]){ id += '-' + (++seen[id]) } else { seen[id] = 1 }
+    BASE_TASKS.push({ id:id, zone:zid, name:t[0], mins:t[1], every:t[2], grit:t[3]||0 });
+  });
+});
+
+function xpFor(t){
+  let x = Math.max(5, Math.round(t.mins * 1.4 / 5) * 5);
+  x += (t.grit || 0) * 8;
+  if(t.every === 0) x += 5;
+  if(ZONE[t.zone] && ZONE[t.zone].boss) x = Math.round(x * 1.4 / 5) * 5;
+  return x;
+}
+BASE_TASKS.forEach(t => { t.xp = xpFor(t) });
+
+/* ============================================================
+   4. STATE
+   ============================================================ */
+
+const KEY = 'homefront.v1';
+
+const blankProfile = name => ({ id:uid(), name:name||'You', color:COLORS[0], made:Date.now(), log:[], seen:[] });
+
+let state = null;
+
+function freshState(){
+  const p = blankProfile('You');
+  return { v:1, active:p.id, profiles:[p],
+           house:{ names:{}, custom:[], workorder:null, setup:false },
+           settings:{ sound:true } };
+}
+
+function load(){
+  let raw = null;
+  try { raw = localStorage.getItem(KEY) } catch(e){ raw = null }
+  if(!raw){ state = freshState(); return }
+  try {
+    const s = JSON.parse(raw);
+    if(!s || !Array.isArray(s.profiles) || !s.profiles.length) throw 0;
+    s.house = s.house || {}; s.house.names = s.house.names || {}; s.house.custom = s.house.custom || [];
+    s.settings = s.settings || { sound:true };
+    s.profiles.forEach(p => { p.log = Array.isArray(p.log) ? p.log : []; p.seen = p.seen || [] });
+    if(!s.profiles.some(p => p.id === s.active)) s.active = s.profiles[0].id;
+    state = s;
+  } catch(e){ state = freshState() }
+}
+
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)) } catch(e){}
+}
+
+const me = () => state.profiles.find(p => p.id === state.active) || state.profiles[0];
+
+/* ---- tasks incl. custom ---- */
+function allTasks(){
+  const custom = (state.house.custom || []).map(c => Object.assign({}, c, { xp: xpFor(c), custom:true }));
+  return BASE_TASKS.concat(custom);
+}
+let TASKS = [];
+let TASKBY = {};
+function rebuild(){
+  TASKS = allTasks();
+  TASKBY = {};
+  TASKS.forEach(t => TASKBY[t.id] = t);
+}
+
+function zoneName(zid){
+  return (state.house.names && state.house.names[zid]) || (ZONE[zid] ? ZONE[zid].name : zid);
+}
+
+/* ---- house-wide completion index (all players share one house) ---- */
+function houseIndex(){
+  const last = {}, by = {};
+  state.profiles.forEach(function(p){
+    p.log.forEach(function(e){
+      if(!last[e.t] || e.at > last[e.t]){ last[e.t] = e.at; by[e.t] = p.id }
+    });
+  });
+  return { last:last, by:by };
+}
+
+function statusOf(t, idx){
+  const last = idx.last[t.id];
+  if(t.every === 0) return last ? { s:'done', last:last } : { s:'open', over:1 };
+  if(!last) return { s:'open', over:2 };
+  const d = daysSince(last);
+  if(d >= t.every) return { s:'open', last:last, over: d / t.every };
+  return { s:'rest', last:last, in: t.every - d };
+}
+
+/* ---- derived profile numbers ---- */
+function xpOf(e){ let x = e.x || 0; if(e.b) e.b.forEach(b => x += b.x); return x }
+
+function levelAt(xp){
+  let l = 1;
+  while(l < RANKS.length && xp >= xpForLevel(l+1)) l++;
+  return l;
+}
+function xpForLevel(l){ return Math.round(150*(l-1) + 25*Math.pow(l-1,2)) }
+
+function statsOf(p){
+  const days = {}, zone = {};
+  let total = 0, xp = 0, mins = 0, once = 0, early = false, late = false;
+  p.log.forEach(function(e){
+    const k = dayKey(e.at);
+    days[k] = days[k] || { n:0, m:0 };
+    days[k].n++; days[k].m += (e.m || 0);
+    total++; xp += xpOf(e); mins += (e.m || 0);
+    const t = TASKBY[e.t];
+    if(t){ zone[t.zone] = (zone[t.zone] || 0) + 1; if(t.every === 0) once++ }
+    const h = new Date(e.at).getHours();
+    if(h < 8) early = true;
+    if(h >= 22) late = true;
+  });
+  const keys = Object.keys(days).sort();
+  let bestDay = 0, bestDayMins = 0;
+  keys.forEach(k => { bestDay = Math.max(bestDay, days[k].n); bestDayMins = Math.max(bestDayMins, days[k].m) });
+
+  // current streak (today counts, yesterday keeps it alive)
+  let streak = 0, cur = Date.now();
+  if(!days[dayKey(cur)]) cur -= DAY;
+  while(days[dayKey(cur)]){ streak++; cur -= DAY }
+
+  // longest streak ever
+  let best = 0, run = 0, prev = null;
+  keys.forEach(function(k){
+    const t = new Date(k + 'T00:00:00').getTime();
+    run = (prev !== null && Math.round((t - prev) / DAY) === 1) ? run + 1 : 1;
+    best = Math.max(best, run); prev = t;
+  });
+
+  const today = days[dayKey(Date.now())] || { n:0, m:0 };
+  const lvl = levelAt(xp);
+  return { days:days, zone:zone, total:total, xp:xp, mins:mins, once:once, early:early, late:late,
+           bestDay:bestDay, bestDayMins:bestDayMins, streak:streak, bestStreak:best,
+           today:today.n, todayMins:today.m, level:lvl, rank:RANKS[lvl-1],
+           cleared:clearedZones() };
+}
+
+function zoneProgress(zid, idx){
+  let done = 0, tot = 0, due = 0, rep = 0;
+  TASKS.forEach(function(t){
+    if(t.zone !== zid) return;
+    const st = statusOf(t, idx);
+    if(t.every === 0){ tot++; if(st.s === 'done') done++ }
+    else { rep++; if(st.s === 'open') due++ }
+  });
+  // zones that are pure upkeep (Daily Reset) score on how much is inside its window
+  const pct = tot ? Math.round(done / tot * 100)
+            : rep ? Math.round((rep - due) / rep * 100)
+            : 100;
+  return { done:done, tot:tot, due:due, rep:rep, pct:pct };
+}
+
+function clearedZones(){
+  const idx = houseIndex(), set = new Set();
+  ZONES.forEach(function(z){
+    const p = zoneProgress(z.id, idx);
+    if(p.tot > 0 && p.done === p.tot) set.add(z.id);
+  });
+  return set;
+}
+
+function weekPoints(p){
+  const now = new Date(); const dow = (now.getDay() + 6) % 7; // Monday = 0
+  const monday = startOfDay(Date.now()) - dow * DAY;
+  return p.log.reduce((s,e) => e.at >= monday ? s + xpOf(e) : s, 0);
+}
+
+/* ============================================================
+   5. FEEDBACK — toasts and sound
+   ============================================================ */
+
+function toast(msg, win){
+  const el = document.createElement('div');
+  el.className = 'toast' + (win ? ' win' : '');
+  el.innerHTML = msg;
+  $('#toasts').appendChild(el);
+  setTimeout(function(){
+    el.style.transition = 'opacity .3s, transform .3s';
+    el.style.opacity = '0'; el.style.transform = 'translateY(8px)';
+    setTimeout(function(){ el.remove() }, 320);
+  }, win ? 2600 : 1900);
+}
+
+let actx = null;
+function tone(freq, when, dur, vol){
+  if(!state.settings.sound) return;
+  try{
+    if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + when;
+    o.type = 'triangle'; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(vol, t0 + .012);
+    g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0 + dur + .02);
+  }catch(e){}
+}
+const sfxDone  = () => { tone(587,0,.09,.16); tone(880,.07,.16,.13) };
+const sfxLevel = () => { [523,659,784,1047].forEach((f,i) => tone(f, i*.1, .3, .15)) };
+const sfxUndo  = () => { tone(330,0,.09,.1); tone(247,.07,.12,.09) };
+
+/* ============================================================
+   6. ACTIONS
+   ============================================================ */
+
+function bonusesFor(p){
+  const out = [];
+  const todayN = p.log.filter(e => dayKey(e.at) === dayKey(Date.now())).length;
+  if(todayN === 0){
+    out.push({ k:'First move of the day', x:10 });
+    const s = statsOf(p).streak;
+    if(s >= 2) out.push({ k:(s+1) + '-day streak', x: Math.min(30, (s+1) * 2) });
+  }
+  if(todayN === 2) out.push({ k:'Momentum — 3 in a day', x:15 });
+  if(todayN === 4) out.push({ k:'Power hour — 5 in a day', x:25 });
+  return out;
+}
+
+function complete(taskId){
+  const t = TASKBY[taskId];
+  if(!t) return;
+  const p = me();
+  const before = statsOf(p);
+  const clearedBefore = before.cleared;
+
+  const entry = { i:uid(), t:t.id, at:Date.now(), x:t.xp, m:t.mins };
+  const bon = bonusesFor(p);
+  if(bon.length) entry.b = bon;
+  p.log.push(entry);
+  save();
+
+  const after = statsOf(p);
+  const gained = xpOf(entry);
+
+  sfxDone();
+  toast('<strong>' + esc(t.name) + '</strong><span class="x">+' + gained + '</span>');
+  bon.forEach((b,i) => setTimeout(() => toast(b.k + '<span class="x">+' + b.x + '</span>'), 420 + i * 380));
+
+  if(after.level > before.level){
+    setTimeout(function(){
+      sfxLevel();
+      toast('LEVEL ' + after.level + ' — ' + after.rank.toUpperCase(), true);
+    }, 700);
+  }
+
+  const newlyCleared = [];
+  after.cleared.forEach(z => { if(!clearedBefore.has(z)) newlyCleared.push(z) });
+  newlyCleared.forEach((z,i) => setTimeout(() => {
+    sfxLevel();
+    toast(zoneName(z).toUpperCase() + ' — CLEARED', true);
+  }, 1100 + i * 500));
+
+  const gotBefore = earned(before), gotAfter = earned(after);
+  gotAfter.forEach(function(b,i){
+    if(gotBefore.indexOf(b) < 0) setTimeout(() => toast('Medal unlocked: ' + BADGES.find(x=>x.id===b).n, true), 1100 + i*400);
+  });
+
+  if(current === taskId){ current = null }
+  stopTimer(true);
+  render();
+}
+
+function earned(st){ return BADGES.filter(b => { try { return b.t(st) } catch(e){ return false } }).map(b => b.id) }
+
+function undoEntry(entryId){
+  const p = me();
+  const i = p.log.findIndex(e => e.i === entryId);
+  if(i < 0) return;
+  p.log.splice(i, 1);
+  save(); sfxUndo(); toast('Taken back off the board');
+  render();
+}
+
+function undoTask(taskId){
+  const p = me();
+  for(let i = p.log.length - 1; i >= 0; i--){
+    if(p.log[i].t === taskId){ undoEntry(p.log[i].i); return }
+  }
+  const idx = houseIndex();
+  const who = state.profiles.find(x => x.id === idx.by[taskId]);
+  toast(who ? esc(who.name) + ' logged that one' : 'Not yours to undo');
+}
+
+/* ---- the roller ---- */
+let current = null, skipped = new Set(), budget = 15;
+
+function roll(){
+  const idx = houseIndex();
+  const prog = {};
+  ZONES.forEach(z => prog[z.id] = zoneProgress(z.id, idx));
+
+  let pool = TASKS.filter(t => t.mins <= budget && !skipped.has(t.id) && statusOf(t, idx).s === 'open');
+  if(!pool.length && skipped.size){
+    skipped.clear();
+    pool = TASKS.filter(t => t.mins <= budget && statusOf(t, idx).s === 'open');
+  }
+  if(!pool.length){ current = null; return null }
+
+  const w = pool.map(function(t){
+    const st = statusOf(t, idx), p = prog[t.zone];
+    let v = 1;
+    if(p && p.tot && p.pct < 50) v *= 1.8;
+    if(ZONE[t.zone] && ZONE[t.zone].boss) v *= 2.2;
+    if(st.over && st.over > 1.5) v *= 1.8;
+    if(t.mins <= 10) v *= 1.4;
+    if(t.every === 0) v *= 1.3;
+    return v;
+  });
+  let sum = w.reduce((a,b) => a+b, 0), r = Math.random() * sum;
+  for(let i = 0; i < pool.length; i++){ r -= w[i]; if(r <= 0){ current = pool[i].id; return pool[i] } }
+  current = pool[pool.length-1].id;
+  return pool[pool.length-1];
+}
+
+/* ---- timer ---- */
+let timer = null;
+function startTimer(taskId){
+  const t = TASKBY[taskId];
+  if(!t) return;
+  stopTimer(true);
+  timer = { id:taskId, total:t.mins * 60, left:t.mins * 60 };
+  $('#timerName').textContent = t.name;
+  $('#timerCard').classList.remove('hide');
+  tickTimer();
+  timer.iv = setInterval(tickTimer, 1000);
+  $('#timerCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function tickTimer(){
+  if(!timer) return;
+  const m = Math.floor(Math.abs(timer.left) / 60), s = Math.abs(timer.left) % 60;
+  $('#timerRead').textContent = (timer.left < 0 ? '+' : '') + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  const C = 2 * Math.PI * 25;
+  const frac = clamp(timer.left / timer.total, 0, 1);
+  $('#ring').setAttribute('stroke-dashoffset', String(C * (1 - frac)));
+  if(timer.left === 0){ tone(880,0,.18,.18); tone(660,.2,.3,.16); toast('Time — log it or keep going') }
+  timer.left--;
+}
+function stopTimer(silent){
+  if(timer && timer.iv) clearInterval(timer.iv);
+  timer = null;
+  const c = $('#timerCard');
+  if(c) c.classList.add('hide');
+}
+
+/* ---- daily work order ---- */
+function workOrder(){
+  const k = dayKey(Date.now());
+  const wo = state.house.workorder;
+  if(wo && wo.day === k && Array.isArray(wo.ids) && wo.ids.length) return wo.ids.filter(id => TASKBY[id]);
+
+  const idx = houseIndex();
+  const open = TASKS.filter(t => statusOf(t, idx).s === 'open');
+  const rnd = mulberry32(hashStr(k + '|' + state.active));
+  const ids = [];
+  const take = pool => {
+    const a = pool.filter(t => ids.indexOf(t.id) < 0);
+    if(a.length) ids.push(a[Math.floor(rnd() * a.length)].id);
+  };
+  take(open.filter(t => t.mins <= 10));
+  take(open.filter(t => t.every === 0));
+  take(open.filter(t => t.every > 0));
+  while(ids.length < 3 && ids.length < open.length) take(open);
+  state.house.workorder = { day:k, ids:ids };
+  save();
+  return ids;
+}
+
+/* ============================================================
+   7. RENDER
+   ============================================================ */
+
+let view = 'quest', openZone = null;
+
+function taskRowHTML(t, idx, opts){
+  opts = opts || {};
+  const st = statusOf(t, idx);
+  const doneToday = st.last && dayKey(st.last) === dayKey(Date.now());
+  const done = st.s === 'done' || doneToday;
+  const rest = st.s === 'rest' && !doneToday;
+
+  const pills = [];
+  if(opts.zone) pills.push('<span class="pill">' + esc(zoneName(t.zone)) + '</span>');
+  pills.push('<span class="pill">' + t.mins + ' min</span>');
+  pills.push('<span class="pill xp">+' + t.xp + '</span>');
+  if(t.every === 0) pills.push('<span class="pill once">one &amp; done</span>');
+  else if(doneToday) pills.push('<span class="pill rest">done today</span>');
+  else if(rest) pills.push('<span class="pill rest">again in ' + plural(st.in, 'day') + '</span>');
+  else if(st.last) pills.push('<span class="pill due">due · ' + cadenceLabel(t.every) + '</span>');
+  else pills.push('<span class="pill">' + cadenceLabel(t.every) + '</span>');
+
+  const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4.5 4.5L19 7"/></svg>';
+  return '<div class="task' + (done ? ' done-once' : '') + (rest ? ' resting' : '') + '">' +
+    '<button class="stamp' + (done ? ' done' : '') + '" data-act="' + (done ? 'undo-task' : 'complete') + '" data-id="' + t.id + '" ' +
+      'aria-label="' + (done ? 'Undo ' : 'Mark done: ') + esc(t.name) + '">' + check + '</button>' +
+    '<div class="body"><div class="n">' + esc(t.name) + '</div><div class="meta">' + pills.join('') + '</div></div></div>';
+}
+
+function renderTitleBlock(){
+  const p = me(), s = statsOf(p);
+  $('#whoName').textContent = p.name;
+  $('#tbStreak').innerHTML = s.streak + '<span class="sub"> d</span>';
+  $('#tbToday').innerHTML = s.today + '<span class="sub"> ' + (s.today === 1 ? 'task' : 'tasks') + '</span>';
+  $('#tbRank').textContent = s.rank;
+  $('#tbLevel').textContent = s.level;
+  $('#tbXp').textContent = s.xp.toLocaleString();
+
+  const top = s.level >= RANKS.length;
+  const lo = xpForLevel(s.level), hi = top ? lo : xpForLevel(s.level + 1);
+  const pct = top ? 100 : clamp((s.xp - lo) / (hi - lo) * 100, 0, 100);
+  $('#tbNextLab').textContent = top ? 'Maximum rank' : 'Next: ' + RANKS[s.level];
+  $('#tbNextNum').textContent = top ? s.xp.toLocaleString() + ' pts' : (s.xp - lo) + ' / ' + (hi - lo);
+  $('#tbBar').style.width = pct + '%';
+}
+
+function renderQuest(){
+  const idx = houseIndex();
+  const open = TASKS.filter(t => statusOf(t, idx).s === 'open');
+  $('#poolCount').textContent = open.length + ' on the board';
+
+  // rolled work order
+  const slot = $('#woSlot');
+  const t = current ? TASKBY[current] : null;
+  if(t){
+    const st = statusOf(t, idx);
+    slot.innerHTML =
+      '<div class="wo">' +
+        '<div class="zone"><span class="key">' + esc(zoneName(t.zone).toUpperCase()) + '</span>' +
+          (ZONE[t.zone] && ZONE[t.zone].boss ? '<span class="pill boss">boss zone</span>' : '') + '</div>' +
+        '<div class="title">' + esc(t.name) + '</div>' +
+        '<div class="meta"><span class="pill">' + t.mins + ' min</span><span class="pill xp">+' + t.xp + ' pts</span>' +
+          (t.every === 0 ? '<span class="pill once">one &amp; done</span>'
+                         : '<span class="pill' + (st.over > 1.5 ? ' due' : '') + '">' + cadenceLabel(t.every) + '</span>') + '</div>' +
+        '<div class="btn-row">' +
+          '<button class="btn go" data-act="complete" data-id="' + t.id + '" type="button">Done</button>' +
+          '<button class="btn" data-act="start" data-id="' + t.id + '" type="button">Start clock</button>' +
+          '<button class="btn ghost" data-act="skip" data-id="' + t.id + '" type="button">Not this</button>' +
+        '</div>' +
+      '</div>';
+  } else {
+    slot.innerHTML = '<button class="btn primary wide" data-act="roll" type="button">Give me one thing</button>';
+  }
+
+  // today's work order
+  const wo = workOrder();
+  $('#dailyList').innerHTML = wo.length
+    ? wo.map(id => taskRowHTML(TASKBY[id], idx, { zone:true })).join('')
+    : '<div class="empty"><span class="big">Nothing left today</span>You have cleared the board.</div>';
+
+  // falling behind
+  const late = TASKS.map(t => ({ t:t, st:statusOf(t, idx) }))
+    .filter(o => o.st.s === 'open' && o.st.last && o.st.over >= 1.5)
+    .sort((a,b) => b.st.over - a.st.over).slice(0, 8);
+  $('#dueCount').textContent = late.length ? late.length + ' overdue' : 'all caught up';
+  $('#overdueList').innerHTML = late.length
+    ? late.map(o => taskRowHTML(o.t, idx, { zone:true })).join('')
+    : '<div class="empty"><span class="big">Nothing is slipping</span>Every recurring job is inside its window.</div>';
+}
+
+function renderMap(){
+  if(openZone){ renderZone(openZone); return }
+  $('#zoneDetail').classList.add('hide');
+  $('#mapList').classList.remove('hide');
+
+  const idx = houseIndex();
+  const groups = [];
+  ZONES.forEach(function(z){
+    let g = groups.find(x => x.name === z.group);
+    if(!g){ g = { name:z.group, zones:[] }; groups.push(g) }
+    g.zones.push(z);
+  });
+
+  $('#mapList').innerHTML = groups.map(function(g){
+    return '<div class="group-hd"><h2 class="sec">' + esc(g.name) + '</h2></div>' +
+      '<div class="zones" style="margin-bottom:14px">' + g.zones.map(function(z){
+        const p = zoneProgress(z.id, idx);
+        const cleared = p.tot > 0 && p.done === p.tot;
+        return '<button class="zrow' + (cleared ? ' cleared' : '') + '" data-act="zone" data-id="' + z.id + '" type="button">' +
+          '<div class="top"><span class="nm">' + esc(zoneName(z.id)) + '</span><span class="pct m">' + p.pct + '%</span></div>' +
+          '<div class="scale"><div class="scale-fill' + (cleared ? ' go' : '') + '" style="width:' + p.pct + '%"></div></div>' +
+          '<div class="bot">' +
+            (p.tot ? '<span class="pill">' + p.done + '/' + p.tot + ' decluttered</span>'
+                   : '<span class="pill">upkeep only</span>') +
+            (p.due ? '<span class="pill due">' + p.due + ' due</span>' : '') +
+            (z.boss ? '<span class="pill boss">boss</span>' : '') +
+            (cleared ? '<span class="pill once">cleared</span>' : '') +
+          '</div></button>';
+      }).join('') + '</div>';
+  }).join('');
+}
+
+function renderZone(zid){
+  const z = ZONE[zid];
+  if(!z){ openZone = null; return renderMap() }
+  $('#mapList').classList.add('hide');
+  const host = $('#zoneDetail');
+  host.classList.remove('hide');
+
+  const idx = houseIndex();
+  const p = zoneProgress(zid, idx);
+  const mine = TASKS.filter(t => t.zone === zid);
+  const once = mine.filter(t => t.every === 0);
+  const rep  = mine.filter(t => t.every > 0);
+  const cleared = p.tot > 0 && p.done === p.tot;
+
+  host.innerHTML =
+    '<button class="back" data-act="backmap" type="button">← All zones</button>' +
+    '<div class="card" style="margin-top:6px">' +
+      '<div class="card-bd" style="position:relative">' +
+        '<span class="key">' + esc(z.group).toUpperCase() + (z.boss ? ' · BOSS ZONE' : '') + '</span>' +
+        '<input class="zname d" data-act="rename-zone" data-id="' + zid + '" value="' + esc(zoneName(zid)) + '" ' +
+          'aria-label="Zone name" style="background:transparent;border:1px solid transparent;font-family:\'Saira Condensed\',sans-serif;' +
+          'font-weight:800;font-size:25px;padding:1px 3px;margin:1px 0 9px -3px;width:100%">' +
+        (cleared ? '<span class="cleared-mark d" style="top:34px">CLEARED</span>' : '') +
+        '<div class="scale"><div class="scale-fill' + (cleared ? ' go' : '') + '" style="width:' + p.pct + '%"></div></div>' +
+        '<div class="bot" style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap">' +
+          (p.tot ? '<span class="pill">' + p.done + ' of ' + p.tot + ' decluttered</span>' : '') +
+          (rep.length ? '<span class="pill' + (p.due ? ' due' : '') + '">' + p.due + ' of ' + rep.length + ' upkeep due</span>' : '') +
+        '</div>' +
+        '<p class="note" style="margin:9px 0 0">Tap the name to rename it — call it whatever you call it.</p>' +
+      '</div>' +
+    '</div>' +
+
+    (once.length ? '<div class="card" style="margin-top:12px">' +
+      '<div class="card-hd"><h2 class="sec">Declutter · one &amp; done</h2><span class="key">' + p.done + '/' + p.tot + '</span></div>' +
+      '<div class="tasks">' + once.map(t => taskRowHTML(t, idx)).join('') + '</div></div>' : '') +
+
+    (rep.length ? '<div class="card" style="margin-top:12px">' +
+      '<div class="card-hd"><h2 class="sec">Upkeep · comes back around</h2><span class="key">' + p.due + ' due</span></div>' +
+      '<div class="tasks">' + rep.map(t => taskRowHTML(t, idx)).join('') + '</div></div>' : '') +
+
+    '<div class="card" style="margin-top:12px">' +
+      '<div class="card-hd"><h2 class="sec">Add your own</h2></div>' +
+      '<div class="card-bd stack">' +
+        '<input type="text" id="ctName" placeholder="What needs doing in here?" autocomplete="off">' +
+        '<div class="grid2">' +
+          '<label class="f"><span class="key">Minutes</span><input type="number" id="ctMins" value="10" min="1" max="240" step="5"></label>' +
+          '<label class="f"><span class="key">How often</span><select id="ctEvery">' +
+            '<option value="0">One &amp; done</option><option value="1">Daily</option><option value="3">Every 3 days</option>' +
+            '<option value="7">Weekly</option><option value="14">Fortnightly</option><option value="30">Monthly</option>' +
+            '<option value="90">Quarterly</option><option value="180">Twice a year</option><option value="365">Yearly</option>' +
+          '</select></label>' +
+        '</div>' +
+        '<button class="btn sm" data-act="add-task" data-id="' + zid + '" type="button">Add to ' + esc(zoneName(zid)) + '</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderLog(){
+  const p = me(), s = statsOf(p);
+  $('#logStreak').textContent = s.streak ? s.streak + '-day streak' : 'no streak yet';
+
+  let cells = '';
+  for(let i = 27; i >= 0; i--){
+    const ts = startOfDay(Date.now()) - i * DAY, k = dayKey(ts), d = s.days[k];
+    const lvl = !d ? '' : d.n >= 4 ? ' l3' : d.n >= 2 ? ' l2' : ' l1';
+    cells += '<div class="day' + lvl + (i === 0 ? ' today' : '') + '" title="' + k + (d ? ' · ' + plural(d.n,'task') : '') + '"></div>';
+  }
+  $('#dayGrid').innerHTML = cells;
+
+  const got = earned(s);
+  $('#totals').innerHTML = [
+    ['Tasks logged', s.total],
+    ['Minutes reclaimed', s.mins.toLocaleString()],
+    ['Points', s.xp.toLocaleString()],
+    ['Best day', s.bestDay],
+    ['Longest streak', s.bestStreak],
+    ['Medals', got.length + '/' + BADGES.length]
+  ].map(r => '<div class="stat"><span class="key">' + r[0] + '</span><div class="v">' + r[1] + '</div></div>').join('');
+
+  $('#badgeCount').textContent = got.length + ' of ' + BADGES.length;
+  $('#badgeGrid').innerHTML = BADGES.map(b =>
+    '<div class="badge' + (got.indexOf(b.id) >= 0 ? ' got' : '') + '"><div class="g">' + b.g + '</div>' +
+    '<div class="n">' + b.n + '</div><div class="h">' + b.h + '</div></div>').join('');
+
+  const recent = p.log.slice().sort((a,b) => b.at - a.at).slice(0, 25);
+  $('#historyList').innerHTML = recent.length ? recent.map(function(e){
+    const t = TASKBY[e.t];
+    const when = new Date(e.at);
+    const label = dayKey(e.at) === dayKey(Date.now())
+      ? when.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' })
+      : when.toLocaleDateString([], { month:'short', day:'numeric' });
+    return '<div class="task"><button class="stamp done" data-act="undo" data-id="' + e.i + '" aria-label="Undo"></button>' +
+      '<div class="body"><div class="n">' + esc(t ? t.name : 'Removed task') + '</div>' +
+      '<div class="meta"><span class="pill">' + esc(t ? zoneName(t.zone) : '—') + '</span>' +
+      '<span class="pill">' + label + '</span><span class="pill xp">+' + xpOf(e) + '</span></div></div></div>';
+  }).join('') : '<div class="empty"><span class="big">Nothing logged yet</span>Roll a quest and put one on the board.</div>';
+}
+
+function renderCrew(){
+  const idx = houseIndex();
+  const rows = state.profiles.map(p => ({ p:p, s:statsOf(p), w:weekPoints(p) }))
+    .sort((a,b) => b.w - a.w);
+  const lead = rows.length > 1 ? rows[0].w : -1;
+
+  $('#crewList').innerHTML = rows.map(function(r, i){
+    const isMe = r.p.id === state.active;
+    return '<div class="player' + (isMe ? ' me' : '') + '">' +
+      '<div class="hd"><div class="nm"><span class="dot" style="background:' + r.p.color + '"></span>' +
+        '<input value="' + esc(r.p.name) + '" data-act="rename-player" data-id="' + r.p.id + '" aria-label="Player name" ' +
+        'style="background:transparent;border:1px solid transparent;font-family:\'Saira Condensed\',sans-serif;font-weight:800;' +
+        'font-size:19px;color:inherit;padding:1px 3px;min-width:0;width:9ch;flex:1 1 auto">' +
+        (r.w === lead && lead > 0 && i === 0 ? '<span class="pill boss">leading</span>' : '') + '</div>' +
+        (isMe ? '<span class="pill xp">playing</span>'
+              : '<button class="btn ghost sm" data-act="switch" data-id="' + r.p.id + '" type="button">Play as</button>') + '</div>' +
+      '<div class="stats">' +
+        '<div class="stat"><span class="key">This week</span><div class="v">' + r.w + '</div></div>' +
+        '<div class="stat"><span class="key">Level</span><div class="v">' + r.s.level + '</div></div>' +
+        '<div class="stat"><span class="key">Streak</span><div class="v">' + r.s.streak + 'd</div></div>' +
+        '<div class="stat"><span class="key">Total</span><div class="v">' + r.s.xp.toLocaleString() + '</div></div>' +
+      '</div>' +
+      '<div class="row-between" style="margin-top:9px">' +
+        '<span class="note">' + esc(r.s.rank) + ' · ' + plural(r.s.total, 'task') + ' logged</span>' +
+        (state.profiles.length > 1 ? '<button class="btn ghost sm" data-act="drop" data-id="' + r.p.id + '" type="button">Remove</button>' : '') +
+      '</div></div>';
+  }).join('');
+
+  $('#soundBtn').textContent = state.settings.sound ? 'On' : 'Off';
+}
+
+function render(){
+  rebuild();
+  renderTitleBlock();
+  if(view === 'quest') renderQuest();
+  else if(view === 'map') renderMap();
+  else if(view === 'log') renderLog();
+  else if(view === 'crew') renderCrew();
+}
+
+function go(v){
+  view = v;
+  $$('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.v === v)));
+  render();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* ============================================================
+   8. EVENTS
+   ============================================================ */
+
+function confirmTwice(btn, msg, fn){
+  if(btn.dataset.armed === '1'){ btn.dataset.armed = ''; fn(); return }
+  const old = btn.textContent;
+  btn.dataset.armed = '1';
+  btn.textContent = msg;
+  setTimeout(function(){
+    if(btn.dataset.armed === '1'){ btn.dataset.armed = ''; btn.textContent = old }
+  }, 3500);
+}
+
+document.addEventListener('click', function(ev){
+  const el = ev.target.closest('[data-act]');
+  if(!el) return;
+  const tag = el.tagName;
+  if(tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+  const act = el.dataset.act, id = el.dataset.id;
+
+  if(act === 'complete'){ complete(id) }
+
+  else if(act === 'undo'){ undoEntry(id) }
+
+  else if(act === 'undo-task'){ undoTask(id) }
+
+  else if(act === 'roll'){
+    const t = roll();
+    if(!t) toast('Nothing that short is open — try a longer window');
+    renderQuest();
+  }
+
+  else if(act === 'skip'){
+    skipped.add(id);
+    const t = roll();
+    if(!t) toast('That is the lot for now');
+    renderQuest();
+  }
+
+  else if(act === 'start'){ startTimer(id) }
+
+  else if(act === 'zone'){ openZone = id; renderMap(); window.scrollTo({ top:0, behavior:'smooth' }) }
+
+  else if(act === 'backmap'){ openZone = null; renderMap(); window.scrollTo({ top:0, behavior:'smooth' }) }
+
+  else if(act === 'add-task'){
+    const name = ($('#ctName').value || '').trim();
+    if(!name){ toast('Give it a name first'); return }
+    const mins = clamp(parseInt($('#ctMins').value, 10) || 10, 1, 240);
+    const every = parseInt($('#ctEvery').value, 10) || 0;
+    state.house.custom.push({ id:'x:' + uid(), zone:id, name:name, mins:mins, every:every, grit:0 });
+    save(); rebuild();
+    toast('Added to ' + esc(zoneName(id)));
+    renderZone(id); renderTitleBlock();
+  }
+
+  else if(act === 'switch'){
+    state.active = id; save(); render();
+    toast('Playing as ' + esc(me().name));
+  }
+
+  else if(act === 'drop'){
+    if(state.profiles.length < 2) return;
+    const p = state.profiles.find(x => x.id === id);
+    confirmTwice(el, 'Sure?', function(){
+      state.profiles = state.profiles.filter(x => x.id !== id);
+      if(state.active === id) state.active = state.profiles[0].id;
+      save(); render();
+      toast(esc(p ? p.name : 'Player') + ' removed');
+    });
+  }
+});
+
+document.addEventListener('change', function(ev){
+  const el = ev.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+
+  if(act === 'rename-zone'){
+    const v = (el.value || '').trim();
+    if(v && v !== ZONE[id].name) state.house.names[id] = v;
+    else delete state.house.names[id];
+    save(); renderZone(id);
+  }
+  else if(act === 'rename-player'){
+    const p = state.profiles.find(x => x.id === id);
+    const v = (el.value || '').trim();
+    if(p && v){ p.name = v.slice(0, 24); save(); renderTitleBlock() }
+  }
+});
+
+/* tabs */
+$$('.tab').forEach(b => b.addEventListener('click', function(){
+  if(b.dataset.v === 'map') openZone = null;
+  go(b.dataset.v);
+}));
+
+/* profile quick-switch from the title block */
+$('#whoBtn').addEventListener('click', function(){
+  if(state.profiles.length < 2){ go('crew'); return }
+  const i = state.profiles.findIndex(p => p.id === state.active);
+  state.active = state.profiles[(i + 1) % state.profiles.length].id;
+  save(); render();
+  toast('Playing as ' + esc(me().name));
+});
+
+/* time budget chips */
+$$('#timeChips .chip').forEach(function(c){
+  c.addEventListener('click', function(){
+    budget = parseInt(c.dataset.b, 10);
+    $$('#timeChips .chip').forEach(x => x.setAttribute('aria-pressed', String(x === c)));
+    skipped.clear();
+    roll();
+    renderQuest();
+  });
+});
+
+/* timer controls */
+$('#timerStop').addEventListener('click', () => stopTimer());
+$('#timerDone').addEventListener('click', function(){ if(timer) complete(timer.id) });
+
+/* setup card */
+$('#suSave').addEventListener('click', function(){
+  const v = s => ($(s).value || '').trim();
+  const mine = v('#suMe');
+  if(mine) me().name = mine.slice(0, 24);
+  const partner = v('#suPartner');
+  if(partner){
+    const p = blankProfile(partner.slice(0, 24));
+    p.color = COLORS[1];
+    state.profiles.push(p);
+  }
+  [['#suDog1','dog1'],['#suDog2','dog2'],['#suSon1','son1'],['#suSon2','son2'],['#suCar1','car1'],['#suCar2','car2']]
+    .forEach(function(pair){
+      const val = v(pair[0]);
+      if(val) state.house.names[pair[1]] = val.slice(0, 30);
+    });
+  state.house.setup = true;
+  save();
+  $('#setupCard').classList.add('hide');
+  render();
+  toast('House set up — go get one thing done', true);
+});
+$('#suSkip').addEventListener('click', function(){
+  state.house.setup = true; save();
+  $('#setupCard').classList.add('hide');
+});
+
+/* crew controls */
+function addPlayer(){
+  const inp = $('#newPlayer');
+  const n = (inp.value || '').trim();
+  if(!n){ toast('Name first'); return }
+  const p = blankProfile(n.slice(0, 24));
+  p.color = COLORS[state.profiles.length % COLORS.length];
+  state.profiles.push(p);
+  inp.value = '';
+  save(); render();
+  toast(esc(p.name) + ' joined the crew', true);
+}
+$('#addPlayer').addEventListener('click', addPlayer);
+$('#newPlayer').addEventListener('keydown', e => { if(e.key === 'Enter') addPlayer() });
+
+$('#soundBtn').addEventListener('click', function(){
+  state.settings.sound = !state.settings.sound;
+  save();
+  $('#soundBtn').textContent = state.settings.sound ? 'On' : 'Off';
+  if(state.settings.sound) sfxDone();
+});
+
+$('#expBtn').addEventListener('click', function(){
+  const box = $('#backupBox');
+  box.classList.remove('hide');
+  box.value = JSON.stringify(state);
+  box.focus(); box.select();
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(box.value).then(
+      () => toast('Backup copied — paste it on the other phone'),
+      () => toast('Select the text and copy it')
+    );
+  } else toast('Select the text and copy it');
+});
+
+$('#impBtn').addEventListener('click', function(){
+  const box = $('#backupBox');
+  if(box.classList.contains('hide') || !box.value.trim()){
+    box.classList.remove('hide'); box.value = '';
+    box.placeholder = 'Paste your backup here, then tap Paste again';
+    box.focus();
+    toast('Paste the backup, then tap Paste again');
+    return;
+  }
+  try {
+    const s = JSON.parse(box.value);
+    if(!s || !Array.isArray(s.profiles) || !s.profiles.length) throw 0;
+    localStorage.setItem(KEY, JSON.stringify(s));
+    load(); rebuild(); box.classList.add('hide'); box.value = '';
+    render();
+    toast('Backup restored', true);
+  } catch(e){ toast('That does not look like a backup') }
+});
+
+$('#wipeBtn').addEventListener('click', function(){
+  const btn = this;
+  confirmTwice(btn, 'Tap again', function(){
+    me().log = [];
+    state.house.workorder = null;
+    save(); render();
+    btn.textContent = 'Reset';
+    toast('Back to zero');
+  });
+});
+
+/* ============================================================
+   9. BOOT
+   ============================================================ */
+
+load();
+rebuild();
+if(!state.house.setup) $('#setupCard').classList.remove('hide');
+roll();
+go('quest');
+
+/* keep day-sensitive things honest if the page stays open overnight */
+let lastDay = dayKey(Date.now());
+setInterval(function(){
+  const k = dayKey(Date.now());
+  if(k !== lastDay){ lastDay = k; render() }
+}, 60000);
+
+})();
+</script>
+<!--ARTIFACT-BODY-END-->
+</body>
+</html>
