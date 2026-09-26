@@ -1,0 +1,33 @@
+name: Deploy Mention Finder API
+
+on:
+  push:
+    branches: [main]
+    paths: ['server/**', '.github/workflows/deploy-api.yml']
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Skips quietly until the Cloudflare secret is added (see server/README.md).
+    if: ${{ vars.DEPLOY_API == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test
+        run: node server/test.mjs
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: server
+          command: deploy --var REDDIT_USERNAME:${{ vars.REDDIT_USERNAME || 'unknown' }}
+          secrets: |
+            REDDIT_CLIENT_ID
+            REDDIT_CLIENT_SECRET
+        env:
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
