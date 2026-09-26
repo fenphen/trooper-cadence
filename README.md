@@ -25,6 +25,7 @@ A second, separate tool in this repo: find **recent Reddit posts and comments th
 **▶ Use it:** https://fenphen.github.io/trooper-cadence/mention-finder/
 
 - Type `bestbuy.com` and it also searches `bestbuy`, `bestbuy dot com`, and common misspellings like `bsetbuy`. It also spots near-misses in results, like "Best Buy" and "bestbyu".
+- **🎤 Voice search:** tap the mic and say something like "best buy dot com and price match but not refund" or "chewy or petco". Spoken "and", "or", "but not", "without" and "quote … end quote" become search operators. You can also dictate the report summary and notes. Works in Chrome, Edge and Safari (including phones); the mic is hidden in browsers without speech support, such as Firefox.
 - Combine searches with **AND**, **OR** and **NOT**, or tap the buttons: `bestbuy.com AND "price match" NOT refund`, `chewy OR petco`, `amazon -prime`.
 - Sort by newest or most upvoted, limit to a subreddit, and switch on auto-refresh (every 3 min, with new results marked).
 - Tap a username to see the account's age and karma. Brand-new accounts are highlighted.

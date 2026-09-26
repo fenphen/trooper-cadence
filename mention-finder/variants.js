@@ -26,8 +26,8 @@
       .replace(/^www\d?\./, '')
       .replace(/[/?#].*$/, '');
 
-    // "example dot com" -> "example.com"
-    s = s.replace(/\s+dot\s+/g, '.');
+    // "example dot com" -> "example.com"; drop sentence punctuation that dictation adds
+    s = s.replace(/\s+dot\s+/g, '.').replace(/[.!?,;:]+$/, '').trim();
 
     let domain = null, tld = null, label = s;
     const tldMatch = s.match(/^([a-z0-9][a-z0-9.-]*?)\.((?:co\.uk)|[a-z]{2,12})$/);
@@ -35,6 +35,14 @@
       domain = s;
       label = tldMatch[1].split('.').pop(); // drop subdomains: "shop.example" -> "example"
       tld = tldMatch[2];
+    } else {
+      // "best buy.com" (often from speech): the words form the name, joined they form the domain
+      const spaced = s.match(new RegExp(`^([a-z0-9][a-z0-9 '’&-]*?)\\s*\\.\\s*(${TLDS.map(t => t.replace('.', '\\.')).join('|')})$`));
+      if (spaced) {
+        label = spaced[1];
+        tld = spaced[2];
+        domain = label.replace(/[^a-z0-9&-]/g, '') + '.' + tld;
+      }
     }
 
     const words = label
@@ -118,7 +126,7 @@
     }
     if (p.hasApostrophe && multi) {
       // "trader joe's" -> keep the possessive form people write
-      add(p.raw.toLowerCase().replace(/’/g, "'").replace(/\s+/g, ' '), 'name');
+      add(p.label.replace(/’/g, "'").replace(/\s+/g, ' '), 'name');
     }
 
     // Website forms
@@ -320,7 +328,53 @@
     return new RegExp(`(^|[^a-z0-9])${escapeRe(term)}(?=$|[^a-z0-9])`).test(String(text || '').toLowerCase());
   }
 
-  const api = { parse, generate, parseQuery, containsTerm, toSearchTerm, batchQueries, findMatches, levenshtein, TLDS };
+  /**
+   * Turn a spoken search into query syntax:
+   *   "best buy dot com but not refunds"  -> best buy dot com NOT refunds
+   *   "chewy or petco"                    -> chewy OR petco
+   *   "quote price match end quote"       -> "price match"
+   * A spoken "and" between two capitalised words ("Barnes and Noble") stays part of the name.
+   */
+  function speechToQuery(transcript) {
+    const words = String(transcript || '').replace(/[,;!?]+/g, ' ').replace(/\.+(\s|$)/g, '$1').trim().split(/\s+/).filter(Boolean);
+    const out = [];
+    let inQuote = false;
+    const lw = i => (words[i] || '').toLowerCase();
+    const cap = w => /^[A-Z0-9]/.test(w || '');
+    for (let i = 0; i < words.length; i++) {
+      const w = lw(i);
+      if (w === 'quote' && !inQuote) { out.push('"'); inQuote = true; continue; }
+      if (inQuote && (w === 'unquote' || ((w === 'end' || w === 'close') && lw(i + 1) === 'quote'))) {
+        if (w !== 'unquote') i++;
+        out.push('"'); inQuote = false; continue;
+      }
+      if (inQuote) { out.push(words[i]); continue; }
+      if ((w === 'but' || w === 'and') && lw(i + 1) === 'not') { out.push('NOT'); i++; continue; }
+      if (w === 'but' && lw(i + 1) === 'without') { out.push('NOT'); i++; continue; }
+      if (['not', 'without', 'excluding', 'except', 'minus'].includes(w) && out.length) { out.push('NOT'); continue; }
+      if (w === 'or') { out.push('OR'); continue; }
+      if (w === 'and' && lw(i + 1) === 'also') { out.push('AND'); i++; continue; }
+      if (w === 'plus' && out.length) { out.push('AND'); continue; }
+      if (w === 'and') {
+        out.push(cap(words[i - 1]) && cap(words[i + 1]) ? 'and' : 'AND');
+        continue;
+      }
+      out.push(words[i]);
+    }
+    if (inQuote) out.push('"');
+    // Spoken words after AND / NOT belong together: "without two buck chuck" -> NOT "two buck chuck"
+    const grouped = [];
+    for (let i = 0; i < out.length; i++) {
+      grouped.push(out[i]);
+      if (out[i] !== 'AND' && out[i] !== 'NOT') continue;
+      let j = i + 1;
+      while (j < out.length && !['AND', 'OR', 'NOT', '"'].includes(out[j])) j++;
+      if (j - i > 2) { grouped.push('"' + out.slice(i + 1, j).join(' ') + '"'); i = j - 1; }
+    }
+    return grouped.join(' ').replace(/" (.*?) "/g, '"$1"').replace(/\s+/g, ' ').trim();
+  }
+
+  const api = { parse, generate, parseQuery, containsTerm, speechToQuery, toSearchTerm, batchQueries, findMatches, levenshtein, TLDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MentionVariants = api;
 })(typeof window !== 'undefined' ? window : globalThis);

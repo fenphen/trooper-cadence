@@ -34,6 +34,7 @@
   }
 
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 var(--font); }
   a { color: inherit; }
@@ -56,6 +57,21 @@
   select, .field { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
   .field.sub { width: 150px; }
 
+  .qwrap { flex: 1 1 260px; min-width: 0; position: relative; display: flex; }
+  .qwrap .q { flex: 1; padding-right: 54px; }
+  .mic { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%; border: 0;
+    background: var(--surface-2); cursor: pointer; display: grid; place-items: center; color: var(--text); }
+  .mic svg { width: 20px; height: 20px; }
+  .mic.on { background: var(--accent); color: var(--accent-ink); animation: ring 1.2s ease-out infinite; }
+  @keyframes ring { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+  .mic-msg { font-size: .85rem; color: var(--muted); margin-top: 8px; min-height: 0; }
+  .mic-msg:empty { display: none; }
+  .mic-msg.err { color: var(--warn); }
+  .dict { border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px; padding: 4px 10px; font-size: .8rem; cursor: pointer; margin-left: 6px; text-transform: none; letter-spacing: 0; font-weight: 550; color: var(--text); vertical-align: middle; }
+  .dict.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .fitem .notewrap { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+  .fitem .notewrap input { margin-top: 0; }
+  .fitem .notewrap .dict { margin-left: 0; flex: none; min-height: 34px; }
   .ops { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
   .op { border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px; padding: 6px 12px; font-size: .85rem; font-weight: 650; font-family: var(--mono); cursor: pointer; min-height: 36px; }
   .op.help { font-family: var(--font); font-weight: 550; color: var(--muted); background: none; margin-left: auto; }
@@ -121,7 +137,8 @@
   .card.flagged { border-color: var(--accent); border-width: 2px; }
   .tray { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 20; display: flex; gap: 10px; align-items: center;
     background: var(--text); color: var(--bg); border-radius: 999px; padding: 8px 8px 8px 18px; box-shadow: 0 6px 24px rgba(0,0,0,.25); max-width: calc(100% - 32px); font-size: .92rem; }
-  .tray .btn { padding: 8px 16px; border-radius: 999px; }
+  .tray .btn { padding: 8px 16px; border-radius: 999px; white-space: nowrap; }
+  .tray span { white-space: nowrap; }
   dialog.panel { width: min(720px, 100%); max-height: min(92vh, 100%); border: 1px solid var(--border); border-radius: 16px; padding: 0; background: var(--surface); color: var(--text); }
   dialog.panel::backdrop { background: rgba(0,0,0,.45); }
   .panel .inner { padding: 18px 18px 22px; }
@@ -176,9 +193,15 @@
   <form class="search" id="form" autocomplete="off">
     <div class="row">
       <label class="sr" for="q">Name or website</label>
-      <input class="q" id="q" name="q" placeholder="e.g. bestbuy.com AND refund" required enterkeyhint="search" autocapitalize="off" spellcheck="false" />
+      <div class="qwrap">
+        <input class="q" id="q" name="q" placeholder="e.g. bestbuy.com AND refund" required enterkeyhint="search" autocapitalize="off" spellcheck="false" />
+        <button type="button" class="mic" id="mic" hidden aria-label="Search by voice" title="Search by voice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg>
+        </button>
+      </div>
       <button class="btn main" id="go" type="submit">Find mentions</button>
     </div>
+    <div class="mic-msg" id="micMsg" role="status" aria-live="polite"></div>
     <div class="ops" role="group" aria-label="Insert search operator">
       <button type="button" class="op" data-ins=" AND " title="Must also contain">AND</button>
       <button type="button" class="op" data-ins=" OR " title="Either one">OR</button>
@@ -194,6 +217,7 @@
         <li><b>NOT</b> leave out posts that say this: <a href="#" class="ex">Trader Joe's AND wine NOT "two buck"</a></li>
         <li>Put exact phrases in “quotes”. A minus works like NOT: <a href="#" class="ex">amazon -prime</a></li>
       </ul>
+      <p class="voice-help" hidden>🎤 <b>By voice:</b> tap the mic and say something like “best buy dot com <i>and</i> price match <i>but not</i> refund”, or “chewy <i>or</i> petco”. Say “quote … end quote” for an exact phrase.</p>
     </div>
     <div class="opts">
       <label>From
@@ -241,7 +265,7 @@
       <p class="muted">Flags are saved in this browser only. Add a short note to each item explaining what's wrong with it.</p>
       <div class="where urgent-top"><div class="warn"><b>If someone is in immediate danger, call 911</b> (or your local emergency number) before anything else.</div></div>
 
-      <h3>Your summary (goes at the top of every export)</h3>
+      <h3>Your summary (goes at the top of every export) <button type="button" class="dict" data-dict="summary" hidden>🎤 Speak</button></h3>
       <textarea id="summary" placeholder="What you found and why you're reporting it."></textarea>
 
       <h3 id="flagCount">Items</h3>
@@ -581,6 +605,95 @@
     }
     render();
   }
+  // ---------- voice input (Web Speech API: Chrome, Edge, Safari; not Firefox) ----------
+  const Voice = (() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null, active = null;
+    const ERRORS = {
+      'not-allowed': 'Microphone access is blocked. Allow it for this site in your browser settings, then try again.',
+      'service-not-allowed': 'Voice input isn’t allowed in this browser. On iPhone, turn on Dictation or Siri in Settings.',
+      'no-speech': 'Didn’t hear anything. Tap the mic and try again.',
+      'audio-capture': 'No microphone was found.',
+      'network': 'Voice input needs an internet connection.',
+    };
+    function stop() { if (rec) try { rec.stop(); } catch (e) { /* already stopped */ } }
+    /** Listen once. onText(text, isFinal) gets live partial text; onEnd(error?) when done. */
+    function listen({ onText, onEnd, button }) {
+      if (!SR) return;
+      if (active === button) { stop(); return; } // second tap = stop
+      if (rec) { try { rec.abort(); } catch (e) { /* ignore */ } }
+      rec = new SR();
+      rec.lang = navigator.language || 'en-US';
+      rec.interimResults = true;
+      rec.continuous = false;
+      rec.maxAlternatives = 1;
+      active = button;
+      button.classList.add('on');
+      button.setAttribute('aria-pressed', 'true');
+      let finalText = '', error = null;
+      rec.onresult = e => {
+        let interim = '';
+        finalText = '';
+        for (let i = 0; i < e.results.length; i++) {
+          if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+          else interim += e.results[i][0].transcript;
+        }
+        onText((finalText + ' ' + interim).trim(), false);
+      };
+      rec.onerror = e => { if (e.error !== 'aborted') error = ERRORS[e.error] || 'Voice input stopped (' + e.error + ').'; };
+      rec.onend = () => {
+        button.classList.remove('on');
+        button.setAttribute('aria-pressed', 'false');
+        if (active === button) active = null;
+        rec = null;
+        if (finalText.trim()) onText(finalText.trim(), true);
+        onEnd(error, finalText.trim());
+      };
+      try { rec.start(); } catch (e) { onEnd('Couldn’t start the microphone.'); button.classList.remove('on'); active = null; }
+    }
+    return { supported: !!SR, listen, stop };
+  })();
+
+  if (Voice.supported) {
+    const mic = $('mic'), msg = $('micMsg');
+    mic.hidden = false;
+    document.querySelector('.voice-help').hidden = false;
+    document.querySelectorAll('.dict[data-dict="summary"]').forEach(b => (b.hidden = false));
+    const setMsg = (text, err) => { msg.textContent = text; msg.classList.toggle('err', !!err); };
+    let before = '';
+    mic.addEventListener('click', () => {
+      before = els.q.value;
+      setMsg('Listening… say a name or website, e.g. “best buy dot com but not refunds”. Tap the mic again to stop.');
+      Voice.listen({
+        button: mic,
+        onText: (text, final) => {
+          els.q.value = final ? V.speechToQuery(text) : text;
+          if (!final) setMsg('Heard: “' + text + '”');
+        },
+        onEnd: (err, text) => {
+          if (err) { els.q.value = before; setMsg(err, true); return; }
+          if (!text) { setMsg(''); els.q.value = before; return; }
+          setMsg('Searching for: ' + els.q.value + ' (edit the box if I misheard)');
+          run();
+        },
+      });
+    });
+    // Dictation into the report summary and item notes (appends; no search syntax).
+    $('panel').addEventListener('click', e => {
+      const b = e.target.closest('.dict');
+      if (!b) return;
+      const field = $(b.dataset.dict);
+      if (!field) return;
+      const start = field.value;
+      const sep = start && !/\s$/.test(start) ? ' ' : '';
+      Voice.listen({
+        button: b,
+        onText: text => { field.value = start + sep + text; field.dispatchEvent(new Event('input', { bubbles: true })); },
+        onEnd: err => { if (err) $('expMsg').textContent = err; },
+      });
+    });
+  }
+
   // ---------- flagging & export ----------
   const FLAG_KEY = 'mention-finder-flags';
   const flags = new Map(); // id -> { item, matched, query, capturedAt, note }
@@ -613,13 +726,15 @@
         <div class="top"><div><span class="badge">${it.type}</span> r/${esc(it.sub)} · u/${esc(it.author)} · ${esc(new Date(it.created * 1000).toISOString().replace('T', ' ').slice(0, 16))} UTC<br>
           <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc((it.title || it.body || '').slice(0, 140) || it.url)}</a></div>
           <button type="button" class="rm" data-rm="${esc(it.id)}">remove</button></div>
-        <input type="text" data-note="${esc(it.id)}" value="${esc(f.note)}" placeholder="Note: why is this a problem?" aria-label="Note for this item" />
+        <div class="notewrap"><input type="text" id="note-${esc(it.id)}" data-note="${esc(it.id)}" value="${esc(f.note)}" placeholder="Note: why is this a problem?" aria-label="Note for this item" />
+          ${Voice.supported ? `<button type="button" class="dict" data-dict="note-${esc(it.id)}" aria-label="Speak a note">🎤</button>` : ''}</div>
       </div>`;
     }).join('') : '<p class="muted">Nothing flagged. Tap ⚑ Flag on a result to add it.</p>';
   }
   const panel = $('panel');
   $('openPanel').addEventListener('click', () => { renderPanel(); $('expMsg').textContent = ''; panel.showModal(); });
   $('closePanel').addEventListener('click', () => panel.close());
+  panel.addEventListener('close', () => Voice.stop());
   panel.addEventListener('click', e => { if (e.target === panel) panel.close(); });
   try { $('summary').value = localStorage.getItem(FLAG_KEY + '-summary') || ''; } catch (e) { /* ignore */ }
   $('summary').addEventListener('input', () => { try { localStorage.setItem(FLAG_KEY + '-summary', $('summary').value); } catch (e) { /* ignore */ } });
