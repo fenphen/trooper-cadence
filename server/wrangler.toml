@@ -1,0 +1,20 @@
+# Cloudflare Worker config for the Mention Finder API.
+# Deployed automatically by .github/workflows/deploy-api.yml (see server/README.md).
+name = "mention-finder-api"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+# Websites allowed to call this API (comma-separated, no trailing slash).
+ALLOWED_ORIGINS = "https://fenphen.github.io"
+# Your Reddit username (without u/). Reddit requires it in the User-Agent. Set via GitHub variable REDDIT_USERNAME.
+REDDIT_USERNAME = "unknown"
+
+# Per-visitor limit: 30 requests per minute per IP address.
+[[ratelimits]]
+name = "LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60

@@ -306,13 +306,14 @@
   </dialog>
 
   <footer>
-    Results come straight from Reddit's public search, run in your browser. Comment results come from <a href="https://pullpush.io" target="_blank" rel="noopener">PullPush</a>, a Reddit archive that can lag behind by a few hours or more.
+    Results come from Reddit's search. Comment results come from <a href="https://pullpush.io" target="_blank" rel="noopener">PullPush</a>, a Reddit archive that can lag behind by a few hours or more.
     Not affiliated with Reddit.
   </footer>
 </div>
 
 <script src="variants.js"></script>
 <script src="report.js"></script>
+<script src="config.js"></script>
 <script>
 (function () {
   'use strict';
@@ -325,6 +326,7 @@
     moreWrap: $('moreWrap'), more: $('more'),
   };
 
+  const API = ((window.MENTION_FINDER_CONFIG || {}).API || '').replace(/\/+$/, '');
   const TIME_SECONDS = { hour: 3600, day: 86400, week: 604800, month: 2592000, year: 31536000, all: 0 };
   const AUTO_MS = 3 * 60 * 1000;
 
@@ -468,7 +470,10 @@
     for (let i = 0; i < queries.length; i++) {
       if (afters && !afters[i]) { nextAfters[i] = null; continue; }
       try {
-        const data = await fetchJSON(redditSearchUrl(queries[i], t, sub, afters && afters[i], true));
+        const url = API
+          ? `${API}/search?` + new URLSearchParams(Object.assign({ q: queries[i], t }, sub ? { sub } : {}, afters && afters[i] ? { after: afters[i] } : {}))
+          : redditSearchUrl(queries[i], t, sub, afters && afters[i], true);
+        const data = await fetchJSON(url);
         const children = (data && data.data && data.data.children) || [];
         children.forEach(c => c.kind === 't3' && out.push(normPost(c.data)));
         nextAfters[i] = data && data.data ? data.data.after : null;
@@ -622,7 +627,9 @@
     accounts.set(name, { loading: true });
     render();
     try {
-      const d = (await fetchJSON(`https://www.reddit.com/user/${encodeURIComponent(name)}/about.json?raw_json=1`)).data || {};
+      const d = (await fetchJSON(API
+        ? `${API}/about?user=${encodeURIComponent(name)}`
+        : `https://www.reddit.com/user/${encodeURIComponent(name)}/about.json?raw_json=1`)).data || {};
       if (!d.created_utc) throw new Error('unavailable');
       accounts.set(name, { created: d.created_utc, karma: d.total_karma != null ? d.total_karma : (d.link_karma || 0) + (d.comment_karma || 0) });
     } catch (e) {
@@ -863,7 +870,14 @@
       const limited = redditErrors.includes('rate-limited');
       const blocked = redditErrors.includes('blocked');
       let title, why;
-      if (limited) {
+      if (limited && API) {
+        title = 'Too many searches right now';
+        why = `To stay within Reddit's limits, this site allows a set number of searches a minute. Wait a minute and try again.
+          Switching off spellings you don't need uses fewer searches. Leave auto-refresh off for now.`;
+      } else if (API && (blocked || redditErrors.some(e => /server error|timed out/.test(e)))) {
+        title = 'The search server couldn’t reach Reddit';
+        why = 'Reddit may be having problems, or the server needs attention. Try again in a few minutes. Meanwhile, these buttons run the same search on Reddit or Google.';
+      } else if (limited) {
         title = 'Reddit says there have been too many searches';
         why = `Reddit only allows a few searches a minute from each connection without signing in. Wait 1–2 minutes and try again.
           Each search uses one request per group of spellings, so switching off spellings you don't need helps. Leave auto-refresh off for now.`;
