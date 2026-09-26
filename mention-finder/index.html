@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mention Finder</title>
+<meta name="description" content="Find recent Reddit posts and comments that mention a name or website — including misspellings, missing .com, and abbreviations." />
+<meta property="og:title" content="Mention Finder — who's talking about it on Reddit?" />
+<meta property="og:description" content="Type a name or website. See the latest Reddit posts that mention it, however people spelled it." />
+<style>
+  :root {
+    --bg: #f6f5f1; --surface: #ffffff; --surface-2: #efede7; --border: #dedad0;
+    --text: #1d1c19; --muted: #6b675d; --accent: #d93a00; --accent-ink: #ffffff;
+    --accent-soft: #ffe7dc; --hit: #fff1a8; --hit-fuzzy: #d9ecff; --ok: #2e7d32; --warn: #a15c00;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+    --radius: 12px;
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121210; --surface: #1c1b19; --surface-2: #262521; --border: #34322d;
+      --text: #ecebe6; --muted: #a09c91; --accent: #ff5a1f; --accent-ink: #1a0b04;
+      --accent-soft: #3a1d10; --hit: #5a4a00; --hit-fuzzy: #0f3558; --ok: #7cc47f; --warn: #f0b060;
+      --shadow: none; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121210; --surface: #1c1b19; --surface-2: #262521; --border: #34322d;
+    --text: #ecebe6; --muted: #a09c91; --accent: #ff5a1f; --accent-ink: #1a0b04;
+    --accent-soft: #3a1d10; --hit: #5a4a00; --hit-fuzzy: #0f3558; --ok: #7cc47f; --warn: #f0b060;
+    --shadow: none; color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 var(--font); }
+  a { color: inherit; }
+  button, input, select { font: inherit; color: inherit; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; }
+
+  header h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.1rem); letter-spacing: -.02em; }
+  header h1 span { color: var(--accent); }
+  header p { margin: 6px 0 0; color: var(--muted); max-width: 60ch; }
+
+  .search { margin-top: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .q { flex: 1 1 260px; min-width: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); font-size: 1.05rem; }
+  .q:focus, .field:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .btn { border: 0; border-radius: 10px; padding: 12px 20px; background: var(--accent); color: var(--accent-ink); font-weight: 650; cursor: pointer; }
+  .btn:disabled { opacity: .6; cursor: progress; }
+  .btn.ghost { background: var(--surface-2); color: var(--text); font-weight: 550; padding: 8px 12px; }
+  .opts { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; font-size: .92rem; color: var(--muted); }
+  .opts label { display: inline-flex; align-items: center; gap: 6px; }
+  select, .field { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+  .field.sub { width: 150px; }
+
+  .ops { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .op { border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px; padding: 6px 12px; font-size: .85rem; font-weight: 650; font-family: var(--mono); cursor: pointer; min-height: 36px; }
+  .op.help { font-family: var(--font); font-weight: 550; color: var(--muted); background: none; margin-left: auto; }
+  .help-box { margin-top: 10px; font-size: .9rem; background: var(--bg); border-radius: 10px; padding: 10px 14px; }
+  .help-box p { margin: 0 0 6px; }
+  .help-box ul { margin: 0; padding-left: 18px; }
+  .help-box li { margin: 4px 0; }
+  .help-box a { color: var(--accent); font-family: var(--mono); font-size: .85rem; overflow-wrap: anywhere; }
+  .group + .group { margin-top: 12px; }
+  .gtitle { font-size: .85rem; margin-bottom: 6px; color: var(--muted); }
+  .gtitle b { color: var(--accent); }
+  .variants { margin-top: 14px; display: none; }
+  .variants.show { display: block; }
+  .variants summary { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; font-weight: 650; cursor: pointer; padding: 4px 0; }
+  .variants summary .tap { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--accent); margin-left: 4px; }
+  .variants[open] summary .tap { display: none; }
+  .chips { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font-size: .88rem; cursor: pointer; user-select: none; }
+  .chip small { color: var(--muted); font-size: .72rem; }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+  .chip[aria-pressed="false"] { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 50%, transparent); }
+  .chip.more { border-style: dashed; }
+  .add { display: inline-flex; gap: 4px; }
+  .add .field { width: 150px; padding: 4px 10px; border-radius: 999px; font-size: .88rem; }
+  .hint { font-size: .82rem; color: var(--muted); margin-top: 8px; }
+
+  .status { margin: 20px 2px 10px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; font-size: .9rem; color: var(--muted); }
+  .status .left { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); display: inline-block; }
+  .dot.busy { background: var(--accent); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  .notice { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: 10px; padding: 12px 14px; margin: 10px 0; font-size: .92rem; }
+  .notice a { color: var(--accent); }
+
+  .results { display: grid; gap: 10px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); min-width: 0; }
+  .card.new { border-color: var(--accent); }
+  .meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .82rem; color: var(--muted); align-items: center; }
+  .meta .sub { color: var(--text); font-weight: 600; text-decoration: none; }
+  .badge { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 2px 7px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+  .badge.newb { background: var(--accent); color: var(--accent-ink); }
+  .card h3 { margin: 6px 0 4px; font-size: 1.05rem; line-height: 1.35; overflow-wrap: anywhere; }
+  .card h3 a { text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .snippet { color: var(--text); opacity: .9; font-size: .93rem; margin: 4px 0 0; overflow-wrap: anywhere; white-space: pre-line; }
+  .link { font-family: var(--mono); font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; margin-top: 4px; }
+  mark { background: var(--hit); color: inherit; border-radius: 3px; padding: 0 2px; }
+  mark.fuzzy { background: var(--hit-fuzzy); }
+  .matched { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; font-size: .78rem; color: var(--muted); align-items: center; }
+  .matched b { font-weight: 600; color: var(--text); background: var(--hit); padding: 1px 6px; border-radius: 5px; }
+  .matched b.fuzzy { background: var(--hit-fuzzy); }
+  .who { border: 0; background: none; padding: 0; cursor: pointer; color: var(--muted); text-decoration: underline dotted; text-underline-offset: 3px; }
+  .who:hover { color: var(--text); }
+  .acct { font-size: .78rem; background: var(--surface-2); border-radius: 6px; padding: 1px 7px; }
+  .acct.young { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .acct a { color: inherit; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 10px; }
+  .more-wrap { text-align: center; margin-top: 16px; }
+  footer { margin-top: 40px; font-size: .8rem; color: var(--muted); }
+  footer a { color: var(--muted); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  @media (max-width: 520px) {
+    .wrap { padding-top: 20px; }
+    .btn.main { width: 100%; min-height: 48px; }
+    .field.sub { width: 130px; }
+    /* 16px+ keeps iOS from zooming into fields on focus */
+    .q, select, .field, .add .field { font-size: 16px; }
+    .op { flex: 1 1 auto; min-height: 42px; }
+    .op.help { flex-basis: 100%; margin-left: 0; }
+    .chip { padding: 6px 12px; }
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+    .opts label { min-height: 36px; }
+    .opts select, .opts .field.sub { width: 100%; min-width: 0; }
+    .opts label:nth-child(-n+2) { flex-direction: column; align-items: stretch; gap: 2px; }
+    .card { padding: 12px 14px; }
+    .status { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Mention <span>Finder</span></h1>
+    <p>Type a name, place or website. You'll see the latest Reddit posts and comments that mention it, including misspellings, forms without “.com”, and abbreviations.</p>
+  </header>
+
+  <form class="search" id="form" autocomplete="off">
+    <div class="row">
+      <label class="sr" for="q">Name or website</label>
+      <input class="q" id="q" name="q" placeholder="e.g. bestbuy.com AND refund" required enterkeyhint="search" autocapitalize="off" spellcheck="false" />
+      <button class="btn main" id="go" type="submit">Find mentions</button>
+    </div>
+    <div class="ops" role="group" aria-label="Insert search operator">
+      <button type="button" class="op" data-ins=" AND " title="Must also contain">AND</button>
+      <button type="button" class="op" data-ins=" OR " title="Either one">OR</button>
+      <button type="button" class="op" data-ins=" NOT " title="Must not contain">NOT</button>
+      <button type="button" class="op" data-ins='""' title="Exact phrase">“ phrase ”</button>
+      <button type="button" class="op help" id="helpBtn" aria-expanded="false">How it works</button>
+    </div>
+    <div class="help-box" id="helpBox" hidden>
+      <p>Start with the <b>name or website</b>. We search all its spellings automatically. Then narrow it down:</p>
+      <ul>
+        <li><b>AND</b> must also say this: <a href="#" class="ex">bestbuy.com AND "price match"</a></li>
+        <li><b>OR</b> either one: <a href="#" class="ex">chewy.com OR petco</a></li>
+        <li><b>NOT</b> leave out posts that say this: <a href="#" class="ex">Trader Joe's AND wine NOT "two buck"</a></li>
+        <li>Put exact phrases in “quotes”. A minus works like NOT: <a href="#" class="ex">amazon -prime</a></li>
+      </ul>
+    </div>
+    <div class="opts">
+      <label>From
+        <select id="t">
+          <option value="hour">past hour</option>
+          <option value="day">past 24 hours</option>
+          <option value="week" selected>past week</option>
+          <option value="month">past month</option>
+          <option value="year">past year</option>
+          <option value="all">any time</option>
+        </select>
+      </label>
+      <label>In r/ <input class="field sub" id="sub" placeholder="all of Reddit" /></label>
+      <label><input type="checkbox" id="comments" checked /> include comments</label>
+      <label><input type="checkbox" id="strict" checked /> only confirmed mentions</label>
+    </div>
+
+    <details class="variants" id="variants">
+      <summary><span id="vsum">Spellings we're searching for</span> <span class="tap">tap to edit</span></summary>
+      <div id="chips"></div>
+      <div class="hint">Tap a spelling to switch it on or off. Reddit search matches whole words, so use <b>+ add</b> for anything we missed, such as a nickname or a split form like “best buy”.</div>
+    </details>
+  </form>
+
+  <div class="status" id="status" hidden>
+    <div class="left"><span class="dot" id="dot"></span><span id="statusText"></span></div>
+    <div class="toolbar">
+      <label style="display:inline-flex;gap:6px;align-items:center">Sort
+        <select id="sort"><option value="new">newest</option><option value="top">most upvoted</option></select>
+      </label>
+      <label style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="auto" /> auto-refresh</label>
+      <button class="btn ghost" id="share" type="button">Copy share link</button>
+    </div>
+  </div>
+  <div id="notices"></div>
+  <div class="results" id="results"></div>
+  <div class="more-wrap" id="moreWrap" hidden><button class="btn ghost" id="more" type="button">Load older posts</button></div>
+
+  <footer>
+    Results come straight from Reddit's public search, run in your browser. Comment results come from <a href="https://pullpush.io" target="_blank" rel="noopener">PullPush</a>, a Reddit archive that can lag behind by a few hours or more.
+    Not affiliated with Reddit.
+  </footer>
+</div>
+
+<script src="variants.js"></script>
+<script>
+(function () {
+  'use strict';
+  const V = window.MentionVariants;
+  const $ = id => document.getElementById(id);
+  const els = {
+    form: $('form'), q: $('q'), go: $('go'), t: $('t'), sub: $('sub'), comments: $('comments'), strict: $('strict'),
+    variants: $('variants'), chips: $('chips'), status: $('status'), dot: $('dot'), statusText: $('statusText'),
+    sort: $('sort'), auto: $('auto'), share: $('share'), notices: $('notices'), results: $('results'),
+    moreWrap: $('moreWrap'), more: $('more'),
+  };
+
+  const TIME_SECONDS = { hour: 3600, day: 86400, week: 604800, month: 2592000, year: 31536000, all: 0 };
+  const AUTO_MS = 3 * 60 * 1000;
+
+  const state = {
+    query: '', groups: [],
+    items: new Map(),          // id -> normalized result
+    seen: new Set(),           // ids shown before the latest refresh (for "new" badges)
+    afters: [],                // Reddit pagination cursors per batch
+    lastUpdated: 0, busy: false, autoTimer: null, runId: 0,
+  };
+
+  // ---------- helpers ----------
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function timeAgo(sec) {
+    const d = Math.max(0, Date.now() / 1000 - sec);
+    if (d < 60) return 'just now';
+    const units = [['y', 31536000], ['mo', 2592000], ['d', 86400], ['h', 3600], ['m', 60]];
+    for (const [u, s] of units) if (d >= s) return Math.floor(d / s) + u + ' ago';
+  }
+  const fmtNum = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n);
+  const cleanSub = s => s.trim().replace(/^\/?r\//i, '').replace(/[^A-Za-z0-9_+]/g, '');
+
+  async function fetchJSON(url, ms = 15000) {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), ms);
+    try {
+      const res = await fetch(url, { signal: ctl.signal, headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error(res.status === 429 ? 'rate-limited' : 'HTTP ' + res.status);
+      return await res.json();
+    } catch (e) {
+      throw e.name === 'AbortError' ? new Error('timed out') : e;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  const groupTerms = g => g.variants.filter(v => v.on).map(v => v.text);
+  const activeTerms = () => state.groups.flatMap(groupTerms);
+
+  function buildGroups(raw, added) {
+    return V.parseQuery(raw).slice(0, 5).map((q, gi) => {
+      const g = Object.assign({}, q, V.generate(q.main));
+      ((added && added[gi]) || []).forEach(text => addVariant(g, text));
+      return g;
+    });
+  }
+  function addVariant(g, text) {
+    const ex = g.variants.find(v => v.text === text);
+    if (ex) ex.on = true; else g.variants.splice(2, 0, { text, kind: 'added', on: true, custom: true });
+  }
+
+  // ---------- variants UI ----------
+  function renderChips() {
+    const multi = state.groups.length > 1;
+    els.chips.innerHTML = state.groups.map((g, gi) => {
+      const list = g.variants;
+      const visible = g.showAll ? list : list.filter((v, i) => v.on || v.custom || i < 10);
+      const hidden = list.length - visible.length;
+      const rules = (g.also.length ? ` · must also say ${g.also.map(t => `“${esc(t)}”`).join(', ')}` : '') +
+        (g.not.length ? ` · never ${g.not.map(t => `“${esc(t)}”`).join(', ')}` : '');
+      return `<div class="group">${multi || rules ? `<div class="gtitle">${gi ? '<b>OR</b> ' : ''}${esc(g.main)}${rules}</div>` : ''}
+        <div class="chips">${visible.map(v => {
+          const i = list.indexOf(v);
+          return `<button type="button" class="chip" data-g="${gi}" data-i="${i}" aria-pressed="${v.on}" title="${esc(v.kind)}">${esc(v.text)} <small>${esc(v.kind)}</small></button>`;
+        }).join('')}
+        ${hidden > 0 ? `<button type="button" class="chip more" data-g="${gi}" data-more="1">+${hidden} more</button>` : ''}
+        <span class="add"><input class="field addField" data-g="${gi}" placeholder="+ add spelling" aria-label="Add a spelling of ${esc(g.main)}" enterkeyhint="done" /></span></div></div>`;
+    }).join('');
+    const on = activeTerms().length;
+    $('vsum').textContent = `Searching ${on} spelling${on === 1 ? '' : 's'}` + (state.groups.length > 1 ? ` across ${state.groups.length} names` : '');
+    if (!els.variants.classList.contains('show')) {
+      els.variants.classList.add('show');
+      els.variants.open = window.innerWidth > 600; // keep results near the top on phones
+    }
+  }
+
+  els.chips.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const g = state.groups[+chip.dataset.g];
+    if (chip.dataset.more) { g.showAll = true; renderChips(); return; }
+    const v = g.variants[+chip.dataset.i];
+    v.on = !v.on;
+    renderChips();
+    scheduleRerun();
+  });
+  els.chips.addEventListener('keydown', e => {
+    if (!e.target.classList.contains('addField') || e.key !== 'Enter') return;
+    e.preventDefault();
+    const text = e.target.value.trim().toLowerCase();
+    if (!text) return;
+    const gi = e.target.dataset.g;
+    addVariant(state.groups[+gi], text);
+    renderChips();
+    els.chips.querySelector(`.addField[data-g="${gi}"]`).focus();
+    scheduleRerun();
+  });
+
+  let rerunTimer = null;
+  function scheduleRerun() {
+    clearTimeout(rerunTimer);
+    rerunTimer = setTimeout(() => run({ keepVariants: true }), 900);
+  }
+
+  // ---------- data sources ----------
+  function normPost(p) {
+    return {
+      id: 't3_' + p.id, type: 'post', created: p.created_utc, sub: p.subreddit, author: p.author,
+      title: p.title || '', body: p.selftext || '', score: p.score || 0, comments: p.num_comments || 0,
+      url: 'https://www.reddit.com' + p.permalink,
+      link: p.is_self ? '' : (p.url_overridden_by_dest || p.url || ''),
+      nsfw: !!p.over_18,
+    };
+  }
+  function normComment(c) {
+    const permalink = c.permalink || `/r/${c.subreddit}/comments/${String(c.link_id || '').replace(/^t3_/, '')}/_/${c.id}/`;
+    return {
+      id: 't1_' + c.id, type: 'comment', created: c.created_utc, sub: c.subreddit, author: c.author,
+      title: '', body: c.body || '', score: c.score || 0, comments: 0,
+      url: 'https://www.reddit.com' + permalink, link: '', nsfw: false,
+    };
+  }
+
+  function redditSearchUrl(q, t, sub, after, json) {
+    const base = sub ? `https://www.reddit.com/r/${encodeURIComponent(sub)}/search${json ? '.json' : ''}` : `https://www.reddit.com/search${json ? '.json' : ''}`;
+    const params = new URLSearchParams({ q, sort: 'new', t });
+    if (json) { params.set('limit', '100'); params.set('raw_json', '1'); params.set('type', 'link'); }
+    if (sub) params.set('restrict_sr', '1');
+    if (after) params.set('after', after);
+    return base + '?' + params;
+  }
+
+  async function searchReddit(queries, t, sub, afters) {
+    const out = [], errors = [], nextAfters = [];
+    for (let i = 0; i < queries.length; i++) {
+      if (afters && !afters[i]) { nextAfters[i] = null; continue; }
+      try {
+        const data = await fetchJSON(redditSearchUrl(queries[i], t, sub, afters && afters[i], true));
+        const children = (data && data.data && data.data.children) || [];
+        children.forEach(c => c.kind === 't3' && out.push(normPost(c.data)));
+        nextAfters[i] = data && data.data ? data.data.after : null;
+      } catch (e) {
+        errors.push(e.message);
+        nextAfters[i] = null;
+      }
+    }
+    return { items: out, errors, afters: nextAfters };
+  }
+
+  // One Reddit query per batch of spellings:  (spelling OR spelling …) AND also NOT not
+  function buildQueries() {
+    const out = [];
+    for (const g of state.groups) {
+      const terms = groupTerms(g);
+      if (!terms.length) continue;
+      const suffix = g.also.map(t => ' AND ' + V.toSearchTerm(t)).join('') + g.not.map(t => ' NOT ' + V.toSearchTerm(t)).join('');
+      V.batchQueries(terms, Math.max(120, 400 - suffix.length)).forEach(b => out.push(`(${b})${suffix}`));
+    }
+    return out;
+  }
+
+  async function searchComments(t, sub) {
+    // PullPush takes simple-query syntax: | for OR, + for must, - for must-not, quotes for phrases.
+    const q = x => /^[a-z0-9]+$/.test(x) ? x : `"${x.replace(/"/g, '')}"`;
+    const out = [];
+    for (const g of state.groups) {
+      const terms = groupTerms(g).slice(0, 25);
+      if (!terms.length) continue;
+      const query = `(${terms.map(q).join('|')})` + g.also.map(x => ' +' + q(x)).join('') + g.not.map(x => ' -' + q(x)).join('');
+      const params = new URLSearchParams({ q: query, size: '100', sort: 'desc', sort_type: 'created_utc' });
+      if (TIME_SECONDS[t]) params.set('after', String(Math.floor(Date.now() / 1000 - TIME_SECONDS[t])));
+      if (sub) params.set('subreddit', sub);
+      const data = await fetchJSON('https://api.pullpush.io/reddit/search/comment/?' + params, 20000);
+      out.push(...((data && data.data) || []).map(normComment));
+    }
+    return out;
+  }
+
+  // ---------- matching & rendering ----------
+  function analyze(item) {
+    const link = item.link.replace(/^https?:\/\/(www\.)?/, '');
+    const whole = [item.title, item.body, link].join('\n');
+    const titleHits = [], bodyHits = [], linkHits = [];
+    let confirmed = false, blocked = state.groups.length > 0;
+    for (const g of state.groups) {
+      const terms = groupTerms(g);
+      const th = V.findMatches(item.title, terms, g.parsed.core);
+      const bh = V.findMatches(item.body, terms, g.parsed.core);
+      const lh = V.findMatches(link, terms, g.parsed.core);
+      const excluded = g.not.some(t => V.containsTerm(whole, t));
+      if (!excluded) blocked = false;
+      if (th.length + bh.length + lh.length && !excluded && g.also.every(t => V.containsTerm(whole, t))) confirmed = true;
+      // highlight the name and the AND words
+      const extra = txt => V.findMatches(txt, g.also, null);
+      titleHits.push(...th, ...extra(item.title)); bodyHits.push(...bh, ...extra(item.body)); linkHits.push(...lh);
+    }
+    const byPos = (a, b) => a.index - b.index || b.length - a.length;
+    [titleHits, bodyHits, linkHits].forEach(h => h.sort(byPos));
+    const all = titleHits.concat(bodyHits, linkHits);
+    // "blocked" = contains a NOT word for every group, so it's always hidden
+    return { titleHits, bodyHits, linkHits, all, confirmed, blocked };
+  }
+
+  function highlight(text, hits) {
+    let out = '', pos = 0;
+    for (const h of hits) {
+      if (h.index < pos) continue;
+      out += esc(text.slice(pos, h.index)) + `<mark class="${h.fuzzy ? 'fuzzy' : ''}">${esc(text.slice(h.index, h.index + h.length))}</mark>`;
+      pos = h.index + h.length;
+    }
+    return out + esc(text.slice(pos));
+  }
+
+  function snippet(text, hits, max = 320) {
+    if (!text) return '';
+    if (text.length <= max) return highlight(text, hits);
+    // Centre the excerpt on the first mention so the reader sees the context.
+    const first = hits[0] ? hits[0].index : 0;
+    const start = Math.max(0, first - 110);
+    const end = Math.min(text.length, start + max);
+    const slice = text.slice(start, end);
+    const shifted = hits.filter(h => h.index >= start && h.index + h.length <= end).map(h => Object.assign({}, h, { index: h.index - start }));
+    return (start > 0 ? '…' : '') + highlight(slice, shifted) + (end < text.length ? '…' : '');
+  }
+
+  function render() {
+    const strict = els.strict.checked;
+    let list = [...state.items.values()].map(it => ({ it, a: analyze(it) })).filter(x => !x.a.blocked);
+    const total = list.length;
+    if (strict) list = list.filter(x => x.a.confirmed);
+    list.sort(els.sort.value === 'top'
+      ? (x, y) => y.it.score - x.it.score
+      : (x, y) => y.it.created - x.it.created);
+
+    if (!list.length) {
+      els.results.innerHTML = state.busy ? '' : `<div class="empty">${total && strict
+        ? `Reddit returned ${total} loose match${total === 1 ? '' : 'es'}, but none clearly mention it. Untick “only confirmed mentions” to see them.`
+        : 'No mentions found in this time range. Try a longer time range or add another spelling.'}</div>`;
+      return;
+    }
+
+    els.results.innerHTML = list.slice(0, 300).map(({ it, a }) => {
+      const isNew = state.seen.size && !state.seen.has(it.id);
+      const matched = [...new Map(a.all.map(h => [h.term, h])).values()];
+      return `<article class="card${isNew ? ' new' : ''}">
+        <div class="meta">
+          ${isNew ? '<span class="badge newb">new</span>' : ''}
+          <span class="badge">${it.type}</span>
+          <a class="sub" href="https://www.reddit.com/r/${esc(it.sub)}/" target="_blank" rel="noopener">r/${esc(it.sub)}</a>
+          ${authorHtml(it.author)}
+          <time datetime="${new Date(it.created * 1000).toISOString()}" title="${esc(new Date(it.created * 1000).toLocaleString())}">${timeAgo(it.created)}</time>
+          <span>▲ ${fmtNum(it.score)}</span>
+          ${it.type === 'post' ? `<span>💬 ${fmtNum(it.comments)}</span>` : ''}
+          ${it.nsfw ? '<span class="badge">nsfw</span>' : ''}
+        </div>
+        ${it.title ? `<h3><a href="${esc(it.url)}" target="_blank" rel="noopener">${highlight(it.title, a.titleHits)}</a></h3>` : ''}
+        ${it.body ? `<p class="snippet">${snippet(it.body, a.bodyHits)}</p>` : ''}
+        ${it.link ? `<div class="link">🔗 ${highlight(it.link.replace(/^https?:\/\/(www\.)?/, ''), a.linkHits)}</div>` : ''}
+        ${it.type === 'comment' ? `<div class="link"><a href="${esc(it.url)}" target="_blank" rel="noopener">View comment on Reddit →</a></div>` : ''}
+        ${matched.length ? `<div class="matched">Matched: ${matched.slice(0, 6).map(h => `<b class="${h.fuzzy ? 'fuzzy' : ''}" title="${h.fuzzy ? 'close spelling' : 'exact spelling'}">${esc(h.term)}</b>`).join('')}</div>` : ''}
+      </article>`;
+    }).join('');
+  }
+
+  // ---------- account info (what Reddit shows on any username's hover card) ----------
+  const accounts = new Map(); // name -> {loading} | {created, karma} | {error}
+  function authorHtml(name) {
+    if (!name || name === '[deleted]') return '<span>[deleted]</span>';
+    const a = accounts.get(name);
+    const btn = `<button type="button" class="who" data-author="${esc(name)}" title="Show account age and karma">u/${esc(name)}</button>`;
+    if (!a) return btn;
+    if (a.loading) return btn + ' <span class="acct">…</span>';
+    if (a.error) return btn + ` <span class="acct">${esc(a.error)}</span>`;
+    const days = (Date.now() / 1000 - a.created) / 86400;
+    const age = days < 60 ? Math.floor(days) + ' days' : days < 730 ? Math.floor(days / 30) + ' months' : Math.floor(days / 365) + ' years';
+    return btn + ` <span class="acct${days < 30 ? ' young' : ''}" title="Account created ${esc(new Date(a.created * 1000).toLocaleDateString())}">account ${age} old · ${fmtNum(a.karma)} karma · <a href="https://www.reddit.com/user/${encodeURIComponent(name)}/" target="_blank" rel="noopener">profile ↗</a></span>`;
+  }
+  async function loadAccount(name) {
+    if (accounts.has(name) && !accounts.get(name).error) return;
+    accounts.set(name, { loading: true });
+    render();
+    try {
+      const d = (await fetchJSON(`https://www.reddit.com/user/${encodeURIComponent(name)}/about.json?raw_json=1`)).data || {};
+      if (!d.created_utc) throw new Error('unavailable');
+      accounts.set(name, { created: d.created_utc, karma: d.total_karma != null ? d.total_karma : (d.link_karma || 0) + (d.comment_karma || 0) });
+    } catch (e) {
+      accounts.set(name, { error: /404|403/.test(e.message) ? 'suspended or deleted' : 'couldn’t load' });
+    }
+    render();
+  }
+  els.results.addEventListener('click', e => {
+    const b = e.target.closest('.who');
+    if (b) loadAccount(b.dataset.author);
+  });
+
+  function setStatus(text, busy) {
+    els.status.hidden = false;
+    els.statusText.textContent = text;
+    els.dot.classList.toggle('busy', !!busy);
+  }
+
+  function showNotices(redditErrors, commentError, queries) {
+    const t = els.t.value, sub = cleanSub(els.sub.value);
+    let html = '';
+    if (redditErrors.length) {
+      const why = redditErrors.includes('rate-limited')
+        ? 'Reddit is rate-limiting searches from your connection. Wait a minute and try again.'
+        : 'Reddit didn’t answer every search. A browser extension, a network filter or Reddit itself may be blocking it.';
+      html += `<div class="notice"><b>Some Reddit searches failed.</b> ${why} You can also open them on Reddit directly:
+        ${queries.map((q, i) => `<a href="${esc(redditSearchUrl(q, t, sub, null, false))}" target="_blank" rel="noopener">search ${i + 1}</a>`).join(' · ')}</div>`;
+    }
+    if (commentError) {
+      html += `<div class="notice">Couldn't load comments from PullPush (${esc(commentError)}), so only posts are shown.</div>`;
+    }
+    els.notices.innerHTML = html;
+  }
+
+  // ---------- main flow ----------
+  async function run(opts = {}) {
+    const raw = els.q.value.trim();
+    if (!raw) return;
+    const myRun = ++state.runId;
+
+    if (!opts.keepVariants || raw !== state.query) {
+      state.query = raw;
+      state.groups = buildGroups(raw);
+      state.seen = new Set();
+      if (!state.groups.length) { setStatus('Type a name or website to search for (not just NOT words).'); return; }
+      renderChips();
+    }
+    if (!opts.refresh) { state.items.clear(); state.seen = new Set(); }
+    else state.seen = new Set(state.items.keys());
+
+    const terms = activeTerms();
+    if (!terms.length) { setStatus('Switch on at least one spelling to search.'); els.results.innerHTML = ''; return; }
+
+    const t = els.t.value, sub = cleanSub(els.sub.value);
+    const queries = buildQueries();
+    updateUrl();
+
+    state.busy = true;
+    els.go.disabled = true;
+    setStatus(`Searching Reddit for ${terms.length} spelling${terms.length === 1 ? '' : 's'}…`, true);
+    if (!opts.refresh) render();
+
+    const [posts, comments] = await Promise.all([
+      searchReddit(queries, t, sub),
+      els.comments.checked ? searchComments(t, sub).then(r => ({ items: r }), e => ({ items: [], error: e.message })) : Promise.resolve({ items: [] }),
+    ]);
+    if (myRun !== state.runId) return; // a newer search started meanwhile
+
+    posts.items.concat(comments.items).forEach(it => {
+      if (it.author === '[deleted]' && !it.title && !it.body) return;
+      state.items.set(it.id, it);
+    });
+    state.afters = posts.afters;
+    state.lastUpdated = Date.now();
+    state.busy = false;
+    els.go.disabled = false;
+
+    showNotices(posts.errors, comments.error, queries);
+    render();
+    updateStatus();
+    els.moreWrap.hidden = !state.afters.some(Boolean);
+  }
+
+  async function loadMore() {
+    const queries = buildQueries();
+    els.more.disabled = true;
+    const before = state.items.size;
+    const res = await searchReddit(queries, els.t.value, cleanSub(els.sub.value), state.afters);
+    res.items.forEach(it => state.items.set(it.id, it));
+    state.afters = res.afters;
+    els.more.disabled = false;
+    els.moreWrap.hidden = !state.afters.some(Boolean);
+    render();
+    updateStatus(state.items.size - before);
+  }
+
+  function updateStatus(added) {
+    if (!state.lastUpdated || state.busy) return;
+    const all = [...state.items.values()];
+    const shown = all.filter(it => { const a = analyze(it); return !a.blocked && (a.confirmed || !els.strict.checked); }).length;
+    const fresh = state.seen.size ? all.filter(it => !state.seen.has(it.id)).length : 0;
+    const mins = Math.floor((Date.now() - state.lastUpdated) / 60000);
+    setStatus(`${shown} mention${shown === 1 ? '' : 's'}` +
+      (fresh ? ` · ${fresh} new` : '') +
+      (added != null ? ` · ${added} more loaded` : '') +
+      ` · updated ${mins < 1 ? 'just now' : mins + ' min ago'}` +
+      (els.auto.checked ? ' · refreshing every 3 min' : ''));
+  }
+  setInterval(updateStatus, 30000);
+
+  function updateUrl() {
+    const p = new URLSearchParams();
+    p.set('q', els.q.value.trim());
+    if (els.t.value !== 'week') p.set('t', els.t.value);
+    const sub = cleanSub(els.sub.value);
+    if (sub) p.set('sub', sub);
+    if (!els.comments.checked) p.set('comments', '0');
+    const custom = state.groups.flatMap((g, gi) => g.variants.filter(v => v.custom && v.on).map(v => gi + ':' + v.text));
+    if (custom.length) p.set('add', custom.join(','));
+    history.replaceState(null, '', location.pathname + '?' + p);
+  }
+
+  // ---------- events ----------
+  document.querySelector('.ops').addEventListener('click', e => {
+    const b = e.target.closest('.op');
+    if (!b || !b.dataset.ins) return;
+    const q = els.q, ins = b.dataset.ins;
+    const start = q.selectionStart != null ? q.selectionStart : q.value.length, end = q.selectionEnd != null ? q.selectionEnd : start;
+    let before = q.value.slice(0, start), after = q.value.slice(end);
+    if (ins.trim() && before.endsWith(' ')) before = before.replace(/\s+$/, '');
+    q.value = before + ins + after;
+    const caret = before.length + (ins === '""' ? 1 : ins.length);
+    q.focus();
+    q.setSelectionRange(caret, caret);
+  });
+  $('helpBtn').addEventListener('click', () => {
+    const box = $('helpBox');
+    box.hidden = !box.hidden;
+    $('helpBtn').setAttribute('aria-expanded', String(!box.hidden));
+  });
+  $('helpBox').addEventListener('click', e => {
+    const a = e.target.closest('.ex');
+    if (!a) return;
+    e.preventDefault();
+    els.q.value = a.textContent;
+    run();
+  });
+  els.form.addEventListener('submit', e => { e.preventDefault(); run(); });
+  els.strict.addEventListener('change', () => { render(); updateStatus(); });
+  els.sort.addEventListener('change', render);
+  [els.t, els.comments].forEach(el => el.addEventListener('change', () => state.query && run({ keepVariants: true })));
+  els.sub.addEventListener('change', () => state.query && run({ keepVariants: true }));
+  els.more.addEventListener('click', loadMore);
+  els.auto.addEventListener('change', () => {
+    clearInterval(state.autoTimer);
+    if (els.auto.checked) state.autoTimer = setInterval(() => {
+      if (state.query && !state.busy && document.visibilityState === 'visible') run({ keepVariants: true, refresh: true });
+    }, AUTO_MS);
+    updateStatus();
+  });
+  els.share.addEventListener('click', async () => {
+    updateUrl();
+    try {
+      await navigator.clipboard.writeText(location.href);
+      els.share.textContent = 'Link copied ✓';
+    } catch {
+      prompt('Copy this link:', location.href);
+    }
+    setTimeout(() => (els.share.textContent = 'Copy share link'), 2000);
+  });
+
+  // ---------- start from a shared link ----------
+  const params = new URLSearchParams(location.search);
+  if (params.get('q')) {
+    els.q.value = params.get('q');
+    if (TIME_SECONDS[params.get('t')] !== undefined) els.t.value = params.get('t');
+    if (params.get('sub')) els.sub.value = params.get('sub');
+    if (params.get('comments') === '0') els.comments.checked = false;
+    const added = {};
+    (params.get('add') || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean).forEach(s => {
+      const m = s.match(/^(\d+):(.+)$/);
+      const gi = m ? +m[1] : 0;
+      (added[gi] = added[gi] || []).push(m ? m[2] : s);
+    });
+    state.query = els.q.value.trim();
+    state.groups = buildGroups(state.query, added);
+    if (state.groups.length) { renderChips(); run({ keepVariants: true }); }
+  } else {
+    els.q.focus();
+  }
+})();
+</script>
+</body>
+</html>

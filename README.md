@@ -15,3 +15,20 @@ Inspired by the Western-cavalry drill-corps look (sand, crimson & gold).
 No build step, no dependencies — just open `index.html` in any browser.
 
 *Fan tribute to the marching-arts aesthetic. Not affiliated with any organization.*
+
+---
+
+# 🔎 Mention Finder
+
+A second, separate tool in this repo: find **recent Reddit posts and comments that mention a name, place or website**, however people spelled it.
+
+**▶ Use it:** https://fenphen.github.io/trooper-cadence/mention-finder/
+
+- Type `bestbuy.com` and it also searches `bestbuy`, `bestbuy dot com`, and common misspellings like `bsetbuy`. It also spots near-misses in results, like "Best Buy" and "bestbyu".
+- Combine searches with **AND**, **OR** and **NOT**, or tap the buttons: `bestbuy.com AND "price match" NOT refund`, `chewy OR petco`, `amazon -prime`.
+- Sort by newest or most upvoted, limit to a subreddit, and switch on auto-refresh (every 3 min, with new results marked).
+- Tap a username to see the account's age and karma. Brand-new accounts are highlighted.
+- **Copy share link** saves the whole search, including extra spellings you added, in the URL.
+
+Everything runs in the visitor's browser against Reddit's public search, so there's no server. Comment search uses [PullPush](https://pullpush.io), which can lag behind Reddit.
+Files: `mention-finder/index.html` (page) and `mention-finder/variants.js` (spelling and query engine).
