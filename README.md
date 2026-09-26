@@ -32,5 +32,7 @@ A second, separate tool in this repo: find **recent Reddit posts and comments th
 - **⚑ Flag** anything inappropriate. Then **Review & export** to add notes and a summary, and export as a printable report / PDF, CSV, JSON, or text to paste into a report form. Each item includes its permalink, UTC times, capture time and a SHA-256 fingerprint. The panel links to Reddit's reporting, NCMEC CyberTipline, FBI tips, IC3 and FTC.
 - **Copy share link** saves the whole search, including extra spellings you added, in the URL.
 
-Everything runs in the visitor's browser against Reddit's public search, so there's no server. Comment search uses [PullPush](https://pullpush.io), which can lag behind Reddit.
+Everything runs in the visitor's browser against Reddit's public search, so there's no server.
+
+**Known limitation (Sept 2026):** since late May 2026, Reddit refuses anonymous data requests from other websites, so in-page results usually won't load. PullPush (comments) is also down for maintenance through September 2026. When that happens, the page explains why and offers one-tap buttons that run the same search, with the same spellings, on Reddit's own site (posts and comments) and on Google, plus related-search suggestions. Getting results back inside the page would need a Reddit-approved API app (OAuth) or a small server. Comment search uses [PullPush](https://pullpush.io), which can lag behind Reddit.
 Files: `mention-finder/index.html` (page), `mention-finder/variants.js` (spelling and query engine), `mention-finder/report.js` (exports).

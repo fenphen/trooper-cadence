@@ -107,6 +107,18 @@
 
   .notice { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: 10px; padding: 12px 14px; margin: 10px 0; font-size: .92rem; }
   .notice a { color: var(--accent); }
+  .notice.help { border-left-color: var(--accent); padding: 14px 16px; }
+  .notice.help p { margin: 6px 0 10px; }
+  .fallbacks { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+  a.fb { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 14px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 650; text-decoration: none; }
+  a.fb.small { background: var(--surface-2); color: var(--text); font-weight: 550; }
+  .related { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .9rem; }
+  .related b { width: 100%; font-weight: 600; }
+  .rel { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: .88rem; min-height: 36px; }
+  .empty .tips { text-align: left; max-width: 520px; margin: 10px auto; padding-left: 20px; }
+  .empty .tips li { margin: 6px 0; }
+  .empty .related { justify-content: center; }
+  @media (max-width: 520px) { a.fb { flex: 1 1 100%; justify-content: center; } }
 
   .results { display: grid; gap: 10px; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); min-width: 0; }
@@ -339,11 +351,17 @@
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), ms);
     try {
-      const res = await fetch(url, { signal: ctl.signal, headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error(res.status === 429 ? 'rate-limited' : 'HTTP ' + res.status);
-      return await res.json();
-    } catch (e) {
-      throw e.name === 'AbortError' ? new Error('timed out') : e;
+      let res;
+      try {
+        res = await fetch(url, { signal: ctl.signal, headers: { Accept: 'application/json' } });
+      } catch (e) {
+        // A refused request without CORS headers surfaces as a bare network error.
+        throw new Error(e.name === 'AbortError' ? 'timed out' : 'blocked');
+      }
+      if (res.status === 429) throw new Error('rate-limited');
+      if (res.status === 401 || res.status === 403) throw new Error('blocked');
+      if (!res.ok) throw new Error(res.status >= 500 ? 'server error' : 'HTTP ' + res.status);
+      try { return await res.json(); } catch (e) { throw new Error('blocked'); } // HTML block page instead of data
     } finally {
       clearTimeout(timer);
     }
@@ -479,7 +497,7 @@
     const q = x => /^[a-z0-9]+$/.test(x) ? x : `"${x.replace(/"/g, '')}"`;
     const out = [];
     for (const g of state.groups) {
-      const terms = groupTerms(g).slice(0, 25);
+      const terms = V.textTerms(groupTerms(g)).slice(0, 25);
       if (!terms.length) continue;
       const query = `(${terms.map(q).join('|')})` + g.also.map(x => ' +' + q(x)).join('') + g.not.map(x => ' -' + q(x)).join('');
       const params = new URLSearchParams({ q: query, size: '100', sort: 'desc', sort_type: 'created_utc' });
@@ -548,9 +566,16 @@
       : (x, y) => y.it.created - x.it.created);
 
     if (!list.length) {
+      if (state.lastErrors && state.lastErrors.length) { els.results.innerHTML = ''; return; } // the notice above explains it
       els.results.innerHTML = state.busy ? '' : `<div class="empty">${total && strict
         ? `Reddit returned ${total} loose match${total === 1 ? '' : 'es'}, but none clearly mention it. Untick “only confirmed mentions” to see them.`
-        : 'No mentions found in this time range. Try a longer time range or add another spelling.'}</div>`;
+        : `<b>No mentions found.</b>
+          <ul class="tips">
+            <li>Try a longer time range. “Past week” misses anything older.</li>
+            <li>Reddit search only matches whole words, so add other spellings or nicknames with <b>+ add</b>.</li>
+            <li>AND / NOT words narrow things down a lot. Try without them.</li>
+            <li>Reddit's own search sometimes finds things this page can't: ${fallbackHtml(buildQueries())}</li>
+          </ul>${relatedHtml()}`}</div>`;
       return;
     }
 
@@ -793,18 +818,68 @@
     els.dot.classList.toggle('busy', !!busy);
   }
 
-  function showNotices(redditErrors, commentError, queries) {
-    const t = els.t.value, sub = cleanSub(els.sub.value);
+  // ---------- "why no results" help, fallbacks and related searches ----------
+  const GOOGLE_TIME = { hour: 'h', day: 'd', week: 'w', month: 'm', year: 'y' };
+  function redditSiteUrl(q, type) {
+    const sub = cleanSub(els.sub.value);
+    const params = new URLSearchParams({ q, sort: 'new', t: els.t.value });
+    if (type === 'comments') params.set('type', 'comments');
+    if (sub) params.set('restrict_sr', '1');
+    return (sub ? `https://www.reddit.com/r/${encodeURIComponent(sub)}/search/?` : 'https://www.reddit.com/search/?') + params;
+  }
+  function googleUrl() {
+    const g = state.groups[0];
+    if (!g) return '';
+    const terms = V.textTerms(groupTerms(g)).slice(0, 6).map(V.toSearchTerm);
+    const sub = cleanSub(els.sub.value);
+    const q = `site:reddit.com${sub ? '/r/' + sub : ''} (${terms.join(' OR ')})` +
+      g.also.map(t => ' ' + V.toSearchTerm(t)).join('') + g.not.map(t => ' -' + V.toSearchTerm(t)).join('');
+    const params = new URLSearchParams({ q });
+    if (GOOGLE_TIME[els.t.value]) params.set('tbs', 'qdr:' + GOOGLE_TIME[els.t.value]);
+    return 'https://www.google.com/search?' + params;
+  }
+  function fallbackHtml(queries) {
+    const q = queries[0] || '';
+    const extra = queries.length > 1 ? queries.slice(1, 3).map((x, i) => `<a class="fb small" href="${esc(redditSiteUrl(x))}" target="_blank" rel="noopener">more spellings ${i + 2} ↗</a>`).join('') : '';
+    return `<div class="fallbacks">
+      <a class="fb" href="${esc(redditSiteUrl(q))}" target="_blank" rel="noopener">🔎 Search posts on Reddit ↗</a>
+      <a class="fb" href="${esc(redditSiteUrl(q, 'comments'))}" target="_blank" rel="noopener">💬 Search comments on Reddit ↗</a>
+      <a class="fb" href="${esc(googleUrl())}" target="_blank" rel="noopener">🌐 Search Reddit with Google ↗</a>
+      ${extra}
+    </div>`;
+  }
+  function relatedHtml() {
+    const g = state.groups[0];
+    if (!g) return '';
+    const ideas = V.relatedSearches(g.main, g.also.concat(g.not)).slice(0, 8);
+    return `<div class="related"><b>Related searches to try:</b>
+      ${ideas.map(q => `<button type="button" class="rel" data-q="${esc(q)}">${esc(q.replace(/^.* AND /, '+ '))}</button>`).join('')}</div>`;
+  }
+
+  function showNotices(redditErrors, commentError, queries, gotAny) {
     let html = '';
     if (redditErrors.length) {
-      const why = redditErrors.includes('rate-limited')
-        ? 'Reddit is rate-limiting searches from your connection. Wait a minute and try again.'
-        : 'Reddit didn’t answer every search. A browser extension, a network filter or Reddit itself may be blocking it.';
-      html += `<div class="notice"><b>Some Reddit searches failed.</b> ${why} You can also open them on Reddit directly:
-        ${queries.map((q, i) => `<a href="${esc(redditSearchUrl(q, t, sub, null, false))}" target="_blank" rel="noopener">search ${i + 1}</a>`).join(' · ')}</div>`;
+      const all = redditErrors.length >= queries.length;
+      const limited = redditErrors.includes('rate-limited');
+      const blocked = redditErrors.includes('blocked');
+      let title, why;
+      if (limited) {
+        title = 'Reddit says there have been too many searches';
+        why = `Reddit only allows a few searches a minute from each connection without signing in. Wait 1–2 minutes and try again.
+          Each search uses one request per group of spellings, so switching off spellings you don't need helps. Leave auto-refresh off for now.`;
+      } else if (blocked) {
+        title = all ? 'Reddit is refusing searches from this page' : 'Reddit refused some of the searches';
+        why = `This isn't something you did wrong. Since late May 2026, Reddit blocks anonymous data requests from other websites and apps, including this one.
+          Reddit's own search still works in your browser, so use the buttons below. They run the same search, with the same spellings, on Reddit or Google.`;
+      } else {
+        title = 'Reddit didn’t answer';
+        why = 'Reddit is slow or having problems right now (' + esc(redditErrors[0]) + '). Try again in a minute, or use the buttons below.';
+      }
+      html += `<div class="notice help"><b>${title}.</b><p>${why}</p>${fallbackHtml(queries)}${relatedHtml()}</div>`;
     }
-    if (commentError) {
-      html += `<div class="notice">Couldn't load comments from PullPush (${esc(commentError)}), so only posts are shown.</div>`;
+    if (commentError && els.comments.checked) {
+      html += `<div class="notice"><b>Comments couldn't be loaded.</b> They come from PullPush, a Reddit archive that has been down for maintenance through September 2026 (${esc(commentError)}).
+        ${redditErrors.length ? '' : `Use <a href="${esc(redditSiteUrl(queries[0] || '', 'comments'))}" target="_blank" rel="noopener">Search comments on Reddit ↗</a> instead.`}</div>`;
     }
     els.notices.innerHTML = html;
   }
@@ -822,7 +897,7 @@
       if (!state.groups.length) { setStatus('Type a name or website to search for (not just NOT words).'); return; }
       renderChips();
     }
-    if (!opts.refresh) { state.items.clear(); state.seen = new Set(); }
+    if (!opts.refresh) { state.items.clear(); state.seen = new Set(); els.notices.innerHTML = ''; state.lastErrors = []; }
     else state.seen = new Set(state.items.keys());
 
     const terms = activeTerms();
@@ -852,6 +927,7 @@
     state.busy = false;
     els.go.disabled = false;
 
+    state.lastErrors = posts.errors;
     showNotices(posts.errors, comments.error, queries);
     render();
     updateStatus();
@@ -873,6 +949,10 @@
 
   function updateStatus(added) {
     if (!state.lastUpdated || state.busy) return;
+    if (state.lastErrors && state.lastErrors.length && !state.items.size) {
+      setStatus(state.lastErrors.includes('rate-limited') ? 'Reddit is limiting searches right now. See below.' : 'Reddit refused the search. See below for what to do.');
+      return;
+    }
     const all = [...state.items.values()];
     const shown = all.filter(it => { const a = analyze(it); return !a.blocked && (a.confirmed || !els.strict.checked); }).length;
     const fresh = state.seen.size ? all.filter(it => !state.seen.has(it.id)).length : 0;
@@ -898,6 +978,13 @@
   }
 
   // ---------- events ----------
+  document.addEventListener('click', e => {
+    const r = e.target.closest('.rel');
+    if (!r) return;
+    els.q.value = r.dataset.q;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    run();
+  });
   document.querySelector('.ops').addEventListener('click', e => {
     const b = e.target.closest('.op');
     if (!b || !b.dataset.ins) return;
