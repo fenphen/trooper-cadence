@@ -28,7 +28,8 @@ A second, separate tool in this repo: find **recent Reddit posts and comments th
 - Combine searches with **AND**, **OR** and **NOT**, or tap the buttons: `bestbuy.com AND "price match" NOT refund`, `chewy OR petco`, `amazon -prime`.
 - Sort by newest or most upvoted, limit to a subreddit, and switch on auto-refresh (every 3 min, with new results marked).
 - Tap a username to see the account's age and karma. Brand-new accounts are highlighted.
+- **⚑ Flag** anything inappropriate. Then **Review & export** to add notes and a summary, and export as a printable report / PDF, CSV, JSON, or text to paste into a report form. Each item includes its permalink, UTC times, capture time and a SHA-256 fingerprint. The panel links to Reddit's reporting, NCMEC CyberTipline, FBI tips, IC3 and FTC.
 - **Copy share link** saves the whole search, including extra spellings you added, in the URL.
 
 Everything runs in the visitor's browser against Reddit's public search, so there's no server. Comment search uses [PullPush](https://pullpush.io), which can lag behind Reddit.
-Files: `mention-finder/index.html` (page) and `mention-finder/variants.js` (spelling and query engine).
+Files: `mention-finder/index.html` (page), `mention-finder/variants.js` (spelling and query engine), `mention-finder/report.js` (exports).

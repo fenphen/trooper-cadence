@@ -116,7 +116,36 @@
   .acct a { color: inherit; }
   .empty { text-align: center; color: var(--muted); padding: 40px 10px; }
   .more-wrap { text-align: center; margin-top: 16px; }
-  footer { margin-top: 40px; font-size: .8rem; color: var(--muted); }
+  .flag { margin-left: auto; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 3px 10px; font-size: .8rem; cursor: pointer; color: var(--muted); min-height: 30px; }
+  .flag[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 650; }
+  .card.flagged { border-color: var(--accent); border-width: 2px; }
+  .tray { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 20; display: flex; gap: 10px; align-items: center;
+    background: var(--text); color: var(--bg); border-radius: 999px; padding: 8px 8px 8px 18px; box-shadow: 0 6px 24px rgba(0,0,0,.25); max-width: calc(100% - 32px); font-size: .92rem; }
+  .tray .btn { padding: 8px 16px; border-radius: 999px; }
+  dialog.panel { width: min(720px, 100%); max-height: min(92vh, 100%); border: 1px solid var(--border); border-radius: 16px; padding: 0; background: var(--surface); color: var(--text); }
+  dialog.panel::backdrop { background: rgba(0,0,0,.45); }
+  .panel .inner { padding: 18px 18px 22px; }
+  .panel h2 { margin: 0; font-size: 1.25rem; }
+  .panel h3 { margin: 20px 0 8px; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .panel .x { float: right; border: 0; background: var(--surface-2); border-radius: 8px; width: 36px; height: 36px; font-size: 1.1rem; cursor: pointer; }
+  .panel textarea { width: 100%; min-height: 70px; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: var(--bg); font: inherit; font-size: 16px; resize: vertical; }
+  .fitem { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+  .fitem .top { display: flex; gap: 8px; align-items: flex-start; font-size: .85rem; color: var(--muted); }
+  .fitem .top a { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+  .fitem .rm { margin-left: auto; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; flex: none; }
+  .fitem input { width: 100%; margin-top: 6px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; background: var(--bg); font-size: 16px; }
+  .exports { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .exp { text-align: left; border: 1px solid var(--border); background: var(--bg); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+  .exp b { display: block; }
+  .exp span { font-size: .78rem; color: var(--muted); }
+  .where { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .where li { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: .9rem; }
+  .where a { color: var(--accent); font-weight: 650; }
+  .where .urgent { border-color: var(--accent); background: var(--accent-soft); }
+  .warn { font-size: .85rem; border-left: 4px solid var(--warn); padding: 8px 12px; background: var(--bg); border-radius: 8px; margin-top: 10px; }
+  .panel .muted { color: var(--muted); font-size: .85rem; }
+  @media (max-width: 520px) { dialog.panel { max-height: 100%; height: 100%; border-radius: 0; margin: 0; width: 100%; max-width: 100%; } }
+  footer { margin-bottom: 70px; margin-top: 40px; font-size: .8rem; color: var(--muted); }
   footer a { color: var(--muted); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   @media (max-width: 520px) {
@@ -203,6 +232,43 @@
   <div class="results" id="results"></div>
   <div class="more-wrap" id="moreWrap" hidden><button class="btn ghost" id="more" type="button">Load older posts</button></div>
 
+  <div class="tray" id="tray" hidden><span id="trayText"></span><button class="btn" id="openPanel" type="button">Review &amp; export</button></div>
+
+  <dialog class="panel" id="panel" aria-labelledby="panelTitle">
+    <div class="inner">
+      <button class="x" type="button" id="closePanel" aria-label="Close">✕</button>
+      <h2 id="panelTitle">Flagged items</h2>
+      <p class="muted">Flags are saved in this browser only. Add a short note to each item explaining what's wrong with it.</p>
+      <div class="where urgent-top"><div class="warn"><b>If someone is in immediate danger, call 911</b> (or your local emergency number) before anything else.</div></div>
+
+      <h3>Your summary (goes at the top of every export)</h3>
+      <textarea id="summary" placeholder="What you found and why you're reporting it."></textarea>
+
+      <h3 id="flagCount">Items</h3>
+      <div id="flagList"></div>
+
+      <h3>Export</h3>
+      <div class="exports">
+        <button class="exp" type="button" data-exp="pdf"><b>📄 Printable report / PDF</b><span>For email, upload or print. Opens a page you can save as PDF.</span></button>
+        <button class="exp" type="button" data-exp="csv"><b>📊 CSV spreadsheet</b><span>For Excel, Google Sheets and case systems that import tables.</span></button>
+        <button class="exp" type="button" data-exp="json"><b>🧩 JSON data</b><span>For systems and analysts that load structured data.</span></button>
+        <button class="exp" type="button" data-exp="text"><b>📋 Copy as text</b><span>Paste straight into an online report form's description box.</span></button>
+      </div>
+      <p class="muted" id="expMsg" role="status"></p>
+
+      <h3>Where to report</h3>
+      <ul class="where">
+        <li>Report it to <b>Reddit</b> first so they can remove it: open the item and use its <b>Report</b> button, or use <a href="https://www.reddit.com/report" target="_blank" rel="noopener">reddit.com/report</a>.</li>
+        <li class="urgent"><b>Child sexual exploitation:</b> report to the NCMEC <a href="https://report.cybertip.org/" target="_blank" rel="noopener">CyberTipline</a> (US). Outside the US, use your national hotline via <a href="https://www.inhope.org/EN" target="_blank" rel="noopener">INHOPE</a>.
+          <div class="warn">Send <b>links only</b>. Don't download, screenshot, save or forward the images or videos. Doing that can itself be a crime, even when you mean to report it.</div></li>
+        <li><b>Threats of violence, terrorism, other federal crimes:</b> <a href="https://tips.fbi.gov/" target="_blank" rel="noopener">FBI tips</a> (US), or your local police.</li>
+        <li><b>Scams, fraud, phishing sites:</b> <a href="https://www.ic3.gov/" target="_blank" rel="noopener">IC3</a> (FBI Internet Crime Complaint Center) and <a href="https://reportfraud.ftc.gov/" target="_blank" rel="noopener">ReportFraud.ftc.gov</a> (US).</li>
+        <li><b>Outside the US:</b> your local police or national cybercrime unit. The printable report and CSV are the easiest to attach.</li>
+      </ul>
+      <p class="muted">Reddit content can be deleted at any time. Including the permalinks and UTC times from these exports lets investigators ask Reddit to preserve the originals.</p>
+    </div>
+  </dialog>
+
   <footer>
     Results come straight from Reddit's public search, run in your browser. Comment results come from <a href="https://pullpush.io" target="_blank" rel="noopener">PullPush</a>, a Reddit archive that can lag behind by a few hours or more.
     Not affiliated with Reddit.
@@ -210,6 +276,7 @@
 </div>
 
 <script src="variants.js"></script>
+<script src="report.js"></script>
 <script>
 (function () {
   'use strict';
@@ -466,7 +533,8 @@
     els.results.innerHTML = list.slice(0, 300).map(({ it, a }) => {
       const isNew = state.seen.size && !state.seen.has(it.id);
       const matched = [...new Map(a.all.map(h => [h.term, h])).values()];
-      return `<article class="card${isNew ? ' new' : ''}">
+      const flagged = flags.has(it.id);
+      return `<article class="card${isNew ? ' new' : ''}${flagged ? ' flagged' : ''}">
         <div class="meta">
           ${isNew ? '<span class="badge newb">new</span>' : ''}
           <span class="badge">${it.type}</span>
@@ -476,6 +544,7 @@
           <span>▲ ${fmtNum(it.score)}</span>
           ${it.type === 'post' ? `<span>💬 ${fmtNum(it.comments)}</span>` : ''}
           ${it.nsfw ? '<span class="badge">nsfw</span>' : ''}
+          <button type="button" class="flag" data-flag="${esc(it.id)}" aria-pressed="${flagged}" title="Flag this to report or export it">⚑ ${flagged ? 'Flagged' : 'Flag'}</button>
         </div>
         ${it.title ? `<h3><a href="${esc(it.url)}" target="_blank" rel="noopener">${highlight(it.title, a.titleHits)}</a></h3>` : ''}
         ${it.body ? `<p class="snippet">${snippet(it.body, a.bodyHits)}</p>` : ''}
@@ -512,7 +581,93 @@
     }
     render();
   }
+  // ---------- flagging & export ----------
+  const FLAG_KEY = 'mention-finder-flags';
+  const flags = new Map(); // id -> { item, matched, query, capturedAt, note }
+  try { (JSON.parse(localStorage.getItem(FLAG_KEY)) || []).forEach(f => f && f.item && flags.set(f.item.id, f)); } catch (e) { /* storage unavailable */ }
+  const saveFlags = () => { try { localStorage.setItem(FLAG_KEY, JSON.stringify([...flags.values()])); } catch (e) { /* ignore */ } };
+
+  function toggleFlag(id) {
+    if (flags.has(id)) flags.delete(id);
+    else {
+      const it = state.items.get(id);
+      if (!it) return;
+      const matched = [...new Set(analyze(it).all.map(h => h.term))];
+      flags.set(id, { item: Object.assign({}, it), matched, query: state.query, capturedAt: new Date().toISOString(), note: '' });
+    }
+    saveFlags();
+    render();
+    updateTray();
+  }
+  function updateTray() {
+    const n = flags.size;
+    $('tray').hidden = n === 0;
+    $('trayText').textContent = `⚑ ${n} flagged`;
+  }
+  function renderPanel() {
+    const list = [...flags.values()].sort((a, b) => b.item.created - a.item.created);
+    $('flagCount').textContent = `Items (${list.length})`;
+    $('flagList').innerHTML = list.length ? list.map(f => {
+      const it = f.item;
+      return `<div class="fitem">
+        <div class="top"><div><span class="badge">${it.type}</span> r/${esc(it.sub)} · u/${esc(it.author)} · ${esc(new Date(it.created * 1000).toISOString().replace('T', ' ').slice(0, 16))} UTC<br>
+          <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc((it.title || it.body || '').slice(0, 140) || it.url)}</a></div>
+          <button type="button" class="rm" data-rm="${esc(it.id)}">remove</button></div>
+        <input type="text" data-note="${esc(it.id)}" value="${esc(f.note)}" placeholder="Note: why is this a problem?" aria-label="Note for this item" />
+      </div>`;
+    }).join('') : '<p class="muted">Nothing flagged. Tap ⚑ Flag on a result to add it.</p>';
+  }
+  const panel = $('panel');
+  $('openPanel').addEventListener('click', () => { renderPanel(); $('expMsg').textContent = ''; panel.showModal(); });
+  $('closePanel').addEventListener('click', () => panel.close());
+  panel.addEventListener('click', e => { if (e.target === panel) panel.close(); });
+  try { $('summary').value = localStorage.getItem(FLAG_KEY + '-summary') || ''; } catch (e) { /* ignore */ }
+  $('summary').addEventListener('input', () => { try { localStorage.setItem(FLAG_KEY + '-summary', $('summary').value); } catch (e) { /* ignore */ } });
+  $('flagList').addEventListener('input', e => {
+    const id = e.target.dataset.note;
+    if (id && flags.has(id)) { flags.get(id).note = e.target.value; saveFlags(); }
+  });
+  $('flagList').addEventListener('click', e => {
+    const id = e.target.dataset.rm;
+    if (!id) return;
+    flags.delete(id); saveFlags(); renderPanel(); render(); updateTray();
+    if (!flags.size) panel.close();
+  });
+
+  function download(name, mime, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: mime }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+  document.querySelector('.exports').addEventListener('click', async e => {
+    const b = e.target.closest('.exp');
+    if (!b || !flags.size) return;
+    const R = window.MentionReport;
+    const list = [...flags.values()].sort((a, b) => a.item.created - b.item.created);
+    const recs = await R.buildRecords(list);
+    const meta = { generatedAt: new Date().toISOString(), summary: $('summary').value.trim(), toolUrl: location.origin + location.pathname };
+    const stamp = meta.generatedAt.slice(0, 16).replace(/[:T]/g, '-');
+    const msg = $('expMsg');
+    if (b.dataset.exp === 'csv') { download(`reddit-report-${stamp}.csv`, 'text/csv;charset=utf-8', R.toCSV(recs)); msg.textContent = 'CSV downloaded.'; }
+    if (b.dataset.exp === 'json') { download(`reddit-report-${stamp}.json`, 'application/json', R.toJSON(recs, meta)); msg.textContent = 'JSON downloaded.'; }
+    if (b.dataset.exp === 'pdf') {
+      const html = R.toPrintableHTML(recs, meta);
+      const w = window.open('', '_blank');
+      if (w) { w.document.open(); w.document.write(html); w.document.close(); msg.textContent = 'Report opened in a new tab. Use “Print / Save as PDF” there.'; }
+      else { download(`reddit-report-${stamp}.html`, 'text/html;charset=utf-8', html); msg.textContent = 'Pop-up blocked, so the report was downloaded instead. Open it and print to PDF.'; }
+    }
+    if (b.dataset.exp === 'text') {
+      const text = R.toText(recs, meta);
+      try { await navigator.clipboard.writeText(text); msg.textContent = 'Copied. Paste it into the report form.'; }
+      catch (err) { download(`reddit-report-${stamp}.txt`, 'text/plain;charset=utf-8', text); msg.textContent = 'Couldn’t copy, so it was downloaded as a text file.'; }
+    }
+  });
+  updateTray();
+
   els.results.addEventListener('click', e => {
+    const f = e.target.closest('.flag');
+    if (f) { toggleFlag(f.dataset.flag); return; }
     const b = e.target.closest('.who');
     if (b) loadAccount(b.dataset.author);
   });
