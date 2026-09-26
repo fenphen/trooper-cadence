@@ -130,6 +130,8 @@
     }
 
     // Website forms
+    // Reddit's own search operator for link posts pointing at the site
+    if (domain) add(`site:${domain}`, 'links to site');
     const baseTld = tld || 'com';
     add(`${core}.${baseTld}`, 'website');
     add(`www.${core}.${baseTld}`, 'website', false);
@@ -178,6 +180,7 @@
 
   /** Reddit search terms: quote anything with spaces or punctuation. */
   function toSearchTerm(v) {
+    if (/^site:[a-z0-9.-]+$/.test(v)) return v;
     return /^[a-z0-9]+$/.test(v) ? v : `"${v.replace(/"/g, '')}"`;
   }
 
@@ -374,7 +377,19 @@
     return grouped.join(' ').replace(/" (.*?) "/g, '"$1"').replace(/\s+/g, ' ').trim();
   }
 
-  const api = { parse, generate, parseQuery, containsTerm, speechToQuery, toSearchTerm, batchQueries, findMatches, levenshtein, TLDS };
+  /** Common angles people post about a name or site, as ready-made AND searches. */
+  const RELATED = ['review', 'scam', 'legit', '"customer service"', 'refund', 'complaint', '"promo code"', 'alternative', 'shipping', '"worth it"'];
+  function relatedSearches(main, exclude) {
+    const m = String(main || '').trim();
+    if (!m) return [];
+    const skip = new Set((exclude || []).map(x => x.replace(/"/g, '').toLowerCase()));
+    return RELATED.filter(r => !skip.has(r.replace(/"/g, ''))).map(r => `${m} AND ${r}`);
+  }
+
+  /** Terms usable as plain text (drops Reddit-only operators like site:). */
+  const textTerms = terms => terms.filter(t => !/^site:/.test(t));
+
+  const api = { parse, generate, parseQuery, containsTerm, speechToQuery, relatedSearches, textTerms, toSearchTerm, batchQueries, findMatches, levenshtein, TLDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MentionVariants = api;
 })(typeof window !== 'undefined' ? window : globalThis);
