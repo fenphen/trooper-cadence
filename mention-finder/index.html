@@ -109,6 +109,7 @@
   .notice a { color: var(--accent); }
   .notice.help { border-left-color: var(--accent); padding: 14px 16px; }
   .notice.help p { margin: 6px 0 10px; }
+  .notice .muted-line { color: var(--muted); font-size: .88rem; margin: 10px 0 0; }
   .fallbacks { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
   a.fb { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 14px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 650; text-decoration: none; }
   a.fb.small { background: var(--surface-2); color: var(--text); font-weight: 550; }
@@ -306,7 +307,7 @@
   </dialog>
 
   <footer>
-    Results come from Reddit's search. Comment results come from <a href="https://pullpush.io" target="_blank" rel="noopener">PullPush</a>, a Reddit archive that can lag behind by a few hours or more.
+    Live results open on Reddit's own site. Results shown on this page come from the <a href="https://arctic-shift.photon-reddit.com/" target="_blank" rel="noopener">Arctic Shift</a> and <a href="https://pullpush.io" target="_blank" rel="noopener">PullPush</a> archives, which can lag behind Reddit.
     Not affiliated with Reddit.
   </footer>
 </div>
@@ -442,7 +443,7 @@
     return {
       id: 't3_' + p.id, type: 'post', created: p.created_utc, sub: p.subreddit, author: p.author,
       title: p.title || '', body: p.selftext || '', score: p.score || 0, comments: p.num_comments || 0,
-      url: 'https://www.reddit.com' + p.permalink,
+      url: 'https://www.reddit.com' + (p.permalink || `/r/${p.subreddit}/comments/${p.id}/`),
       link: p.is_self ? '' : (p.url_overridden_by_dest || p.url || ''),
       nsfw: !!p.over_18,
     };
@@ -483,6 +484,42 @@
       }
     }
     return { items: out, errors, afters: nextAfters };
+  }
+
+  // Phase 1 (no API server yet): Arctic Shift, a public Reddit archive. It can find posts
+  // linking to a website anywhere on Reddit, and full-text search inside one subreddit.
+  // It lags behind live Reddit, so the page leads with "open on Reddit" buttons instead.
+  const ARCHIVE = 'https://arctic-shift.photon-reddit.com/api';
+  async function searchArchive(t, sub) {
+    const reqs = [];
+    for (const g of state.groups) {
+      const dom = g.parsed.domain;
+      if (dom) [`https://www.${dom}`, `https://${dom}`].forEach(url => reqs.push(['posts', Object.assign({ url }, sub ? { subreddit: sub } : {})]));
+      if (sub) {
+        V.textTerms(groupTerms(g)).filter(x => !/ dot /.test(x)).slice(0, 3).forEach(term => {
+          reqs.push(['posts', { subreddit: sub, query: term }]);
+          if (els.comments.checked) reqs.push(['comments', { subreddit: sub, body: term }]);
+        });
+      }
+    }
+    const since = TIME_SECONDS[t] ? Date.now() / 1000 - TIME_SECONDS[t] : 0;
+    const items = [];
+    let error = null, ok = 0;
+    for (const [kind, params] of reqs.slice(0, 10)) {
+      try {
+        const data = await fetchJSON(`${ARCHIVE}/${kind}/search?` + new URLSearchParams(Object.assign({ limit: '100', sort: 'desc' }, params)), 20000);
+        ok++;
+        ((data && data.data) || []).forEach(d => {
+          const it = kind === 'posts' ? normPost(d) : normComment(d);
+          it.source = 'archive';
+          if (it.created >= since) items.push(it);
+        });
+      } catch (e) {
+        error = e.message;
+        if (e.message === 'blocked' || e.message === 'rate-limited') break; // no point retrying the rest
+      }
+    }
+    return { items, error: ok ? null : error, tried: reqs.length > 0 };
   }
 
   // One Reddit query per batch of spellings:  (spelling OR spelling …) AND also NOT not
@@ -571,7 +608,7 @@
       : (x, y) => y.it.created - x.it.created);
 
     if (!list.length) {
-      if (state.lastErrors && state.lastErrors.length) { els.results.innerHTML = ''; return; } // the notice above explains it
+      if ((state.lastErrors && state.lastErrors.length) || !API) { els.results.innerHTML = ''; return; } // the panel above explains it
       els.results.innerHTML = state.busy ? '' : `<div class="empty">${total && strict
         ? `Reddit returned ${total} loose match${total === 1 ? '' : 'es'}, but none clearly mention it. Untick “only confirmed mentions” to see them.`
         : `<b>No mentions found.</b>
@@ -591,7 +628,7 @@
       return `<article class="card${isNew ? ' new' : ''}${flagged ? ' flagged' : ''}">
         <div class="meta">
           ${isNew ? '<span class="badge newb">new</span>' : ''}
-          <span class="badge">${it.type}</span>
+          <span class="badge">${it.type}</span>${it.source === 'archive' ? '<span class="badge" title="From the Arctic Shift archive, which can lag behind Reddit">archive</span>' : ''}
           <a class="sub" href="https://www.reddit.com/r/${esc(it.sub)}/" target="_blank" rel="noopener">r/${esc(it.sub)}</a>
           ${authorHtml(it.author)}
           <time datetime="${new Date(it.created * 1000).toISOString()}" title="${esc(new Date(it.created * 1000).toLocaleString())}">${timeAgo(it.created)}</time>
@@ -863,6 +900,22 @@
       ${ideas.map(q => `<button type="button" class="rel" data-q="${esc(q)}">${esc(q.replace(/^.* AND /, '+ '))}</button>`).join('')}</div>`;
   }
 
+  function showQuickMode(queries, commentError, loading) {
+    const a = state.archive || {};
+    const n = shownCount();
+    let archiveLine;
+    if (loading) archiveLine = 'Checking the archives for older matches…';
+    else if (n) archiveLine = `Below ${n === 1 ? 'is 1 match' : `are ${n} matches`} from Reddit archives (Arctic Shift${els.comments.checked && !commentError ? ', PullPush' : ''}). Archives can be days behind, so use the buttons for the newest.`;
+    else if (!a.tried && !cleanSub(els.sub.value) && !(state.groups[0] && state.groups[0].parsed.domain))
+      archiveLine = 'Tip: enter a website (like bestbuy.com) or pick a subreddit in “In r/” to also see archive matches here.';
+    else archiveLine = 'The archives had nothing matching, or aren’t reachable right now.';
+    els.notices.innerHTML = `<div class="notice help quick"><b>See the newest results on Reddit</b>
+      <p>Reddit currently shows live search results only on its own site, so these buttons run your exact search there, with every spelling, AND and NOT included. In-page live results are coming soon.</p>
+      ${fallbackHtml(queries)}
+      <p class="muted-line">${archiveLine}</p>
+      ${relatedHtml()}</div>`;
+  }
+
   function showNotices(redditErrors, commentError, queries, gotAny) {
     let html = '';
     if (redditErrors.length) {
@@ -923,11 +976,12 @@
 
     state.busy = true;
     els.go.disabled = true;
-    setStatus(`Searching Reddit for ${terms.length} spelling${terms.length === 1 ? '' : 's'}…`, true);
+    setStatus(API ? `Searching Reddit for ${terms.length} spelling${terms.length === 1 ? '' : 's'}…` : 'Checking Reddit archives…', true);
+    if (!API && !opts.refresh) showQuickMode(queries, null, true);
     if (!opts.refresh) render();
 
     const [posts, comments] = await Promise.all([
-      searchReddit(queries, t, sub),
+      API ? searchReddit(queries, t, sub) : searchArchive(t, sub).then(r => (state.archive = r, { items: r.items, errors: [], afters: [] })),
       els.comments.checked ? searchComments(t, sub).then(r => ({ items: r }), e => ({ items: [], error: e.message })) : Promise.resolve({ items: [] }),
     ]);
     if (myRun !== state.runId) return; // a newer search started meanwhile
@@ -942,7 +996,8 @@
     els.go.disabled = false;
 
     state.lastErrors = posts.errors;
-    showNotices(posts.errors, comments.error, queries);
+    if (API) showNotices(posts.errors, comments.error, queries);
+    else showQuickMode(queries, comments.error);
     render();
     updateStatus();
     els.moreWrap.hidden = !state.afters.some(Boolean);
@@ -961,6 +1016,8 @@
     updateStatus(state.items.size - before);
   }
 
+  const shownCount = () => [...state.items.values()].filter(it => { const a = analyze(it); return !a.blocked && (a.confirmed || !els.strict.checked); }).length;
+
   function updateStatus(added) {
     if (!state.lastUpdated || state.busy) return;
     if (state.lastErrors && state.lastErrors.length && !state.items.size) {
@@ -968,9 +1025,10 @@
       return;
     }
     const all = [...state.items.values()];
-    const shown = all.filter(it => { const a = analyze(it); return !a.blocked && (a.confirmed || !els.strict.checked); }).length;
+    const shown = shownCount();
     const fresh = state.seen.size ? all.filter(it => !state.seen.has(it.id)).length : 0;
     const mins = Math.floor((Date.now() - state.lastUpdated) / 60000);
+    if (!API) { setStatus(`${shown} archive match${shown === 1 ? '' : 'es'} · newest: use buttons below`); return; }
     setStatus(`${shown} mention${shown === 1 ? '' : 's'}` +
       (fresh ? ` · ${fresh} new` : '') +
       (added != null ? ` · ${added} more loaded` : '') +
@@ -1024,7 +1082,7 @@
     run();
   });
   els.form.addEventListener('submit', e => { e.preventDefault(); run(); });
-  els.strict.addEventListener('change', () => { render(); updateStatus(); });
+  els.strict.addEventListener('change', () => { render(); updateStatus(); if (!API && state.lastUpdated) showQuickMode(buildQueries(), null); });
   els.sort.addEventListener('change', render);
   [els.t, els.comments].forEach(el => el.addEventListener('change', () => state.query && run({ keepVariants: true })));
   els.sub.addEventListener('change', () => state.query && run({ keepVariants: true }));
