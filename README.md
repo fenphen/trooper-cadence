@@ -27,7 +27,7 @@ A second, separate tool in this repo: find **recent Reddit posts and comments th
 - Type `bestbuy.com` and it also searches `bestbuy`, `bestbuy dot com`, and common misspellings like `bsetbuy`. It also spots near-misses in results, like "Best Buy" and "bestbyu".
 - **🎤 Voice search:** tap the mic and say something like "best buy dot com and price match but not refund" or "chewy or petco". Spoken "and", "or", "but not", "without" and "quote … end quote" become search operators. You can also dictate the report summary and notes. Works in Chrome, Edge and Safari (including phones); the mic is hidden in browsers without speech support, such as Firefox.
 - Combine searches with **AND**, **OR** and **NOT**, or tap the buttons: `bestbuy.com AND "price match" NOT refund`, `chewy OR petco`, `amazon -prime`.
-- Sort by newest or most upvoted, limit to a subreddit, and switch on auto-refresh (every 3 min, with new results marked).
+- Searches **all of Reddit's history by default** ("any time"), or narrow it to the past hour, day, week, month or year. **Load older results** keeps paging back in time. Sort by newest, oldest first or most upvoted, limit to a subreddit, and switch on auto-refresh (every 3 min, with new results marked).
 - Tap a username to see the account's age and karma. Brand-new accounts are highlighted.
 - **⚑ Flag** anything inappropriate. Then **Review & export** to add notes and a summary, and export as a printable report / PDF, CSV, JSON, or text to paste into a report form. Each item includes its permalink, UTC times, capture time and a SHA-256 fingerprint. The panel links to Reddit's reporting, NCMEC CyberTipline, FBI tips, IC3 and FTC.
 - **Copy share link** saves the whole search, including extra spellings you added, in the URL.
