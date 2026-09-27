@@ -6,7 +6,7 @@
 <title>Mention Finder</title>
 <meta name="description" content="Find recent Reddit posts and comments that mention a name or website — including misspellings, missing .com, and abbreviations." />
 <meta property="og:title" content="Mention Finder — who's talking about it on Reddit?" />
-<meta property="og:description" content="Type a name or website. See the latest Reddit posts that mention it, however people spelled it." />
+<meta property="og:description" content="Type a name or website. See Reddit posts that mention it, recent and historical, however people spelled it." />
 <style>
   :root {
     --bg: #f6f5f1; --surface: #ffffff; --surface-2: #efede7; --border: #dedad0;
@@ -200,7 +200,7 @@
 <div class="wrap">
   <header>
     <h1>Mention <span>Finder</span></h1>
-    <p>Type a name, place or website. You'll see the latest Reddit posts and comments that mention it, including misspellings, forms without “.com”, and abbreviations.</p>
+    <p>Type a name, place or website. You'll see Reddit posts and comments that mention it, from today back through Reddit's history, including misspellings, forms without “.com”, and abbreviations.</p>
   </header>
 
   <form class="search" id="form" autocomplete="off">
@@ -237,10 +237,10 @@
         <select id="t">
           <option value="hour">past hour</option>
           <option value="day">past 24 hours</option>
-          <option value="week" selected>past week</option>
+          <option value="week">past week</option>
           <option value="month">past month</option>
           <option value="year">past year</option>
-          <option value="all">any time</option>
+          <option value="all" selected>any time (all history)</option>
         </select>
       </label>
       <label>In r/ <input class="field sub" id="sub" placeholder="all of Reddit" /></label>
@@ -259,7 +259,7 @@
     <div class="left"><span class="dot" id="dot"></span><span id="statusText"></span></div>
     <div class="toolbar">
       <label style="display:inline-flex;gap:6px;align-items:center">Sort
-        <select id="sort"><option value="new">newest</option><option value="top">most upvoted</option></select>
+        <select id="sort"><option value="new">newest</option><option value="old">oldest first</option><option value="top">most upvoted</option></select>
       </label>
       <label style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="auto" /> auto-refresh</label>
       <button class="btn ghost" id="share" type="button">Copy share link</button>
@@ -267,7 +267,7 @@
   </div>
   <div id="notices"></div>
   <div class="results" id="results"></div>
-  <div class="more-wrap" id="moreWrap" hidden><button class="btn ghost" id="more" type="button">Load older posts</button></div>
+  <div class="more-wrap" id="moreWrap" hidden><button class="btn ghost" id="more" type="button">Load older results</button></div>
 
   <div class="tray" id="tray" hidden><span id="trayText"></span><button class="btn" id="openPanel" type="button">Review &amp; export</button></div>
 
@@ -490,36 +490,51 @@
   // linking to a website anywhere on Reddit, and full-text search inside one subreddit.
   // It lags behind live Reddit, so the page leads with "open on Reddit" buttons instead.
   const ARCHIVE = 'https://arctic-shift.photon-reddit.com/api';
-  async function searchArchive(t, sub) {
+  // Each archive request pages backwards in time: "Load older" asks for results before the
+  // oldest one already fetched, so repeated taps walk back through Reddit's whole history.
+  function archiveRequests(sub) {
     const reqs = [];
     for (const g of state.groups) {
       const dom = g.parsed.domain;
-      if (dom) [`https://www.${dom}`, `https://${dom}`].forEach(url => reqs.push(['posts', Object.assign({ url }, sub ? { subreddit: sub } : {})]));
+      if (dom) [`https://www.${dom}`, `https://${dom}`].forEach(url => reqs.push({ kind: 'posts', params: Object.assign({ url }, sub ? { subreddit: sub } : {}) }));
       if (sub) {
         V.textTerms(groupTerms(g)).filter(x => !/ dot /.test(x)).slice(0, 3).forEach(term => {
-          reqs.push(['posts', { subreddit: sub, query: term }]);
-          if (els.comments.checked) reqs.push(['comments', { subreddit: sub, body: term }]);
+          reqs.push({ kind: 'posts', params: { subreddit: sub, query: term } });
+          if (els.comments.checked) reqs.push({ kind: 'comments', params: { subreddit: sub, body: term } });
         });
       }
     }
+    return reqs.slice(0, 10).map(r => Object.assign(r, { before: null, done: false }));
+  }
+
+  async function searchArchive(t, sub, cursors) {
+    const reqs = cursors || archiveRequests(sub);
     const since = TIME_SECONDS[t] ? Date.now() / 1000 - TIME_SECONDS[t] : 0;
     const items = [];
     let error = null, ok = 0;
-    for (const [kind, params] of reqs.slice(0, 10)) {
+    for (const r of reqs) {
+      if (r.done) continue;
       try {
-        const data = await fetchJSON(`${ARCHIVE}/${kind}/search?` + new URLSearchParams(Object.assign({ limit: '100', sort: 'desc' }, params)), 20000);
+        const params = Object.assign({ limit: '100', sort: 'desc' }, r.params, r.before ? { before: String(Math.floor(r.before)) } : {});
+        const data = await fetchJSON(`${ARCHIVE}/${r.kind}/search?` + new URLSearchParams(params), 20000);
         ok++;
-        ((data && data.data) || []).forEach(d => {
-          const it = kind === 'posts' ? normPost(d) : normComment(d);
+        const rows = (data && data.data) || [];
+        rows.forEach(d => {
+          const it = r.kind === 'posts' ? normPost(d) : normComment(d);
           it.source = 'archive';
           if (it.created >= since) items.push(it);
         });
+        const oldest = Math.min(...rows.map(d => d.created_utc).filter(Boolean));
+        // Done when a page comes back short, or we've gone past the chosen time range.
+        r.done = rows.length < 100 || !isFinite(oldest) || oldest < since || (r.before && oldest >= r.before);
+        r.before = oldest;
       } catch (e) {
         error = e.message;
-        if (e.message === 'blocked' || e.message === 'rate-limited') break; // no point retrying the rest
+        r.done = true;
+        if (e.message === 'blocked' || e.message === 'rate-limited') { reqs.forEach(x => (x.done = true)); break; } // no point retrying the rest
       }
     }
-    return { items, error: ok ? null : error, tried: reqs.length > 0 };
+    return { items, error: ok ? null : error, tried: reqs.length > 0, cursors: reqs };
   }
 
   // One Reddit query per batch of spellings:  (spelling OR spelling …) AND also NOT not
@@ -603,9 +618,8 @@
     let list = [...state.items.values()].map(it => ({ it, a: analyze(it) })).filter(x => !x.a.blocked);
     const total = list.length;
     if (strict) list = list.filter(x => x.a.confirmed);
-    list.sort(els.sort.value === 'top'
-      ? (x, y) => y.it.score - x.it.score
-      : (x, y) => y.it.created - x.it.created);
+    const order = { top: (x, y) => y.it.score - x.it.score, old: (x, y) => x.it.created - y.it.created };
+    list.sort(order[els.sort.value] || ((x, y) => y.it.created - x.it.created));
 
     if (!list.length) {
       if ((state.lastErrors && state.lastErrors.length) || !API) { els.results.innerHTML = ''; return; } // the panel above explains it
@@ -613,7 +627,7 @@
         ? `Reddit returned ${total} loose match${total === 1 ? '' : 'es'}, but none clearly mention it. Untick “only confirmed mentions” to see them.`
         : `<b>No mentions found.</b>
           <ul class="tips">
-            <li>Try a longer time range. “Past week” misses anything older.</li>
+            <li>If you picked a shorter time range, try “any time”.</li>
             <li>Reddit search only matches whole words, so add other spellings or nicknames with <b>+ add</b>.</li>
             <li>AND / NOT words narrow things down a lot. Try without them.</li>
             <li>Reddit's own search sometimes finds things this page can't: ${fallbackHtml(buildQueries())}</li>
@@ -905,12 +919,12 @@
     const n = shownCount();
     let archiveLine;
     if (loading) archiveLine = 'Checking the archives for older matches…';
-    else if (n) archiveLine = `Below ${n === 1 ? 'is 1 match' : `are ${n} matches`} from Reddit archives (Arctic Shift${els.comments.checked && !commentError ? ', PullPush' : ''}). Archives can be days behind, so use the buttons for the newest.`;
+    else if (n) archiveLine = `Below ${n === 1 ? 'is 1 match' : `are ${n} matches`} from Reddit archives (Arctic Shift${els.comments.checked && !commentError ? ', PullPush' : ''}). Archives can be days behind, so use the buttons for the newest.${hasMore() ? ' Tap “Load older results” at the bottom to keep going back in time.' : ''}`;
     else if (!a.tried && !cleanSub(els.sub.value) && !(state.groups[0] && state.groups[0].parsed.domain))
       archiveLine = 'Tip: enter a website (like bestbuy.com) or pick a subreddit in “In r/” to also see archive matches here.';
     else archiveLine = 'The archives had nothing matching, or aren’t reachable right now.';
-    els.notices.innerHTML = `<div class="notice help quick"><b>See the newest results on Reddit</b>
-      <p>Reddit currently shows live search results only on its own site, so these buttons run your exact search there, with every spelling, AND and NOT included. In-page live results are coming soon.</p>
+    els.notices.innerHTML = `<div class="notice help quick"><b>See every result on Reddit</b>
+      <p>Reddit currently shows live search results only on its own site, so these buttons run your exact search there, with every spelling, AND and NOT included, over the time range you chose. On Reddit you can switch the sort to “Top” or “Relevance” to dig further back. In-page live results are coming soon.</p>
       ${fallbackHtml(queries)}
       <p class="muted-line">${archiveLine}</p>
       ${relatedHtml()}</div>`;
@@ -997,21 +1011,30 @@
 
     state.lastErrors = posts.errors;
     if (API) showNotices(posts.errors, comments.error, queries);
-    else showQuickMode(queries, comments.error);
+    else { state.commentError = comments.error; showQuickMode(queries, comments.error); }
     render();
     updateStatus();
-    els.moreWrap.hidden = !state.afters.some(Boolean);
+    els.moreWrap.hidden = !hasMore();
   }
+  const hasMore = () => API ? state.afters.some(Boolean) : !!(state.archive && state.archive.cursors && state.archive.cursors.some(c => !c.done));
 
   async function loadMore() {
     const queries = buildQueries();
     els.more.disabled = true;
     const before = state.items.size;
-    const res = await searchReddit(queries, els.t.value, cleanSub(els.sub.value), state.afters);
-    res.items.forEach(it => state.items.set(it.id, it));
-    state.afters = res.afters;
+    els.more.textContent = 'Loading…';
+    if (API) {
+      const res = await searchReddit(queries, els.t.value, cleanSub(els.sub.value), state.afters);
+      res.items.forEach(it => state.items.set(it.id, it));
+      state.afters = res.afters;
+    } else {
+      const res = await searchArchive(els.t.value, cleanSub(els.sub.value), state.archive.cursors);
+      res.items.forEach(it => state.items.set(it.id, it));
+    }
     els.more.disabled = false;
-    els.moreWrap.hidden = !state.afters.some(Boolean);
+    els.more.textContent = 'Load older results';
+    els.moreWrap.hidden = !hasMore();
+    if (!API) showQuickMode(queries, state.commentError);
     render();
     updateStatus(state.items.size - before);
   }
@@ -1028,7 +1051,7 @@
     const shown = shownCount();
     const fresh = state.seen.size ? all.filter(it => !state.seen.has(it.id)).length : 0;
     const mins = Math.floor((Date.now() - state.lastUpdated) / 60000);
-    if (!API) { setStatus(`${shown} archive match${shown === 1 ? '' : 'es'} · newest: use buttons below`); return; }
+    if (!API) { setStatus(`${shown} archive match${shown === 1 ? '' : 'es'} · live: buttons below`); return; }
     setStatus(`${shown} mention${shown === 1 ? '' : 's'}` +
       (fresh ? ` · ${fresh} new` : '') +
       (added != null ? ` · ${added} more loaded` : '') +
@@ -1040,7 +1063,7 @@
   function updateUrl() {
     const p = new URLSearchParams();
     p.set('q', els.q.value.trim());
-    if (els.t.value !== 'week') p.set('t', els.t.value);
+    if (els.t.value !== 'all') p.set('t', els.t.value);
     const sub = cleanSub(els.sub.value);
     if (sub) p.set('sub', sub);
     if (!els.comments.checked) p.set('comments', '0');
@@ -1082,7 +1105,7 @@
     run();
   });
   els.form.addEventListener('submit', e => { e.preventDefault(); run(); });
-  els.strict.addEventListener('change', () => { render(); updateStatus(); if (!API && state.lastUpdated) showQuickMode(buildQueries(), null); });
+  els.strict.addEventListener('change', () => { render(); updateStatus(); if (!API && state.lastUpdated) showQuickMode(buildQueries(), state.commentError); });
   els.sort.addEventListener('change', render);
   [els.t, els.comments].forEach(el => el.addEventListener('change', () => state.query && run({ keepVariants: true })));
   els.sub.addEventListener('change', () => state.query && run({ keepVariants: true }));
