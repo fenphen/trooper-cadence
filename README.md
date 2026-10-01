@@ -38,3 +38,14 @@ A second, separate tool in this repo: find **recent Reddit posts and comments th
 
 **Phase 2:** live results inside the page, through the small server in [`server/`](server/README.md), which uses Reddit's official API. Setting it up takes a Reddit-approved API app and a free Cloudflare account; follow [`server/README.md`](server/README.md), then put the server's address in `mention-finder/config.js`.
 Files: `mention-finder/index.html` (page), `mention-finder/variants.js` (spelling and query engine), `mention-finder/report.js` (exports).
+
+---
+
+# 🚛 Mini Load Board (SDET practice project)
+
+A third, separate project in this repo: a tiny freight-brokerage load board
+(ASP.NET Core 8 + EF Core/SQLite + plain HTML/JS) with three test suites -
+Playwright (TypeScript), RestSharp + NUnit and Selenium + NUnit - plus SQL
+practice queries, Docker files, a CI workflow and three planted bugs to find.
+
+**▶ Start here:** [`mini-load-board/README.md`](mini-load-board/README.md)

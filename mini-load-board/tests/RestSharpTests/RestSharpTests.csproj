@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>RestSharpTests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- RestSharp: a friendly HTTP client for calling REST APIs. -->
+    <PackageReference Include="RestSharp" Version="112.1.0" />
+    <!-- NUnit: the test framework. The adapter lets `dotnet test` discover NUnit tests. -->
+    <PackageReference Include="NUnit" Version="4.2.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Makes NUnit's `Assert`, `TestFixture` etc. available in every file. -->
+    <Using Include="NUnit.Framework" />
+  </ItemGroup>
+
+</Project>

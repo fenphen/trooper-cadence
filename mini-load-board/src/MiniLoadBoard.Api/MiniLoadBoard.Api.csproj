@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MiniLoadBoard.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EF Core + the SQLite provider: our ORM and database. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
+    <!-- Swashbuckle generates the OpenAPI document and serves the Swagger UI at /swagger. -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+  </ItemGroup>
+
+</Project>

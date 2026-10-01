@@ -1,0 +1,23 @@
+# Run the app in a container:   docker compose up --build
+# Then open http://localhost:5000 (the tests work against it unchanged).
+#
+# The database is a SQLite file inside the container. It is recreated and
+# re-seeded on every start (see Program.cs), which is what you want for tests.
+# To keep data between restarts, uncomment the volume lines below and set
+# ResetDatabaseOnStartup to false.
+services:
+  loadboard:
+    build: .
+    image: mini-load-board
+    container_name: mini-load-board
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # ConnectionStrings__LoadBoard: "Data Source=/data/loadboard.db"
+      # ResetDatabaseOnStartup: "false"
+    # volumes:
+    #   - loadboard-data:/data
+
+# volumes:
+#   loadboard-data:

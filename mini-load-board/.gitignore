@@ -1,0 +1,28 @@
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+
+# SQLite database created at runtime (re-seeded on every start)
+*.db
+*.db-shm
+*.db-wal
+
+# Node / Playwright
+node_modules/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# Selenium failure screenshots
+screenshots/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+*.swp

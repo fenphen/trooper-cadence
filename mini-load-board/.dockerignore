@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/playwright-report/
+**/test-results/
+**/TestResults/
+**/*.db
+**/*.db-*
+tests/
+sql/
+.git/

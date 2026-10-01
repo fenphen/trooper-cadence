@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Load Board - Mini Load Board</title>
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <header>
+    <h1>🚛 Mini Load Board</h1>
+    <nav aria-label="Main">
+      <a href="/" aria-current="page">Load Board</a>
+      <a href="/post-load.html" data-testid="nav-post-load">Post a Load</a>
+      <a href="/swagger" target="_blank" rel="noopener">API Docs</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Available Freight</h2>
+
+      <!-- Filters: changing either one re-queries the API. -->
+      <div class="toolbar">
+        <label>
+          Status
+          <select id="status-filter" data-testid="status-filter">
+            <option value="">All statuses</option>
+            <option value="Available">Available</option>
+            <option value="Booked">Booked</option>
+            <option value="InTransit">In Transit</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+        </label>
+        <label>
+          Search by origin
+          <input id="origin-search" data-testid="origin-search" type="search" placeholder="e.g. Dallas">
+        </label>
+        <span class="muted" id="result-count" data-testid="result-count" aria-live="polite"></span>
+      </div>
+
+      <table data-testid="load-table" aria-describedby="result-count">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Origin</th>
+            <th scope="col">Destination</th>
+            <th scope="col">Pickup</th>
+            <th scope="col">Weight</th>
+            <th scope="col">Rate</th>
+            <th scope="col">Status</th>
+            <th scope="col">Carrier</th>
+          </tr>
+        </thead>
+        <tbody id="load-rows"></tbody>
+      </table>
+      <p id="empty-message" data-testid="empty-message" class="muted hidden">No loads match your filters.</p>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/board.js"></script>
+</body>
+</html>

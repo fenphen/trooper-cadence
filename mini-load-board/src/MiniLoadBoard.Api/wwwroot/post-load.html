@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Post a Load - Mini Load Board</title>
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <header>
+    <h1>🚛 Mini Load Board</h1>
+    <nav aria-label="Main">
+      <a href="/">Load Board</a>
+      <a href="/post-load.html" aria-current="page">Post a Load</a>
+      <a href="/swagger" target="_blank" rel="noopener">API Docs</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Post a Load</h2>
+      <p class="muted">All fields are required. Weight must be 1–48,000 lbs and the pickup date cannot be in the past.</p>
+
+      <!-- novalidate: we do our own validation so the messages are consistent
+           and testable, instead of relying on each browser's built-in popups. -->
+      <form id="post-load-form" data-testid="post-load-form" novalidate>
+        <div class="form-grid">
+          <label>
+            Origin
+            <input name="origin" data-testid="origin-input" placeholder="Dallas, TX">
+            <span class="field-error" data-testid="origin-error"></span>
+          </label>
+          <label>
+            Destination
+            <input name="destination" data-testid="destination-input" placeholder="Atlanta, GA">
+            <span class="field-error" data-testid="destination-error"></span>
+          </label>
+          <label>
+            Pickup date
+            <input name="pickupDate" data-testid="pickup-date-input" type="date">
+            <span class="field-error" data-testid="pickup-date-error"></span>
+          </label>
+          <label>
+            Weight (lbs)
+            <input name="weight" data-testid="weight-input" type="number" placeholder="42000">
+            <span class="field-error" data-testid="weight-error"></span>
+          </label>
+          <label>
+            Rate (USD)
+            <input name="rate" data-testid="rate-input" type="number" step="0.01" placeholder="2450">
+            <span class="field-error" data-testid="rate-error"></span>
+          </label>
+        </div>
+
+        <!-- Server-side errors (HTTP 400 from the API) show up here. -->
+        <div id="server-errors" data-testid="server-errors" class="alert alert-error hidden" role="alert"></div>
+        <div id="success-message" data-testid="success-message" class="alert alert-success hidden" role="status"></div>
+
+        <p>
+          <button type="submit" data-testid="submit-load">Post Load</button>
+        </p>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/post-load.js"></script>
+</body>
+</html>

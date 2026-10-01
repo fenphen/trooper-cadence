@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Load Detail - Mini Load Board</title>
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <header>
+    <h1>🚛 Mini Load Board</h1>
+    <nav aria-label="Main">
+      <a href="/">Load Board</a>
+      <a href="/post-load.html">Post a Load</a>
+      <a href="/swagger" target="_blank" rel="noopener">API Docs</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2 id="load-title" data-testid="load-title">Load</h2>
+      <p id="not-found" data-testid="not-found" class="alert alert-error hidden" role="alert">Load not found.</p>
+
+      <dl class="detail" id="load-detail">
+        <dt>Route</dt>        <dd data-testid="detail-route"></dd>
+        <dt>Pickup date</dt>  <dd data-testid="detail-pickup"></dd>
+        <dt>Weight</dt>       <dd data-testid="detail-weight"></dd>
+        <dt>Rate</dt>         <dd data-testid="detail-rate"></dd>
+        <dt>Status</dt>       <dd><span class="status" data-testid="detail-status"></span></dd>
+        <dt>Carrier</dt>      <dd data-testid="detail-carrier"></dd>
+      </dl>
+    </section>
+
+    <section class="card" id="actions-card">
+      <h3>Actions</h3>
+
+      <!-- Only shown while the load is Available -->
+      <div class="actions" id="assign-section" data-testid="assign-section">
+        <label>
+          Assign carrier
+          <select id="carrier-select" data-testid="carrier-select"></select>
+        </label>
+        <button id="assign-button" data-testid="assign-button">Assign Carrier</button>
+        <button id="delete-button" data-testid="delete-button" class="danger">Delete Load</button>
+      </div>
+
+      <!-- Status buttons: the JS enables only the button for the next valid step -->
+      <div class="actions" id="status-section">
+        <button id="in-transit-button" data-testid="mark-in-transit" class="secondary">Mark In Transit</button>
+        <button id="delivered-button" data-testid="mark-delivered" class="secondary">Mark Delivered</button>
+      </div>
+
+      <div id="action-message" data-testid="action-message" class="alert hidden" role="status"></div>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/load-detail.js"></script>
+</body>
+</html>
