@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal Watch</title>
+<meta name="description" content="A learning dashboard for four stocks: live price, a green/red technical signal, and a hover readout of what a technical trader sees in the chart. Nothing is bought or sold.">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f4f4f1; --surface:#fcfcfb; --surface-2:#ededea; --border:#dedcd6;
+  --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#8a8880;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s7:#4a3aa7;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --good-bg:#e3f6e3; --warn-bg:#fdf1d2; --crit-bg:#fae1e1;
+  --grid:#e6e5e0; --shadow:0 1px 2px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.06);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#121211; --surface:#1a1a19; --surface-2:#242422; --border:#333331;
+    --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#8f8e86;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s7:#9085e9;
+    --good-bg:#153a15; --warn-bg:#3d2f0e; --crit-bg:#3d1717;
+    --grid:#2a2a28; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#121211; --surface:#1a1a19; --surface-2:#242422; --border:#333331;
+  --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#8f8e86;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s7:#9085e9;
+  --good-bg:#153a15; --warn-bg:#3d2f0e; --crit-bg:#3d1717;
+  --grid:#2a2a28; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:0 16px 48px}
+a{color:var(--s1)}
+.wrap{max-width:1180px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:20px 0 12px}
+header h1{font-size:22px;margin:0;letter-spacing:-.01em}
+header .sub{color:var(--ink-2);font-size:13px;flex-basis:100%}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-size:12px;color:var(--ink-2);background:var(--surface)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+.pill.live .dot{background:var(--good)}
+.pill.sample .dot{background:var(--warn)}
+.pill.cached .dot{background:var(--s1)}
+button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{background:var(--surface-2)}
+button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.disclaimer{background:var(--warn-bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--ink);margin:4px 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.expanded{grid-column:1/-1}
+.card .top{display:flex;align-items:flex-start;gap:10px}
+.card .name{font-weight:600;font-size:15px}
+.card .sym{color:var(--ink-3);font-size:12px;font-family:var(--mono)}
+.sig{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-weight:700;font-size:13px;letter-spacing:.02em;white-space:nowrap}
+.sig.buy{background:var(--good-bg);color:var(--good)}
+.sig.sell{background:var(--crit-bg);color:var(--crit)}
+.sig.hold{background:var(--warn-bg);color:#8a5a00}
+:root[data-theme="dark"] .sig.hold{color:var(--warn)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .sig.hold{color:var(--warn)} }
+.sig.none{background:var(--surface-2);color:var(--ink-2)}
+.price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.price{font-size:34px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;cursor:help;border-bottom:2px dotted var(--ink-3);line-height:1.1;outline:none}
+.price:focus-visible{box-shadow:0 0 0 3px var(--s1)}
+.chg{font-variant-numeric:tabular-nums;font-weight:600;font-size:14px}
+.chg.up{color:var(--good)} .chg.down{color:var(--crit)} .chg.flat{color:var(--ink-2)}
+.hint{font-size:12px;color:var(--ink-3)}
+.votes{display:flex;gap:4px;align-items:center}
+.votes .v{height:8px;flex:1;border-radius:4px;background:var(--surface-2);border:1px solid var(--border)}
+.votes .v.up{background:var(--good);border-color:var(--good)}
+.votes .v.down{background:var(--crit);border-color:var(--crit)}
+.votes .lbl{font-size:12px;color:var(--ink-2);min-width:80px;text-align:right;font-variant-numeric:tabular-nums}
+.spark{width:100%;height:56px;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;border-radius:6px;padding:3px 8px;background:var(--surface-2);color:var(--ink-2);display:inline-flex;gap:5px;align-items:center}
+.chip b{color:var(--ink);font-weight:600}
+.chip.up{background:var(--good-bg)} .chip.down{background:var(--crit-bg)}
+.card .foot{display:flex;gap:8px;align-items:center;margin-top:auto;flex-wrap:wrap}
+.card .foot .meta{font-size:12px;color:var(--ink-3);margin-left:auto}
+.empty{color:var(--ink-2);font-size:14px}
+.empty input{font:inherit;font-family:var(--mono);padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);width:110px}
+
+/* trader tooltip */
+.tip{position:absolute;z-index:30;left:0;top:0;width:min(440px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;font-size:13px;display:none;max-height:min(70vh,520px);overflow:auto}
+.tip.show{display:block}
+.tip h4{margin:0 0 6px;font-size:13px;color:var(--ink-2);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.tip .row{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:7px 0;border-top:1px solid var(--grid)}
+.tip .row:first-of-type{border-top:0}
+.tip .ic{font-weight:800;text-align:center;line-height:1.3}
+.tip .ic.up{color:var(--good)} .tip .ic.down{color:var(--crit)} .tip .ic.flat{color:var(--ink-3)}
+.tip .t{font-weight:600}
+.tip .t span{font-weight:400;color:var(--ink-2);font-family:var(--mono);font-size:12px;margin-left:6px}
+.tip .d{color:var(--ink-2);margin-top:2px}
+.tip .sum{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--ink)}
+
+/* chart */
+.chart-wrap{position:relative;margin-top:4px}
+canvas.chart{width:100%;height:420px;display:block;border-radius:8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin:6px 0 2px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+.ctip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:var(--shadow);display:none;min-width:170px;z-index:5}
+.ctip b{font-variant-numeric:tabular-nums}
+.ctip .r{display:flex;justify-content:space-between;gap:12px}
+.ctip .r i{display:inline-block;width:12px;border-top:2px solid;vertical-align:middle;margin-right:5px}
+details.table{margin-top:8px;font-size:12px}
+details.table table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+details.table th,details.table td{text-align:right;padding:3px 6px;border-bottom:1px solid var(--grid)}
+details.table th:first-child,details.table td:first-child{text-align:left}
+
+/* explainers */
+section.learn{margin-top:28px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+section.learn .box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+section.learn h3{margin:0 0 8px;font-size:15px}
+section.learn p,section.learn li{color:var(--ink-2);font-size:13px;margin:4px 0}
+section.learn ul{padding-left:18px;margin:4px 0}
+section.learn b{color:var(--ink)}
+
+/* settings */
+dialog{border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--ink);padding:18px;max-width:520px;width:calc(100vw - 32px);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog h3{margin:0 0 8px}
+dialog label{display:block;font-size:13px;margin:12px 0 4px;color:var(--ink-2)}
+dialog input{width:100%;font:inherit;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--ink)}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+dialog p{font-size:13px;color:var(--ink-2);margin:4px 0}
+.status{font-size:12px;color:var(--ink-3);margin:8px 0 0;min-height:1.2em}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>📈 Signal Watch</h1>
+  <span id="srcPill" class="pill"><span class="dot"></span><span id="srcText">Loading…</span></span>
+  <span class="spacer"></span>
+  <button id="themeBtn" title="Toggle light/dark">◐</button>
+  <button id="settingsBtn">Data settings</button>
+  <button id="refreshBtn" class="primary">Refresh</button>
+  <div class="sub">Four stocks, one question: what would a technical trader be thinking right now? <b>Green</b> = the indicators lean buy, <b>red</b> = they lean sell, amber = mixed. Hover or tap a price for the full readout.</div>
+</header>
+
+<div class="disclaimer">🎓 <b>Learning tool, not advice.</b> Nothing here buys, sells, or predicts. Technical indicators describe what a price <i>has</i> done; traders use them as a shared language, not a crystal ball. Signals are computed from daily closes with textbook settings (see “How the signal works” below).</div>
+
+<div id="grid" class="grid"></div>
+<p id="status" class="status"></p>
+
+<section class="learn">
+  <div class="box">
+    <h3>How the signal works</h3>
+    <p>Five classic indicators each cast a vote: <b>+1</b> bullish, <b>−1</b> bearish, <b>0</b> neutral. The votes add up to a score from −5 to +5.</p>
+    <ul>
+      <li><b>Score ≥ +2 → BUY</b> (green). Most of the evidence points up.</li>
+      <li><b>Score ≤ −2 → SELL</b> (red). Most of the evidence points down.</li>
+      <li><b>Otherwise → HOLD / WAIT</b> (amber). The indicators disagree, so a trader waits for a clearer picture.</li>
+    </ul>
+    <p>The five voters: trend (price vs. 50‑ and 200‑day averages), MACD, RSI, Bollinger Bands, and a recent golden/death cross. The bar under each price shows the votes.</p>
+  </div>
+  <div class="box">
+    <h3>Glossary</h3>
+    <ul>
+      <li><b>SMA 20 / 50 / 200</b> — simple moving averages: the average close over the last N trading days. Short averages track the price; long averages show the big trend.</li>
+      <li><b>Golden cross / death cross</b> — the 50‑day average crossing above (golden) or below (death) the 200‑day average. Slow, but widely watched.</li>
+      <li><b>RSI (14)</b> — Relative Strength Index, 0–100. Above 70 is “overbought” (rally may be stretched), below 30 “oversold” (sell‑off may be stretched).</li>
+      <li><b>MACD (12, 26, 9)</b> — the gap between a fast and a slow average, plus a signal line. MACD above its signal = momentum rising.</li>
+      <li><b>Bollinger Bands (20, 2σ)</b> — a channel two standard deviations around the 20‑day average. Price outside the bands is unusual.</li>
+      <li><b>52‑week range</b> — where today sits between the year's high and low.</li>
+    </ul>
+  </div>
+  <div class="box">
+    <h3>Where the prices come from</h3>
+    <p>The page is a plain web page with no server, so it asks free public feeds directly from your browser: Yahoo Finance's chart data first (through a public relay, since Yahoo doesn't allow pages to call it directly), then Stooq. If both are down it shows the last data it saved on this device, and failing that a clearly labelled <b>sample</b> series so you can still explore the indicators.</p>
+    <p>For a more dependable feed, add a free <a href="https://twelvedata.com/" target="_blank" rel="noopener">Twelve Data</a> API key under <b>Data settings</b>; it stays in this browser only.</p>
+    <p><b>SpaceX</b> is privately held, so there is no public ticker. The page checks for one each time it loads and shows it the moment one appears; you can also type a ticker in by hand.</p>
+  </div>
+</section>
+</div>
+
+<dialog id="settings">
+  <h3>Data settings</h3>
+  <p>Everything here is saved only in this browser.</p>
+  <label for="tdKey">Twelve Data API key (optional)</label>
+  <input id="tdKey" placeholder="paste key — free tier is plenty for four stocks" autocomplete="off">
+  <label for="proxyUrl">Custom relay URL (optional, advanced)</label>
+  <input id="proxyUrl" placeholder="https://your-relay.example/?url=" autocomplete="off">
+  <p>A relay forwards the request to Yahoo/Stooq and adds the CORS header. The page already tries a few public ones.</p>
+  <label><input type="checkbox" id="forceSample" style="width:auto;margin-right:6px">Use sample data (offline demo)</label>
+  <div class="row"><button id="clearCache">Clear saved data</button><button id="settingsClose" class="primary">Save &amp; reload</button></div>
+</dialog>
+
+<script>
+'use strict';
+/* ---------------------------------------------------------------- config */
+const WATCH = [
+  { key:'nvda', name:'NVIDIA',  symbol:'NVDA', stooq:'nvda.us' },
+  { key:'tsla', name:'Tesla',   symbol:'TSLA', stooq:'tsla.us' },
+  { key:'aapl', name:'Apple',   symbol:'AAPL', stooq:'aapl.us' },
+  { key:'spacex', name:'SpaceX', symbol:null, lookup:'SpaceX', note:'Privately held' },
+];
+const LS = {
+  get(k, d){ try{ const v=localStorage.getItem('sw:'+k); return v==null?d:JSON.parse(v);}catch{return d;} },
+  set(k, v){ try{ localStorage.setItem('sw:'+k, JSON.stringify(v)); }catch{} },
+  del(k){ try{ localStorage.removeItem('sw:'+k);}catch{} }
+};
+const RELAYS = [
+  u => u,                                                           // direct (works if the feed sends CORS headers)
+  u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
+  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+  u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
+];
+const REFRESH_MS = 2*60*1000;
+
+/* ---------------------------------------------------------------- fetch helpers */
+function withTimeout(ms){ const c=new AbortController(); setTimeout(()=>c.abort(), ms); return c.signal; }
+async function viaRelays(url, parse){
+  const custom = LS.get('proxy','');
+  const relays = custom ? [u=>custom+encodeURIComponent(u), ...RELAYS] : RELAYS;
+  let lastErr;
+  for (const r of relays){
+    try{
+      const res = await fetch(r(url), { signal: withTimeout(9000), cache:'no-store' });
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      const txt = await res.text();
+      const out = parse(txt);
+      if (out) return out;
+      throw new Error('unparseable');
+    }catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error('all relays failed');
+}
+
+/* returns {bars:[{t,o,h,l,c,v}], live:{price,prevClose,currency,exchange,name,time}, source} */
+async function fetchYahoo(symbol){
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1y&interval=1d&includePrePost=false`;
+  return viaRelays(url, txt => {
+    const j = JSON.parse(txt); const r = j?.chart?.result?.[0]; if(!r) return null;
+    const q = r.indicators.quote[0]; const bars=[];
+    r.timestamp.forEach((t,i)=>{ if(q.close[i]!=null) bars.push({t:t*1000,o:q.open[i],h:q.high[i],l:q.low[i],c:q.close[i],v:q.volume[i]||0}); });
+    if (bars.length<60) return null;
+    const m=r.meta||{};
+    return { bars, live:{ price:m.regularMarketPrice??bars.at(-1).c, prevClose:m.chartPreviousClose??m.previousClose??null, currency:m.currency||'USD', exchange:m.exchangeName||'', name:m.longName||m.shortName||'', time:(m.regularMarketTime||0)*1000 }, source:'Yahoo Finance' };
+  });
+}
+async function fetchStooq(stooqSym){
+  const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSym)}&i=d`;
+  return viaRelays(url, txt => {
+    const lines = txt.trim().split('\n'); if(!/^Date,Open/i.test(lines[0])) return null;
+    const bars = lines.slice(1).map(l=>{ const [d,o,h,lo,c,v]=l.split(','); return {t:Date.parse(d+'T21:00:00Z'),o:+o,h:+h,l:+lo,c:+c,v:+v||0}; }).filter(b=>isFinite(b.c)).slice(-300);
+    if (bars.length<60) return null;
+    return { bars, live:{ price:bars.at(-1).c, prevClose:bars.at(-2)?.c??null, currency:'USD', exchange:'', name:'', time:bars.at(-1).t }, source:'Stooq (daily)' };
+  });
+}
+async function fetchTwelve(symbol, key){
+  const ts = await fetch(`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(symbol)}&interval=1day&outputsize=300&apikey=${encodeURIComponent(key)}`, {signal:withTimeout(9000)}).then(r=>r.json());
+  if (!ts.values) throw new Error(ts.message||'Twelve Data error');
+  const bars = ts.values.map(v=>({t:Date.parse(v.datetime+'T21:00:00Z'),o:+v.open,h:+v.high,l:+v.low,c:+v.close,v:+v.volume||0})).reverse();
+  let price = bars.at(-1).c, time = bars.at(-1).t;
+  try{ const p = await fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(symbol)}&apikey=${encodeURIComponent(key)}`, {signal:withTimeout(6000)}).then(r=>r.json()); if(p.price){ price=+p.price; time=Date.now(); } }catch{}
+  return { bars, live:{ price, prevClose:bars.at(-2)?.c??null, currency:ts.meta?.currency||'USD', exchange:ts.meta?.exchange||'', name:'', time }, source:'Twelve Data' };
+}
+async function lookupSymbol(query){
+  const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=8&newsCount=0`;
+  return viaRelays(url, txt => {
+    const j = JSON.parse(txt); const qs = j?.quotes; if(!Array.isArray(qs)) return {none:true};
+    const hit = qs.find(q => q.quoteType==='EQUITY' && /spacex|space\s*exploration\s*tech/i.test((q.longname||'')+' '+(q.shortname||'')));
+    return hit ? {symbol:hit.symbol, name:hit.longname||hit.shortname, exchange:hit.exchange} : {none:true};
+  });
+}
+
+/* ---------------------------------------------------------------- sample data (offline fallback) */
+function sampleBars(seed, start, drift, vol){
+  let s = seed; const rnd = () => { s = (s*1664525 + 1013904223) % 4294967296; return s/4294967296; };
+  const bars=[]; let p=start; const day=864e5; let t = Date.now() - 300*day;
+  for (let i=0;i<300;i++){
+    t += day; const d=new Date(t).getUTCDay(); if(d===0||d===6) continue;
+    const shock = (rnd()+rnd()+rnd()-1.5) * vol + drift + Math.sin(i/37)*vol*0.15;
+    const o=p, c=p*(1+shock), h=Math.max(o,c)*(1+rnd()*vol*0.6), l=Math.min(o,c)*(1-rnd()*vol*0.6);
+    bars.push({t,o,h,l,c,v:Math.round(2e7+rnd()*3e7)}); p=c;
+  }
+  return bars;
+}
+const SAMPLE = {
+  NVDA:{seed:2,start:120,drift:0.002,vol:0.03}, TSLA:{seed:11,start:300,drift:-0.0025,vol:0.034}, AAPL:{seed:3,start:190,drift:0.0004,vol:0.015},
+};
+function sampleFor(symbol){
+  const s = SAMPLE[symbol] || {seed:5,start:100,drift:0.0005,vol:0.02};
+  const bars = sampleBars(s.seed,s.start,s.drift,s.vol);
+  return { bars, live:{price:bars.at(-1).c, prevClose:bars.at(-2).c, currency:'USD', exchange:'SAMPLE', name:'', time:bars.at(-1).t}, source:'Sample data' };
+}
+
+/* ---------------------------------------------------------------- indicators */
+const sma = (a,n) => a.map((_,i)=> i<n-1 ? null : a.slice(i-n+1,i+1).reduce((x,y)=>x+y,0)/n);
+function ema(a,n){ const k=2/(n+1); const out=[]; let e=null; a.forEach((v,i)=>{ if(v==null){out.push(null);return;} e = e==null ? v : v*k + e*(1-k); out.push(i<n-1?null:e); }); return out; }
+function rsi(c,n=14){
+  const out=new Array(c.length).fill(null); let g=0,l=0;
+  for(let i=1;i<c.length;i++){ const d=c[i]-c[i-1]; const up=Math.max(d,0), dn=Math.max(-d,0);
+    if(i<=n){ g+=up; l+=dn; if(i===n){ g/=n; l/=n; out[i]= l===0?100:100-100/(1+g/l);} }
+    else { g=(g*(n-1)+up)/n; l=(l*(n-1)+dn)/n; out[i]= l===0?100:100-100/(1+g/l); } }
+  return out;
+}
+function macd(c){ const f=ema(c,12), s=ema(c,26); const line=c.map((_,i)=> f[i]!=null&&s[i]!=null ? f[i]-s[i] : null);
+  const firstIdx=line.findIndex(v=>v!=null); const sig=new Array(c.length).fill(null); const e=ema(line.slice(firstIdx),9); e.forEach((v,i)=>sig[firstIdx+i]=v);
+  return { line, signal:sig, hist:line.map((v,i)=> v!=null&&sig[i]!=null ? v-sig[i] : null) }; }
+function bollinger(c,n=20,k=2){ const m=sma(c,n); const up=[],lo=[];
+  c.forEach((_,i)=>{ if(m[i]==null){up.push(null);lo.push(null);return;} const w=c.slice(i-n+1,i+1); const sd=Math.sqrt(w.reduce((x,y)=>x+(y-m[i])**2,0)/n); up.push(m[i]+k*sd); lo.push(m[i]-k*sd); });
+  return {mid:m,upper:up,lower:lo}; }
+function lastCross(a,b,lookback){ // +k if a crossed above b k bars ago, -k if below, 0 if none within lookback
+  const n=a.length; for(let k=0;k<lookback;k++){ const i=n-1-k; if(i<1||a[i]==null||b[i]==null||a[i-1]==null||b[i-1]==null) break;
+    if(a[i-1]<=b[i-1]&&a[i]>b[i]) return {dir:1,ago:k}; if(a[i-1]>=b[i-1]&&a[i]<b[i]) return {dir:-1,ago:k}; } return null; }
+
+function analyze(bars, live){
+  const c = bars.map(b=>b.c); if (live?.price) c[c.length-1] = live.price;
+  const n=c.length-1, price=c[n];
+  const s20=sma(c,20), s50=sma(c,50), s200=sma(c,200), r=rsi(c), m=macd(c), bb=bollinger(c);
+  const hi52=Math.max(...bars.slice(-252).map(b=>b.h)), lo52=Math.min(...bars.slice(-252).map(b=>b.l));
+  const vol20 = bars.slice(-21,-1).reduce((x,b)=>x+b.v,0)/20, volToday=bars[n].v;
+  const ret20 = c[n-20] ? (price/c[n-20]-1)*100 : null;
+  const votes=[];
+  const fmt=v=>v==null?'—':v.toFixed(2);
+  // 1 trend
+  { let v=0, text;
+    if (s200[n]!=null && s50[n]!=null){
+      if (price>s50[n] && s50[n]>s200[n]) { v=1; text=`Price is above the 50‑day average, which is above the 200‑day. That stack is the textbook “uptrend”: buyers have been in control on every time frame a swing trader cares about.`; }
+      else if (price<s50[n] && s50[n]<s200[n]) { v=-1; text=`Price is below the 50‑day average, which is below the 200‑day. That is the textbook “downtrend”: rallies keep failing at lower levels, so trend followers stay out or short.`; }
+      else if (price>s200[n]) { text=`Price is above the 200‑day average (long‑term trend still up) but the 50‑day is tangled with it. Trend traders call this a pause; they want to see the averages line up again before committing.`; }
+      else { text=`Price is below the 200‑day average (long‑term trend down) even though the shorter picture is mixed. Many trend traders simply refuse to buy anything under its 200‑day line.`; }
+    } else { text=`Not enough history yet for the 200‑day average; the trend vote abstains.`; }
+    votes.push({id:'trend',label:'Trend (price vs. 50 & 200‑day SMA)', value:`${fmt(price)} / ${fmt(s50[n])} / ${fmt(s200[n])}`, vote:v, text}); }
+  // 2 MACD
+  { let v=0,text; const L=m.line[n], S=m.signal[n], H=m.hist[n], cross=lastCross(m.line,m.signal,5);
+    if (L!=null&&S!=null){
+      v = L>S?1:-1;
+      if (cross && cross.dir===1) text=`MACD just crossed above its signal line ${cross.ago===0?'today':cross.ago+' day(s) ago'}. Momentum traders read a fresh bullish crossover as the classic “go” cue, especially when it happens below zero (a turn from a sell‑off).`;
+      else if (cross && cross.dir===-1) text=`MACD just crossed below its signal line ${cross.ago===0?'today':cross.ago+' day(s) ago'}. That bearish crossover is the classic cue to take profits or tighten stops.`;
+      else if (v===1) text=`MACD is above its signal line and the histogram is ${H>0&&m.hist[n-1]!=null&&H>m.hist[n-1]?'growing':'positive but shrinking'}. Momentum is on the buyers' side${H<m.hist[n-1]?', though it is fading, which momentum traders watch closely':''}.`;
+      else text=`MACD is below its signal line${H!=null&&m.hist[n-1]!=null&&H>m.hist[n-1]?', but the histogram is shrinking, meaning the selling pressure is easing':''}. Momentum is with the sellers.`;
+    } else text='Not enough history for MACD yet.';
+    votes.push({id:'macd',label:'MACD (12, 26, 9)',value:`${fmt(L)} vs signal ${fmt(S)}`,vote:v,text}); }
+  // 3 RSI
+  { let v=0,text; const R=r[n];
+    if (R==null) text='Not enough history for RSI yet.';
+    else if (R<30){ v=1; text=`RSI is ${R.toFixed(0)}, under 30: “oversold”. The sell‑off has been one‑sided enough that mean‑reversion traders start looking for a bounce. It can stay oversold in a crash, so they want to see it turn up first.`; }
+    else if (R>70){ v=-1; text=`RSI is ${R.toFixed(0)}, over 70: “overbought”. The rally has been one‑sided; traders don't sell on this alone, but they stop adding and tighten stops. In a strong trend RSI can sit above 70 for weeks.`; }
+    else if (R>=55) text=`RSI is ${R.toFixed(0)}: healthy bullish territory. Above 50 means gains have outweighed losses over the last 14 days, without being stretched.`;
+    else if (R<=45) text=`RSI is ${R.toFixed(0)}: on the weak side. Below 50 means losses have outweighed gains over the last 14 days, but it isn't oversold yet.`;
+    else text=`RSI is ${R.toFixed(0)}: right around the middle. Momentum is balanced; RSI has nothing to say today.`;
+    votes.push({id:'rsi',label:'RSI (14)',value:R==null?'—':R.toFixed(1),vote:v,text}); }
+  // 4 Bollinger
+  { let v=0,text; const U=bb.upper[n], Lw=bb.lower[n], M=bb.mid[n];
+    if (U==null) text='Not enough history for Bollinger Bands yet.';
+    else { const pos=(price-Lw)/(U-Lw); const width=(U-Lw)/M*100;
+      if (price<Lw){ v=1; text=`Price closed below the lower Bollinger Band, a two‑standard‑deviation move. Statistically rare, so band traders look for a snap back toward the 20‑day average (${fmt(M)}).`; }
+      else if (price>U){ v=-1; text=`Price closed above the upper Bollinger Band. The move is statistically stretched; band traders expect it to cool off toward the 20‑day average (${fmt(M)}) or at least pause.`; }
+      else text=`Price sits ${Math.round(pos*100)}% of the way up the band (0% = lower band, 100% = upper). Bands are ${width<8?'tight — a “squeeze”, which often precedes a big move either way':width>20?'wide, meaning volatility is high':'a normal width'}.`;
+    }
+    votes.push({id:'bb',label:'Bollinger Bands (20, 2σ)',value:U==null?'—':`${fmt(Lw)} – ${fmt(U)}`,vote:v,text}); }
+  // 5 golden/death cross
+  { let v=0,text; const cross=lastCross(s50,s200,30);
+    if (s200[n]==null) text='Not enough history for the 50/200 cross.';
+    else if (cross){ v=cross.dir; text = cross.dir===1 ? `A golden cross happened ${cross.ago===0?'today':cross.ago+' trading days ago'}: the 50‑day average rose above the 200‑day. Slow, but it draws in long‑term money and makes headlines.` : `A death cross happened ${cross.ago===0?'today':cross.ago+' trading days ago'}: the 50‑day average fell below the 200‑day. It lags badly, but many funds reduce exposure on it.`; }
+    else text = s50[n]>s200[n] ? `The 50‑day average is above the 200‑day (a golden cross is already in place). No fresh cross in the last 30 days, so this vote is neutral.` : `The 50‑day average is below the 200‑day (a death cross is in place). No fresh cross in the last 30 days, so this vote is neutral.`;
+    votes.push({id:'cross',label:'50/200 cross (last 30 days)',value:`${fmt(s50[n])} vs ${fmt(s200[n])}`,vote:v,text}); }
+  const score = votes.reduce((x,v)=>x+v.vote,0);
+  const verdict = score>=2?'buy':score<=-2?'sell':'hold';
+  const extras = [
+    {label:'52‑week range', value:`${fmt(lo52)} – ${fmt(hi52)}`, text:`Today is ${Math.round((price-lo52)/(hi52-lo52)*100)}% of the way from the 52‑week low to the high. ${price>=hi52*0.98?'A stock within 2% of its yearly high is on every breakout trader\'s list.':price<=lo52*1.02?'A stock near its yearly low is either a bargain or a falling knife; traders wait for a base to form.':''}`},
+    {label:'Volume', value:`${(volToday/1e6).toFixed(1)}M vs ${(vol20/1e6).toFixed(1)}M avg`, text: volToday>vol20*1.5?`Volume is ${(volToday/vol20).toFixed(1)}× the 20‑day average. Big volume confirms a move: traders trust a breakout or breakdown far more when lots of shares changed hands.`:volToday<vol20*0.6?`Volume is light (${(volToday/vol20).toFixed(1)}× normal). Moves on thin volume are treated with suspicion; they often reverse. Note: today's bar may still be filling in.`:`Volume is around normal. Nothing unusual confirming or contradicting the price move.`},
+    {label:'20‑day change', value: ret20==null?'—':(ret20>=0?'+':'')+ret20.toFixed(1)+'%', text: ret20==null?'':Math.abs(ret20)>15?`A ${ret20>0?'gain':'loss'} of ${Math.abs(ret20).toFixed(0)}% in a month is a lot. Momentum traders chase it; contrarians fade it.`:`The stock has moved ${ret20.toFixed(1)}% over the last 20 trading days, which is ordinary for a large‑cap.`},
+  ];
+  return { price, c, s20, s50, s200, rsi:r, macd:m, bb, hi52, lo52, votes, score, verdict, extras };
+}
+
+/* ---------------------------------------------------------------- state & render */
+const state = {}; // key -> {cfg, data, a, expanded, error}
+const grid = document.getElementById('grid');
+const fmtMoney = (v,cur='USD') => v==null?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:cur,maximumFractionDigits:2}).format(v);
+const fmtTime = t => t?new Date(t).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
+const el = (tag, cls, txt) => { const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; };
+
+function cardFor(cfg){
+  let card = document.getElementById('card-'+cfg.key);
+  if (!card){ card = el('div','card'); card.id='card-'+cfg.key; grid.appendChild(card); }
+  return card;
+}
+
+function renderCard(key){
+  const st = state[key], cfg = st.cfg, card = cardFor(cfg);
+  card.replaceChildren();
+  const top = el('div','top');
+  const nm = el('div'); nm.append(el('div','name',cfg.name), el('div','sym', cfg.symbol ? `${cfg.symbol}${st.data?.live.exchange&&st.data.live.exchange!=='SAMPLE'?' · '+st.data.live.exchange:''}` : (cfg.note||'')));
+  top.append(nm);
+  const a = st.a;
+  const sig = el('span','sig '+(a?a.verdict:'none'));
+  sig.textContent = a ? ({buy:'● BUY',sell:'● SELL',hold:'◐ HOLD'})[a.verdict] : '○ NO DATA';
+  sig.title = a ? `Score ${a.score>0?'+':''}${a.score} of ±5` : '';
+  top.append(sig); card.append(top);
+
+  if (!st.data){
+    const em = el('div','empty');
+    if (cfg.lookup){
+      em.append(el('div',null, st.lookupMsg || `${cfg.name} has no public ticker yet. The page checks Yahoo Finance for one on every load.`));
+      const row = el('div'); row.style.cssText='display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap';
+      const inp = el('input'); inp.placeholder='Ticker'; inp.value = LS.get('sym:'+cfg.key,'') ; inp.setAttribute('aria-label','Ticker for '+cfg.name);
+      const btn = el('button',null,'Use ticker'); btn.onclick = () => { const s=inp.value.trim().toUpperCase(); LS.set('sym:'+cfg.key, s); load(key,true); };
+      const hint = el('span','hint','e.g. once SpaceX lists, type its symbol here');
+      row.append(inp,btn,hint); em.append(row);
+    } else em.append(el('div',null, st.error ? `Couldn't load ${cfg.symbol}: ${st.error}` : 'Loading…'));
+    card.append(em); return;
+  }
+
+  const live = st.data.live, cur = live.currency||'USD';
+  const pr = el('div','price-row');
+  const price = el('span','price', fmtMoney(a.price,cur)); price.tabIndex=0; price.setAttribute('role','button'); price.setAttribute('aria-describedby','tip-'+key);
+  pr.append(price);
+  if (live.prevClose){ const d=a.price-live.prevClose, p=d/live.prevClose*100; const chg=el('span','chg '+(d>0?'up':d<0?'down':'flat'), `${d>=0?'+':''}${d.toFixed(2)} (${p>=0?'+':''}${p.toFixed(2)}%)`); chg.title='Change vs. previous close'; pr.append(chg); }
+  card.append(pr);
+  card.append(el('div','hint','Hover or tap the price: what a technical trader sees'));
+
+  const votes = el('div','votes');
+  a.votes.forEach(v=>{ const b=el('span','v '+(v.vote>0?'up':v.vote<0?'down':'')); b.title=`${v.label}: ${v.vote>0?'bullish':v.vote<0?'bearish':'neutral'}`; votes.append(b); });
+  votes.append(el('span','lbl',`score ${a.score>0?'+':''}${a.score} / ±5`)); card.append(votes);
+
+  const spark = el('canvas','spark'); card.append(spark); requestAnimationFrame(()=>drawSpark(spark, a));
+
+  const chips = el('div','chips');
+  const R=a.rsi.at(-1), M=a.macd.hist.at(-1);
+  const chip=(lbl,val,cls)=>{ const c=el('span','chip '+(cls||'')); c.append(lbl+' ', Object.assign(el('b'),{textContent:val})); chips.append(c); };
+  chip('RSI', R==null?'—':R.toFixed(0), R==null?'':R>70?'down':R<30?'up':'');
+  chip('MACD', M==null?'—':(M>=0?'+':'')+M.toFixed(2), M==null?'':M>=0?'up':'down');
+  chip('SMA50', a.s50.at(-1)==null?'—':fmtMoney(a.s50.at(-1),cur), a.s50.at(-1)==null?'':a.price>a.s50.at(-1)?'up':'down');
+  chip('SMA200', a.s200.at(-1)==null?'—':fmtMoney(a.s200.at(-1),cur), a.s200.at(-1)==null?'':a.price>a.s200.at(-1)?'up':'down');
+  card.append(chips);
+
+  const foot = el('div','foot');
+  const more = el('button',null, st.expanded?'Hide chart':'Show chart'); more.onclick=()=>{ st.expanded=!st.expanded; card.classList.toggle('expanded',st.expanded); renderCard(key); if(st.expanded) card.scrollIntoView({behavior:'smooth',block:'start'}); };
+  foot.append(more);
+  foot.append(el('span','meta', `${st.data.source}${st.data.cachedAt?' · saved '+fmtTime(st.data.cachedAt):''} · ${fmtTime(live.time)}`));
+  card.append(foot);
+
+  // trader tooltip
+  const tip = el('div','tip'); tip.id='tip-'+key; tip.setAttribute('role','tooltip');
+  tip.append(el('h4',null,`What a technical trader sees in ${cfg.symbol} at ${fmtMoney(a.price,cur)}`));
+  a.votes.forEach(v=>{ const row=el('div','row'); row.append(el('div','ic '+(v.vote>0?'up':v.vote<0?'down':'flat'), v.vote>0?'▲':v.vote<0?'▼':'•'));
+    const body=el('div'); const t=el('div','t',v.label); t.append(el('span',null,v.value)); body.append(t, el('div','d',v.text)); row.append(body); tip.append(row); });
+  a.extras.forEach(v=>{ const row=el('div','row'); row.append(el('div','ic flat','◦')); const body=el('div'); const t=el('div','t',v.label); t.append(el('span',null,v.value)); body.append(t, el('div','d',v.text)); row.append(body); tip.append(row); });
+  const sum = el('div','sum'); sum.innerHTML = `<b>Net: ${({buy:'lean BUY',sell:'lean SELL',hold:'HOLD / wait'})[a.verdict]} (score ${a.score>0?'+':''}${a.score}).</b> ` + (a.verdict==='buy'?'Most indicators agree the path of least resistance is up. A trader would still size the position, set a stop below a recent low, and know that indicators lag.':a.verdict==='sell'?'Most indicators agree the sellers are in charge. A trader holding this would cut or hedge; one without it would wait for a base rather than “catch the knife”.':'The indicators disagree, which is the most common state. Patient traders do nothing here and wait for a clean setup in either direction.');
+  tip.append(sum); card.append(tip);
+  const show=()=>{ tip.classList.add('show'); const cr=card.getBoundingClientRect(); tip.style.top=(price.getBoundingClientRect().bottom-cr.top+8)+'px'; const w=tip.offsetWidth; tip.style.left=Math.min(0, innerWidth-16-cr.left-w)+'px'; };
+  const hide=()=>tip.classList.remove('show');
+  price.addEventListener('pointerenter', e=>{ if(e.pointerType!=='touch') show(); });
+  price.addEventListener('pointerleave', e=>{ if(e.pointerType!=='touch') hide(); });
+  price.addEventListener('click', ()=> tip.classList.contains('show')?hide():show());
+  price.addEventListener('focus', show); price.addEventListener('blur', hide);
+  price.addEventListener('keydown', e=>{ if(e.key==='Escape') hide(); });
+  tip.addEventListener('pointerenter', show); tip.addEventListener('pointerleave', hide);
+
+  if (st.expanded) renderChart(card, st);
+}
+
+/* sparkline: last 60 closes, colored by verdict (status color, with the verdict label beside it) */
+function drawSpark(cv, a){
+  const dpr=devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return; cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.scale(dpr,dpr);
+  const c=a.c.slice(-60), lo=Math.min(...c), hi=Math.max(...c); const x=i=>i/(c.length-1)*(W-2)+1, y=v=>H-4-(v-lo)/(hi-lo||1)*(H-8);
+  const css=getComputedStyle(document.documentElement); const col = css.getPropertyValue(a.verdict==='buy'?'--good':a.verdict==='sell'?'--crit':'--ink-3').trim();
+  g.strokeStyle=css.getPropertyValue('--grid').trim(); g.lineWidth=1; g.beginPath(); g.moveTo(0,y(c[0])); g.lineTo(W,y(c[0])); g.stroke();
+  g.strokeStyle=col; g.lineWidth=2; g.lineJoin='round'; g.beginPath(); c.forEach((v,i)=> i?g.lineTo(x(i),y(v)):g.moveTo(x(i),y(v))); g.stroke();
+  g.fillStyle=col; g.beginPath(); g.arc(x(c.length-1),y(c.at(-1)),3.5,0,7); g.fill();
+}
+
+/* full chart: price + SMA20/50/200 + Bollinger, RSI panel, MACD panel, crosshair tooltip */
+function renderChart(card, st){
+  const a=st.a, bars=st.data.bars, cur=st.data.live.currency||'USD';
+  const wrap=el('div','chart-wrap');
+  const legend=el('div','legend'); const css=getComputedStyle(document.documentElement);
+  const C={close:css.getPropertyValue('--ink').trim(), s20:css.getPropertyValue('--s1').trim(), s50:css.getPropertyValue('--s2').trim(), s200:css.getPropertyValue('--s3').trim(), band:css.getPropertyValue('--s1').trim(), grid:css.getPropertyValue('--grid').trim(), ink2:css.getPropertyValue('--ink-2').trim(), ink3:css.getPropertyValue('--ink-3').trim(), good:css.getPropertyValue('--good').trim(), crit:css.getPropertyValue('--crit').trim(), surface:css.getPropertyValue('--surface').trim()};
+  [['Close',C.close],['SMA 20',C.s20],['SMA 50',C.s50],['SMA 200',C.s200],['Bollinger 20/2σ',C.band]].forEach(([l,c])=>{ const s=el('span'); const i=el('i'); i.style.borderColor=c; if(l.startsWith('Boll')) i.style.borderStyle='dotted'; s.append(i,l); legend.append(s); });
+  const cv=el('canvas','chart'); const tip=el('div','ctip'); wrap.append(legend,cv,tip); card.append(wrap);
+
+  const N=bars.length, from=Math.max(0,N-180); // last ~9 months
+  const idx=[...Array(N-from).keys()].map(i=>i+from);
+  function draw(hoverI){
+    const dpr=devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.scale(dpr,dpr); g.font='11px system-ui,sans-serif';
+    const padL=8, padR=58, top=8; const ph=Math.round((H-top-14)*0.58), rh=Math.round((H-top-14)*0.19), mh=(H-top-14)-ph-rh-16;
+    const X=i=>padL+(i-from)/(idx.length-1)*(W-padL-padR);
+    // price panel
+    const vals=idx.flatMap(i=>[a.c[i],a.bb.upper[i],a.bb.lower[i],a.s200[i],a.s50[i]]).filter(v=>v!=null); const lo=Math.min(...vals), hi=Math.max(...vals);
+    const Y=v=>top+ph-(v-lo)/(hi-lo||1)*ph;
+    g.strokeStyle=C.grid; g.lineWidth=1; g.fillStyle=C.ink3; g.textAlign='left';
+    for(let k=0;k<=4;k++){ const v=lo+(hi-lo)*k/4, y=Y(v); g.beginPath(); g.moveTo(padL,y); g.lineTo(W-padR,y); g.stroke(); g.fillText(fmtMoney(v,cur),W-padR+4,y+4); }
+    // bands
+    g.fillStyle=C.band+'1a'; g.beginPath(); let started=false;
+    idx.forEach(i=>{ if(a.bb.upper[i]==null) return; if(!started){g.moveTo(X(i),Y(a.bb.upper[i])); started=true;} else g.lineTo(X(i),Y(a.bb.upper[i])); });
+    [...idx].reverse().forEach(i=>{ if(a.bb.lower[i]!=null) g.lineTo(X(i),Y(a.bb.lower[i])); }); g.closePath(); g.fill();
+    const line=(arr,col,w=2,dash)=>{ g.strokeStyle=col; g.lineWidth=w; g.setLineDash(dash||[]); g.beginPath(); let s=false; idx.forEach(i=>{ if(arr[i]==null) return; s?g.lineTo(X(i),Y(arr[i])):g.moveTo(X(i),Y(arr[i])); s=true; }); g.stroke(); g.setLineDash([]); };
+    line(a.bb.upper,C.band,1,[2,3]); line(a.bb.lower,C.band,1,[2,3]); line(a.s200,C.s200); line(a.s50,C.s50); line(a.s20,C.s20); line(a.c,C.close,2);
+    // RSI
+    const rt=top+ph+10; const RY=v=>rt+rh-(v/100)*rh;
+    g.fillStyle=C.ink3; g.fillText('RSI 14',padL,rt+10);
+    g.fillStyle=C.grid+'99'; g.fillRect(padL,RY(70),W-padL-padR,RY(30)-RY(70));
+    g.strokeStyle=C.grid; [30,50,70].forEach(v=>{ g.beginPath(); g.moveTo(padL,RY(v)); g.lineTo(W-padR,RY(v)); g.stroke(); g.fillStyle=C.ink3; g.fillText(v,W-padR+4,RY(v)+4); });
+    g.strokeStyle=C.s7||'#4a3aa7'; g.lineWidth=1.5; g.beginPath(); let s=false; idx.forEach(i=>{ if(a.rsi[i]==null) return; s?g.lineTo(X(i),RY(a.rsi[i])):g.moveTo(X(i),RY(a.rsi[i])); s=true; }); g.stroke();
+    // MACD
+    const mt=rt+rh+6; const mv=idx.flatMap(i=>[a.macd.line[i],a.macd.signal[i],a.macd.hist[i]]).filter(v=>v!=null); const mm=Math.max(...mv.map(Math.abs))||1; const MY=v=>mt+mh/2-(v/mm)*(mh/2);
+    g.fillStyle=C.ink3; g.fillText('MACD 12/26/9',padL,mt+10);
+    g.strokeStyle=C.grid; g.beginPath(); g.moveTo(padL,MY(0)); g.lineTo(W-padR,MY(0)); g.stroke();
+    const bw=Math.max(1,(W-padL-padR)/idx.length-1);
+    idx.forEach(i=>{ const h=a.macd.hist[i]; if(h==null) return; g.fillStyle=(h>=0?C.good:C.crit)+'b3'; const y0=MY(0), y1=MY(h); g.fillRect(X(i)-bw/2,Math.min(y0,y1),bw,Math.abs(y1-y0)||1); });
+    g.lineWidth=1.5; [[a.macd.line,C.s20],[a.macd.signal,C.s50]].forEach(([arr,col])=>{ g.strokeStyle=col; g.beginPath(); let s=false; idx.forEach(i=>{ if(arr[i]==null) return; s?g.lineTo(X(i),MY(arr[i])):g.moveTo(X(i),MY(arr[i])); s=true; }); g.stroke(); });
+    // x labels
+    g.fillStyle=C.ink3; g.textAlign='center'; let lastM=-1; idx.forEach(i=>{ const d=new Date(bars[i].t); if(d.getMonth()!==lastM){ lastM=d.getMonth(); if(i>from+3) g.fillText(d.toLocaleString(undefined,{month:'short'}),X(i),H-2); } });
+    // crosshair
+    if (hoverI!=null){ g.strokeStyle=C.ink2; g.setLineDash([3,3]); g.beginPath(); g.moveTo(X(hoverI),top); g.lineTo(X(hoverI),H-14); g.stroke(); g.setLineDash([]);
+      g.fillStyle=C.close; g.beginPath(); g.arc(X(hoverI),Y(a.c[hoverI]),4,0,7); g.fill(); g.strokeStyle=C.surface; g.lineWidth=2; g.stroke(); }
+    return {X,W};
+  }
+  let geo=draw(null);
+  const row=(l,v,col)=>{ const r=el('div','r'); const L=el('span'); if(col){const i=el('i'); i.style.borderColor=col; L.append(i);} L.append(l); const V=el('b',null,v); r.append(L,V); return r; };
+  cv.addEventListener('pointermove', e=>{
+    const rect=cv.getBoundingClientRect(); const x=e.clientX-rect.left; const span=(geo.W-8-58)/(idx.length-1); const i=Math.round((x-8)/span)+from; if(i<from||i>=N){ tip.style.display='none'; draw(null); return; }
+    geo=draw(i); tip.replaceChildren();
+    tip.append(Object.assign(el('div'),{textContent:new Date(bars[i].t).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}),style:'font-weight:600;margin-bottom:4px'}));
+    tip.append(row('Close',fmtMoney(a.c[i],cur),C.close));
+    if(a.s20[i]!=null) tip.append(row('SMA 20',fmtMoney(a.s20[i],cur),C.s20)); if(a.s50[i]!=null) tip.append(row('SMA 50',fmtMoney(a.s50[i],cur),C.s50)); if(a.s200[i]!=null) tip.append(row('SMA 200',fmtMoney(a.s200[i],cur),C.s200));
+    if(a.rsi[i]!=null) tip.append(row('RSI',a.rsi[i].toFixed(1))); if(a.macd.hist[i]!=null) tip.append(row('MACD hist',a.macd.hist[i].toFixed(2)));
+    tip.append(row('Volume',(bars[i].v/1e6).toFixed(1)+'M'));
+    tip.style.display='block'; const tw=tip.offsetWidth; tip.style.left=Math.min(Math.max(0,geo.X(i)-tw/2),geo.W-tw)+'px'; tip.style.top='28px';
+  });
+  cv.addEventListener('pointerleave', ()=>{ tip.style.display='none'; geo=draw(null); });
+  // table view (accessibility)
+  const det=el('details','table'); det.append(el('summary',null,'Table view (last 30 days)'));
+  const t=el('table'); const th=el('tr'); ['Date','Close','SMA 20','SMA 50','SMA 200','RSI','MACD hist'].forEach(h=>th.append(el('th',null,h))); t.append(th);
+  idx.slice(-30).reverse().forEach(i=>{ const tr=el('tr'); [new Date(bars[i].t).toLocaleDateString(), a.c[i].toFixed(2), a.s20[i]?.toFixed(2)??'—', a.s50[i]?.toFixed(2)??'—', a.s200[i]?.toFixed(2)??'—', a.rsi[i]?.toFixed(1)??'—', a.macd.hist[i]?.toFixed(2)??'—'].forEach(v=>tr.append(el('td',null,v))); t.append(tr); });
+  det.append(t); card.append(det);
+  new ResizeObserver(()=>{ geo=draw(null); }).observe(cv);
+}
+
+/* ---------------------------------------------------------------- loading */
+const statusEl=document.getElementById('status');
+function setSourcePill(){
+  const srcs = Object.values(state).filter(s=>s.data).map(s=>s.data.source);
+  const pill=document.getElementById('srcPill'), txt=document.getElementById('srcText'); pill.className='pill';
+  if (!srcs.length){ txt.textContent='No data yet'; return; }
+  if (srcs.every(s=>s==='Sample data')){ pill.classList.add('sample'); txt.textContent='Sample data (offline)'; }
+  else if (Object.values(state).some(s=>s.data?.cachedAt)){ pill.classList.add('cached'); txt.textContent='Saved data (feeds unreachable)'; }
+  else { pill.classList.add('live'); txt.textContent='Live · '+[...new Set(srcs)].join(' + ')+' · '+new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}); }
+}
+async function load(key, force){
+  const st=state[key], cfg=st.cfg;
+  let symbol = cfg.symbol || LS.get('sym:'+cfg.key,'');
+  if (!symbol && cfg.lookup){
+    try{ const r=await lookupSymbol(cfg.lookup); if(r.symbol){ symbol=r.symbol; LS.set('sym:'+cfg.key,symbol); st.lookupMsg=`Found ${r.name} (${r.symbol}) on ${r.exchange}.`; } else st.lookupMsg=`${cfg.name} is still privately held: no ticker on Yahoo Finance today.`; }
+    catch{ st.lookupMsg=`${cfg.name} is privately held as far as this page can tell (ticker lookup unreachable right now).`; }
+    if (!symbol){ st.data=null; st.a=null; renderCard(key); return; }
+  }
+  cfg.symbol = symbol;
+  const stooq = cfg.stooq || symbol.toLowerCase()+'.us';
+  let data=null, err=null;
+  if (LS.get('forceSample',false)) data=sampleFor(symbol);
+  else {
+    const key = LS.get('tdKey','');
+    const attempts = [ ...(key?[()=>fetchTwelve(symbol,key)]:[]), ()=>fetchYahoo(symbol), ()=>fetchStooq(stooq) ];
+    for (const f of attempts){ try{ data=await f(); err=null; break; }catch(e){ err=e; } }
+    if (data){ LS.set('data:'+symbol,{...data,cachedAt:Date.now()}); }
+    else { const c=LS.get('data:'+symbol,null); if(c){ data=c; } }
+    if (!data){ data=sampleFor(symbol); }
+  }
+  st.data=data; st.error=err?String(err.message||err):null;
+  st.a=analyze(data.bars, data.live);
+  renderCard(key); setSourcePill();
+}
+async function loadAll(){
+  statusEl.textContent='Fetching prices…'; document.getElementById('refreshBtn').disabled=true;
+  await Promise.all(WATCH.map(c=>load(c.key)));
+  const errs=Object.values(state).filter(s=>s.error).map(s=>s.cfg.symbol+': '+s.error);
+  statusEl.textContent = errs.length ? 'Some feeds failed, showing saved or sample data where needed. Last error: '+errs[0] : 'Updated '+new Date().toLocaleTimeString()+'. Auto‑refreshes every 2 minutes.';
+  document.getElementById('refreshBtn').disabled=false;
+}
+WATCH.forEach(c=>{ state[c.key]={cfg:c,data:null,a:null,expanded:false}; renderCard(c.key); });
+loadAll(); setInterval(loadAll, REFRESH_MS);
+
+/* ---------------------------------------------------------------- controls */
+document.getElementById('refreshBtn').onclick=()=>loadAll();
+const dlg=document.getElementById('settings');
+document.getElementById('settingsBtn').onclick=()=>{ document.getElementById('tdKey').value=LS.get('tdKey',''); document.getElementById('proxyUrl').value=LS.get('proxy',''); document.getElementById('forceSample').checked=LS.get('forceSample',false); dlg.showModal(); };
+document.getElementById('settingsClose').onclick=()=>{ LS.set('tdKey',document.getElementById('tdKey').value.trim()); LS.set('proxy',document.getElementById('proxyUrl').value.trim()); LS.set('forceSample',document.getElementById('forceSample').checked); dlg.close(); location.reload(); };
+document.getElementById('clearCache').onclick=()=>{ Object.keys(localStorage).filter(k=>k.startsWith('sw:data:')||k.startsWith('sw:sym:')).forEach(k=>localStorage.removeItem(k)); statusEl.textContent='Saved data cleared.'; };
+const themeBtn=document.getElementById('themeBtn');
+const applyTheme=t=>{ if(t) document.documentElement.dataset.theme=t; else delete document.documentElement.dataset.theme; };
+applyTheme(LS.get('theme',null));
+themeBtn.onclick=()=>{ const dark=matchMedia('(prefers-color-scheme: dark)').matches; const cur=document.documentElement.dataset.theme||(dark?'dark':'light'); const next=cur==='dark'?'light':'dark'; LS.set('theme',next); applyTheme(next); Object.keys(state).forEach(renderCard); };
+</script>
+</body>
+</html>

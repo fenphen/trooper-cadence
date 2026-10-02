@@ -38,3 +38,19 @@ A second, separate tool in this repo: find **recent Reddit posts and comments th
 
 **Phase 2:** live results inside the page, through the small server in [`server/`](server/README.md), which uses Reddit's official API. Setting it up takes a Reddit-approved API app and a free Cloudflare account; follow [`server/README.md`](server/README.md), then put the server's address in `mention-finder/config.js`.
 Files: `mention-finder/index.html` (page), `mention-finder/variants.js` (spelling and query engine), `mention-finder/report.js` (exports).
+
+---
+
+# 📈 Signal Watch
+
+A third tool: a **learning dashboard** for four stocks (NVIDIA, Tesla, Apple, and SpaceX once it has a ticker). Nothing is bought or sold.
+
+**▶ Open it:** https://fenphen.github.io/trooper-cadence/stocks/
+
+- Each card shows the current price and a **green BUY / red SELL / amber HOLD** badge, computed the way technical traders do: five textbook indicators (trend vs. 50/200‑day averages, MACD, RSI, Bollinger Bands, golden/death cross) each vote, and the score decides.
+- **Hover or tap the price** for the full readout: every indicator's value and a plain‑English line on what a technical trader would be thinking about it.
+- **Show chart** opens price with SMA 20/50/200 and Bollinger Bands, an RSI panel and a MACD panel, with a crosshair tooltip and a table view.
+- Prices come from free public feeds straight from the browser (Yahoo Finance via a relay, then Stooq); it falls back to data saved on the device, then to clearly labelled sample data. Add a free Twelve Data key under **Data settings** for a steadier feed.
+- SpaceX is privately held, so it shows "no data" until a ticker exists; the page checks on every load and you can type one in.
+
+File: `stocks/index.html` (self‑contained, no build step).
