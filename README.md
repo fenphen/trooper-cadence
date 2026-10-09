@@ -43,14 +43,16 @@ Files: `mention-finder/index.html` (page), `mention-finder/variants.js` (spellin
 
 # 📈 Signal Watch
 
-A third tool: a **learning dashboard** for four stocks (NVIDIA, Tesla, Apple, and SpaceX once it has a ticker). Nothing is bought or sold.
+A **learning dashboard** for four stocks of your choice (NVIDIA, Tesla, Apple and SpaceX by default). Nothing is bought or sold.
 
 **▶ Open it:** https://fenphen.github.io/trooper-cadence/stocks/
 
-- Each card shows the current price and a **green BUY / red SELL / amber HOLD** badge, computed the way technical traders do: five textbook indicators (trend vs. 50/200‑day averages, MACD, RSI, Bollinger Bands, golden/death cross) each vote, and the score decides.
+- Each tile shows the latest price, including **pre‑market and after‑hours** trades, with a tag for the session and the change from the regular close. Prices refresh every minute.
+- A **green BUY / red SELL / amber HOLD** badge, computed the way technical traders do: five textbook indicators (trend vs. 50/200‑bar averages, MACD, RSI, Bollinger Bands, golden/death cross) each vote, and the score decides.
 - **Hover or tap the price** for the full readout: every indicator's value and a plain‑English line on what a technical trader would be thinking about it.
-- **Show chart** opens price with SMA 20/50/200 and Bollinger Bands, an RSI panel and a MACD panel, with a crosshair tooltip and a table view.
-- Prices come from free public feeds straight from the browser (Yahoo Finance via a relay, then Stooq); it falls back to data saved on the device, then to clearly labelled sample data. Add a free Twelve Data key under **Data settings** for a steadier feed.
-- SpaceX is privately held, so it shows "no data" until a ticker exists; the page checks on every load and you can type one in.
+- **1h / 2h / 4h / 1D** buttons change the time frame for the chart and the signal. **Show chart** opens price with SMA 20/50/200 and Bollinger Bands, an RSI panel and a MACD panel, with a crosshair tooltip and a table view.
+- Tap **✎** on a tile to swap in another stock: pick from two dozen popular names or search by ticker or company name.
+- The SpaceX tile uses the ticker **SPCX**; if the feed has no data for it, the tile says so.
+- Prices come from free public feeds straight from the browser (Yahoo Finance via a relay, then Stooq for daily bars); it falls back to data saved on the device, then to clearly labelled sample data. Add a free Twelve Data key under **Data settings** for a steadier feed.
 
 File: `stocks/index.html` (self‑contained, no build step).
