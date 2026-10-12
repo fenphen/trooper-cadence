@@ -56,3 +56,14 @@ A **learning dashboard** for four stocks of your choice (NVIDIA, Tesla, Apple an
 - Prices come from free public feeds straight from the browser (Yahoo Finance via a relay, then Stooq for daily bars); it falls back to data saved on the device, then to clearly labelled sample data. Add a free Twelve Data key under **Data settings** for a steadier feed.
 
 File: `stocks/index.html` (self‑contained, no build step).
+
+---
+
+# 🖨️ Home Hub
+
+A **printer, scanner and network status page for the house**, served from an always-on Windows PC
+and bookmarked on every other computer and phone. Finds the HP printers by itself, shows status and
+ink levels, wakes them, prints a test page or any PDF/image, scans to PDF from the browser, lists every
+device on the LAN, and (optionally) reads the TP-Link Deco mesh.
+
+Setup and details: [`homehub/README.md`](homehub/README.md). It runs on your LAN, not on GitHub Pages.

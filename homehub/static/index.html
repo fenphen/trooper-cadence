@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Hub</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='4' y='10' width='24' height='14' rx='3' fill='%233b82f6'/%3E%3Crect x='9' y='4' width='14' height='8' rx='1' fill='%2394a3b8'/%3E%3Crect x='9' y='20' width='14' height='8' rx='1' fill='%23e2e8f0'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#f5f6f8; --surface:#ffffff; --surface-2:#eef0f4; --border:#dde1e7;
+    --text:#14181f; --text-2:#4b5563; --muted:#8a919c;
+    --accent:#2563eb; --accent-text:#ffffff;
+    --good:#1a7f37; --good-bg:#e4f5e9; --warn:#9a6700; --warn-bg:#fff4d6;
+    --bad:#c42b1c; --bad-bg:#fde8e6; --info:#1f6feb; --info-bg:#e6f0ff; --neutral:#6b7280; --neutral-bg:#eceff3;
+    --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+    --radius:12px; --font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#0f1318; --surface:#171c23; --surface-2:#1f252e; --border:#2a313b;
+    --text:#e8ecf1; --text-2:#b4bcc7; --muted:#7c8694;
+    --accent:#3b82f6;
+    --good:#3fb950; --good-bg:#12301b; --warn:#d9a21b; --warn-bg:#33280a;
+    --bad:#f0574c; --bad-bg:#3a1512; --info:#58a6ff; --info-bg:#0f2544; --neutral:#9aa3ae; --neutral-bg:#242a33;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0f1318; --surface:#171c23; --surface-2:#1f252e; --border:#2a313b;
+    --text:#e8ecf1; --text-2:#b4bcc7; --muted:#7c8694;
+    --accent:#3b82f6;
+    --good:#3fb950; --good-bg:#12301b; --warn:#d9a21b; --warn-bg:#33280a;
+    --bad:#f0574c; --bad-bg:#3a1512; --info:#58a6ff; --info-bg:#0f2544; --neutral:#9aa3ae; --neutral-bg:#242a33;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.45}
+  a{color:var(--accent)}
+  button{font:inherit;cursor:pointer}
+  .wrap{max-width:1180px;margin:0 auto;padding:16px}
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  header h1{font-size:22px;margin:0;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+  header h1 svg{width:28px;height:28px}
+  .spacer{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .good{color:var(--good);background:var(--good-bg)} .warn{color:var(--warn);background:var(--warn-bg)}
+  .bad{color:var(--bad);background:var(--bad-bg)} .info{color:var(--info);background:var(--info-bg)}
+  .neutral{color:var(--neutral);background:var(--neutral-bg)}
+  .muted{color:var(--muted)} .small{font-size:13px}
+  nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  nav.tabs button{background:none;border:0;padding:10px 14px;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:600}
+  nav.tabs button.active{color:var(--text);border-bottom-color:var(--accent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .card h2{font-size:17px;margin:0;display:flex;align-items:center;gap:8px}
+  .card h2 input{font:inherit;font-weight:600;background:transparent;border:0;border-bottom:1px dashed var(--border);color:var(--text);padding:0 2px;min-width:60px;width:100%}
+  .card h2 input:focus{outline:none;border-bottom-color:var(--accent)}
+  .card .model{color:var(--text-2);font-size:13px;margin-top:2px}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .state{margin:12px 0 6px}
+  .summary{color:var(--text-2);font-size:14px}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-weight:600;font-size:13px}
+  a.btn{text-decoration:none}
+  .btn:hover{border-color:var(--muted)} .btn:disabled{opacity:.5;cursor:default}
+  .btn.primary{background:var(--accent);color:var(--accent-text);border-color:transparent}
+  .btn.sm{padding:4px 9px;font-size:12px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .supplies{margin-top:12px;display:grid;gap:8px}
+  .supply{display:grid;grid-template-columns:120px 1fr 48px;align-items:center;gap:10px;font-size:13px}
+  .supply .name{color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .meter{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden;border:1px solid var(--border)}
+  .meter > i{display:block;height:100%;border-radius:4px}
+  .supply .pct{text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+  .msgs{margin:10px 0 0;padding:0;list-style:none;font-size:13px}
+  .msgs li{padding:6px 10px;border-radius:8px;background:var(--warn-bg);color:var(--warn);margin-top:6px}
+  details.more{margin-top:10px;font-size:13px;color:var(--text-2)}
+  details.more summary{cursor:pointer;color:var(--muted)}
+  dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0 0}
+  dl dt{color:var(--muted)} dl dd{margin:0}
+  .empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:var(--radius)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow)}
+  .stat .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .stat .value{font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:8px}
+  .stat .sub{font-size:12px;color:var(--text-2)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+  tr.off td{color:var(--muted)}
+  td.mono,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+  td input{font:inherit;background:transparent;border:0;border-bottom:1px dashed var(--border);color:var(--text);width:100%;min-width:90px}
+  td input:focus{outline:none;border-bottom-color:var(--accent)}
+  .tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .section-head{display:flex;align-items:center;gap:10px;margin:18px 0 10px}
+  .section-head h3{margin:0;font-size:16px}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal h3{margin:0 0 12px}
+  .field{display:grid;gap:4px;margin-bottom:12px;font-size:14px}
+  .field label{color:var(--text-2);font-size:13px}
+  .field input,.field select{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)}
+  .field input:focus,.field select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;z-index:20}
+  .toast.show{opacity:1}
+  .settings{max-width:620px}
+  .settings .card{margin-bottom:16px}
+  .settings h3{margin:0 0 10px;font-size:16px}
+  .check{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%}
+  .footer{margin-top:28px;color:var(--muted);font-size:12px;text-align:center}
+  @media (max-width:600px){ .supply{grid-template-columns:90px 1fr 44px} .wrap{padding:12px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="10" width="24" height="14" rx="3" fill="#3b82f6"/><rect x="9" y="4" width="14" height="8" rx="1" fill="#94a3b8"/><rect x="9" y="20" width="14" height="8" rx="1" fill="#e2e8f0"/></svg>
+      Home Hub
+    </h1>
+    <span id="netpill" class="pill neutral"><span class="dot"></span>Checking internet…</span>
+    <span class="spacer"></span>
+    <span id="updated" class="small muted"></span>
+    <button class="btn sm" id="themeBtn" title="Toggle light/dark">◐</button>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="printers" class="active">Printers &amp; scanners</button>
+    <button data-tab="network">Network</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+
+  <section id="tab-printers">
+    <div id="printers" class="grid"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="discoverBtn">🔍 Look for printers again</button>
+      <span id="discoverNote" class="small muted"></span>
+    </div>
+  </section>
+
+  <section id="tab-network" hidden>
+    <div class="stats" id="netstats"></div>
+    <div id="deco"></div>
+    <div class="section-head">
+      <h3>Devices on the network</h3>
+      <span id="sweepNote" class="small muted"></span>
+      <span class="spacer"></span>
+      <label class="small muted"><input type="checkbox" id="showOffline"> show offline</label>
+      <button class="btn sm" id="sweepBtn">Scan now</button>
+    </div>
+    <div class="tablewrap"><table id="devices"><thead><tr>
+      <th></th><th>Name</th><th>IP</th><th>Vendor</th><th>Connection</th><th>MAC</th><th>Last seen</th><th></th>
+    </tr></thead><tbody></tbody></table></div>
+    <p class="small muted" style="margin-top:8px">Names you type are remembered. Vendor comes from the MAC address; Deco shows friendlier names and wired/Wi-Fi when it is set up in Settings.</p>
+  </section>
+
+  <section id="tab-settings" hidden class="settings">
+    <div class="card">
+      <h3>Add a printer by address</h3>
+      <p class="small muted" style="margin-top:0">Printers are found automatically. Use this only if one is missing (e.g. it is on another subnet).</p>
+      <div class="row">
+        <input id="addHost" placeholder="192.168.68.25 or hp9a1b2c.local" class="mono" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)">
+        <input id="addName" placeholder="Name (e.g. Upstairs)" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)">
+        <button class="btn primary" id="addBtn">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>TP-Link Deco</h3>
+      <p class="small muted" style="margin-top:0">Shows your Deco units, every client with the name from the Deco app, wired vs Wi-Fi, and the WAN address. Uses the Deco's local web API with the admin password from the Deco app. Nothing leaves your house. <b>Experimental</b>: if it fails, the error shows here.</p>
+      <label class="check"><input type="checkbox" id="decoEnabled"> Enable Deco integration</label>
+      <div class="field"><label>Deco address (usually your gateway)</label><input id="decoHost" class="mono" placeholder="192.168.68.1"></div>
+      <div class="field"><label>Deco admin password</label><input id="decoPass" type="password" placeholder="••••••••"></div>
+      <div class="row"><button class="btn primary" id="decoSave">Save &amp; test</button><span id="decoNote" class="small muted"></span></div>
+    </div>
+    <div class="card">
+      <h3>Network scan</h3>
+      <label class="check"><input type="checkbox" id="netEnabled"> Scan the LAN for devices</label>
+      <div class="field"><label>Subnet (blank = detect automatically)</label><input id="subnet" class="mono" placeholder="192.168.68.0/24"></div>
+      <div class="field"><label>Scan every (minutes)</label><input id="sweepMin" type="number" min="1" max="120"></div>
+      <div class="field"><label>Ask printers for status every (seconds)</label><input id="pollSec" type="number" min="10" max="600"></div>
+      <div class="row"><button class="btn primary" id="netSave">Save</button><span id="netNote" class="small muted"></span></div>
+    </div>
+    <div class="card">
+      <h3>Shortcut for other PCs</h3>
+      <p class="small" style="margin:0">On every computer, open <b id="selfUrl" class="mono"></b> and drag the padlock/page icon from the address bar to the desktop, or use the <code>Home Hub.url</code> file the installer made. Phones: Share → Add to Home Screen.</p>
+    </div>
+  </section>
+
+  <div class="footer">Home Hub <span id="ver"></span> · runs on this PC only; nothing is sent anywhere except the vendor list download and the WAN address check.</div>
+</div>
+
+<!-- Scan modal -->
+<div class="modal-bg" id="scanModal">
+  <div class="modal">
+    <h3>Scan from <span id="scanPrinterName"></span></h3>
+    <div id="scanStatus" class="small muted" style="margin-bottom:10px">Checking the scanner…</div>
+    <div class="field"><label>Source</label><select id="scanSource"></select></div>
+    <div class="field"><label>Colour</label><select id="scanColor"></select></div>
+    <div class="field"><label>Resolution</label><select id="scanRes"></select></div>
+    <div class="field"><label>Save as</label><select id="scanFmt"><option value="pdf">PDF</option><option value="jpeg">JPEG</option></select></div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn" id="scanCancel">Cancel</button>
+      <button class="btn primary" id="scanGo">Scan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Print modal -->
+<div class="modal-bg" id="printModal">
+  <div class="modal">
+    <h3>Print to <span id="printPrinterName"></span></h3>
+    <div class="field"><label>File (PDF, JPEG, PNG or plain text)</label><input type="file" id="printFile" accept=".pdf,.jpg,.jpeg,.png,.txt,application/pdf,image/jpeg,image/png,text/plain"></div>
+    <div class="field"><label>Copies</label><input type="number" id="printCopies" value="1" min="1" max="99"></div>
+    <p class="small muted">Word, Excel and web pages: use Print → Save as PDF in that app first, then send the PDF here.</p>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn" id="printCancel">Cancel</button>
+      <button class="btn primary" id="printGo">Print</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let state = null, scanTarget = null, printTarget = null;
+
+// ---------- helpers
+function toast(msg, ms = 3500){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), ms); }
+async function api(path, opts = {}){
+  const r = await fetch(path, Object.assign({headers: opts.body && !(opts.body instanceof FormData) ? {'Content-Type':'application/json'} : {}}, opts));
+  if (!r.ok){ let m = r.statusText; try { m = (await r.json()).detail || m; } catch(e){} throw new Error(m); }
+  const ct = r.headers.get('content-type') || '';
+  return ct.includes('json') ? r.json() : r;
+}
+function ago(ts){ if(!ts) return 'never'; const s = Math.max(0, Date.now()/1000 - ts); if (s < 60) return 'just now'; if (s < 3600) return Math.round(s/60) + ' min ago'; if (s < 86400) return Math.round(s/3600) + ' h ago'; return Math.round(s/86400) + ' d ago'; }
+function dur(sec){ if(sec==null) return ''; const d=Math.floor(sec/86400), h=Math.floor(sec%86400/3600), m=Math.floor(sec%3600/60); return d?`${d}d ${h}h`:h?`${h}h ${m}m`:`${m}m`; }
+
+const STATE = {
+  ready:    {cls:'good',    icon:'✔', label:'Ready'},
+  printing: {cls:'info',    icon:'⇶', label:'Busy'},
+  sleeping: {cls:'neutral', icon:'☾', label:'Sleeping'},
+  attention:{cls:'warn',    icon:'⚠', label:'Needs attention'},
+  offline:  {cls:'bad',     icon:'✖', label:'Not responding'},
+  waking:   {cls:'info',    icon:'',  label:'Waking up'},
+  unknown:  {cls:'neutral', icon:'…', label:'Checking'},
+};
+
+// ---------- printers
+function renderPrinters(){
+  const el = $('#printers');
+  const ps = state.printers;
+  if (!ps.length){
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1">${state.discovering ? '<span class="spin"></span> Looking for printers on the network…' : 'No printers found yet. Make sure they are on the same Wi-Fi/LAN and switched on, then click "Look for printers again". You can also add one by address under Settings.'}</div>`;
+    return;
+  }
+  el.innerHTML = ps.map(p => {
+    const st = STATE[p.state] || STATE.unknown;
+    const waking = p.state === 'waking';
+    const busy = waking || p.state === 'printing';
+    const supplies = (p.supplies || []).map(s => {
+      const lvl = s.level == null ? null : Math.max(0, Math.min(100, s.level));
+      const warn = lvl != null && lvl <= 10;
+      return `<div class="supply" title="${esc(s.state || '')}">
+        <span class="name">${esc(s.name)}</span>
+        <span class="meter" role="meter" aria-valuenow="${lvl ?? ''}" aria-valuemin="0" aria-valuemax="100" aria-label="${esc(s.name)}"><i style="width:${lvl ?? 0}%;background:${esc(s.color)}"></i></span>
+        <span class="pct ${warn ? 'bad' : ''}" style="background:none">${lvl == null ? '—' : lvl + '%'}${warn ? ' ⚠' : ''}</span>
+      </div>`;
+    }).join('');
+    const msgs = (p.messages || []).filter(Boolean).slice(0, 4).map(m => `<li>${esc(m)}</li>`).join('');
+    const d = p.details || {};
+    const pages = d.pages || {};
+    const wakeNote = p.wake && !p.wake.active && p.wake.result ? ({awake:'Awake ✔', answering:'Answering ✔', timeout:'Did not answer within 90 s. It is probably switched off at the power button.'}[p.wake.result] || '') : '';
+    return `<article class="card" data-id="${esc(p.id)}">
+      <h2><input value="${esc(p.name)}" data-rename="${esc(p.id)}" title="Click to rename" aria-label="Printer name"></h2>
+      <div class="model">${esc(p.model || p.hostname || p.host)} · <span class="mono">${esc(p.host)}</span></div>
+      <div class="state row">
+        <span class="pill ${st.cls}">${waking ? '<span class="spin"></span>' : st.icon} ${st.label}</span>
+        ${p.can_scan ? '<span class="pill neutral" title="This printer can scan">⎙ scanner</span>' : ''}
+      </div>
+      <div class="summary">${esc(waking ? `Poking it… attempt ${p.wake.attempts}` : p.summary)}${wakeNote && !waking ? ` <span class="muted">· ${esc(wakeNote)}</span>` : ''}</div>
+      ${msgs ? `<ul class="msgs">${msgs}</ul>` : ''}
+      ${supplies ? `<div class="supplies">${supplies}</div>` : ''}
+      <div class="actions">
+        <button class="btn primary" data-act="wake" ${waking ? 'disabled' : ''}>⏻ Wake</button>
+        <button class="btn" data-act="refresh" title="Ask for status now">↻</button>
+        <button class="btn" data-act="testpage" ${busy ? 'disabled' : ''}>Test page</button>
+        <button class="btn" data-act="print" ${busy ? 'disabled' : ''}>Print a file…</button>
+        ${p.can_scan ? `<button class="btn" data-act="scan" ${busy ? 'disabled' : ''}>Scan…</button>` : ''}
+        <a class="btn" href="${esc(p.admin_url)}" target="_blank" rel="noopener" title="The printer's own web page">Printer page ↗</a>
+      </div>
+      <details class="more"><summary>Details</summary>
+        <dl>
+          ${d.serial ? `<dt>Serial</dt><dd class="mono">${esc(d.serial)}</dd>` : ''}
+          ${d.product_number ? `<dt>Product no.</dt><dd class="mono">${esc(d.product_number)}</dd>` : ''}
+          ${d.firmware ? `<dt>Firmware</dt><dd class="mono">${esc(d.firmware)}</dd>` : ''}
+          ${pages.total_pages != null ? `<dt>Pages printed</dt><dd>${pages.total_pages.toLocaleString()}${pages.color_pages != null ? ` (${pages.color_pages.toLocaleString()} colour)` : ''}</dd>` : ''}
+          ${pages.scans != null ? `<dt>Scans</dt><dd>${pages.scans.toLocaleString()}</dd>` : ''}
+          ${pages.jams != null ? `<dt>Jams, ever</dt><dd>${pages.jams}</dd>` : ''}
+          ${d.media_ready && d.media_ready.length ? `<dt>Paper loaded</dt><dd>${esc(d.media_ready.join(', '))}</dd>` : ''}
+          ${d.sides && d.sides.includes('two-sided-long-edge') ? `<dt>Duplex</dt><dd>yes</dd>` : ''}
+          ${d.up_time_seconds != null ? `<dt>Up for</dt><dd>${dur(d.up_time_seconds)}</dd>` : ''}
+          ${p.mac ? `<dt>MAC</dt><dd class="mono">${esc(p.mac)}</dd>` : ''}
+          ${p.hostname ? `<dt>Hostname</dt><dd class="mono">${esc(p.hostname)}</dd>` : ''}
+          <dt>Last answered</dt><dd>${ago(p.last_ok)}</dd>
+          ${p.last_error ? `<dt>Last error</dt><dd class="mono small">${esc(p.last_error)}</dd>` : ''}
+        </dl>
+        <div class="row" style="margin-top:10px"><button class="btn sm" data-act="remove">Remove from list</button></div>
+      </details>
+    </article>`;
+  }).join('');
+}
+
+$('#printers').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const card = b.closest('article'); const id = card.dataset.id; const act = b.dataset.act;
+  const p = state.printers.find(x => x.id === id);
+  try {
+    if (act === 'wake'){ await api(`/api/printers/${id}/wake`, {method:'POST'}); toast('Poking the printer… this can take up to a minute.'); refresh(); }
+    else if (act === 'refresh'){ b.disabled = true; await api(`/api/printers/${id}/refresh`, {method:'POST'}); refresh(); }
+    else if (act === 'testpage'){ b.disabled = true; b.textContent = 'Sending…'; await api(`/api/printers/${id}/testpage`, {method:'POST'}); toast('Test page sent ✔'); refresh(); }
+    else if (act === 'print'){ printTarget = p; $('#printPrinterName').textContent = p.name; $('#printFile').value = ''; $('#printModal').classList.add('open'); }
+    else if (act === 'scan'){ openScan(p); }
+    else if (act === 'remove'){ if (confirm(`Remove "${p.name}" from the list? It will come back if discovery finds it again.`)){ await api(`/api/printers/${id}`, {method:'DELETE'}); refresh(); } }
+  } catch (err){ toast('✖ ' + err.message, 6000); refresh(); }
+});
+$('#printers').addEventListener('change', async e => {
+  const inp = e.target.closest('input[data-rename]'); if (!inp) return;
+  try { await api(`/api/printers/${inp.dataset.rename}`, {method:'PATCH', body: JSON.stringify({name: inp.value})}); toast('Renamed'); refresh(); } catch(err){ toast('✖ ' + err.message); }
+});
+$('#printers').addEventListener('keydown', e => { if (e.target.matches('input[data-rename]') && e.key === 'Enter') e.target.blur(); });
+
+$('#discoverBtn').addEventListener('click', async () => {
+  const b = $('#discoverBtn'); b.disabled = true; $('#discoverNote').innerHTML = '<span class="spin"></span> listening for 5 seconds…';
+  try { const r = await api('/api/printers/discover', {method:'POST'}); $('#discoverNote').textContent = r.new ? `Found ${r.new} new` : 'Nothing new found'; }
+  catch(err){ $('#discoverNote').textContent = err.message; }
+  b.disabled = false; refresh();
+});
+
+// print modal
+$('#printCancel').onclick = () => $('#printModal').classList.remove('open');
+$('#printGo').onclick = async () => {
+  const f = $('#printFile').files[0]; if (!f){ toast('Choose a file first'); return; }
+  const fd = new FormData(); fd.append('file', f); fd.append('copies', $('#printCopies').value || 1);
+  const b = $('#printGo'); b.disabled = true; b.innerHTML = '<span class="spin"></span> Sending…';
+  try { await api(`/api/printers/${printTarget.id}/print`, {method:'POST', body: fd}); toast(`Sent "${f.name}" to ${printTarget.name} ✔`); $('#printModal').classList.remove('open'); }
+  catch(err){ toast('✖ ' + err.message, 7000); }
+  b.disabled = false; b.textContent = 'Print'; refresh();
+};
+
+// scan modal
+async function openScan(p){
+  scanTarget = p; $('#scanPrinterName').textContent = p.name; $('#scanModal').classList.add('open');
+  $('#scanStatus').innerHTML = '<span class="spin"></span> Checking the scanner…'; $('#scanGo').disabled = true;
+  try {
+    const info = await api(`/api/printers/${p.id}/scanner`);
+    const caps = info.capabilities || {};
+    const fill = (sel, items, fmt, def) => { sel.innerHTML = items.map(i => `<option value="${esc(fmt(i).v)}" ${fmt(i).v == def ? 'selected' : ''}>${esc(fmt(i).l)}</option>`).join(''); };
+    fill($('#scanSource'), caps.sources || [{id:'Platen',label:'Flatbed'}], s => ({v:s.id, l:s.label}), 'Platen');
+    const colorLabels = {RGB24:'Colour', Grayscale8:'Greyscale', BlackAndWhite1:'Black & white'};
+    fill($('#scanColor'), caps.color_modes || ['RGB24','Grayscale8'], c => ({v:c, l: colorLabels[c] || c}), 'RGB24');
+    fill($('#scanRes'), (caps.resolutions || [150,200,300,600]).filter(r => r >= 75 && r <= 600), r => ({v:r, l: r + ' dpi' + (r === 300 ? ' (recommended)' : '')}), 300);
+    const st = info.status || {};
+    if (info.error && !info.capabilities){ $('#scanStatus').textContent = 'Scanner not answering: ' + info.error; return; }
+    $('#scanStatus').textContent = st.state ? `Scanner is ${st.state.toLowerCase()}${st.adf_state ? ' · feeder: ' + st.adf_state.replace('ScannerAdf', '').toLowerCase() : ''}` : 'Scanner ready';
+    $('#scanGo').disabled = st.state === 'Processing';
+  } catch(err){ $('#scanStatus').textContent = 'Could not reach the scanner: ' + err.message; }
+}
+$('#scanCancel').onclick = () => $('#scanModal').classList.remove('open');
+$('#scanGo').onclick = async () => {
+  const q = new URLSearchParams({source: $('#scanSource').value, color: $('#scanColor').value, resolution: $('#scanRes').value, format: $('#scanFmt').value});
+  const b = $('#scanGo'); b.disabled = true; b.innerHTML = '<span class="spin"></span> Scanning…'; $('#scanStatus').textContent = 'Scanning… the file will download when it is done.';
+  try {
+    const r = await fetch(`/api/printers/${scanTarget.id}/scan?${q}`, {method:'POST'});
+    if (!r.ok){ let m = r.statusText; try { m = (await r.json()).detail || m; } catch(e){} throw new Error(m); }
+    const blob = await r.blob();
+    const cd = r.headers.get('content-disposition') || ''; const m = cd.match(/filename="([^"]+)"/);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = m ? m[1] : 'scan'; document.body.appendChild(a); a.click(); a.remove();
+    toast('Scan finished ✔ (check your Downloads folder)'); $('#scanModal').classList.remove('open');
+  } catch(err){ $('#scanStatus').textContent = '✖ ' + err.message; }
+  b.disabled = false; b.textContent = 'Scan'; refresh();
+};
+
+// ---------- network
+function renderNetwork(){
+  const n = state.network; const i = n.internet || {};
+  const pill = $('#netpill');
+  if (i.checked_at){ pill.className = 'pill ' + (i.online ? 'good' : 'bad'); pill.innerHTML = `<span class="dot"></span>${i.online ? 'Internet OK' : 'Internet DOWN'}${i.internet_ping_ms != null ? ` · ${Math.round(i.internet_ping_ms)} ms` : ''}`; }
+  const stat = (label, value, sub, cls) => `<div class="stat"><div class="label">${label}</div><div class="value ${cls || ''}" style="background:none">${value}</div><div class="sub">${sub || ''}</div></div>`;
+  const gwOk = i.gateway_ms != null;
+  $('#netstats').innerHTML =
+    stat('Internet', i.checked_at ? (i.online ? '✔ Online' : '✖ Down') : '…', i.internet_ping_ms != null ? `${Math.round(i.internet_ping_ms)} ms to 1.1.1.1` : (i.online ? 'ping blocked, web reachable' : 'no reply from the outside'), i.checked_at ? (i.online ? 'good' : 'bad') : '') +
+    stat('Router', gwOk ? `${Math.round(i.gateway_ms)} ms` : (i.gateway ? '✖ no reply' : '…'), i.gateway ? `<span class="mono">${esc(i.gateway)}</span>` : 'gateway not found', gwOk ? (i.gateway_ms > 50 ? 'warn' : 'good') : (i.gateway ? 'bad' : '')) +
+    stat('Public address', n.wan_ip ? `<span class="mono" style="font-size:17px">${esc(n.wan_ip)}</span>` : '…', n.deco && n.deco.wan && n.deco.wan.dial_type ? 'via ' + esc(n.deco.wan.dial_type) : 'what the internet sees') +
+    stat('Devices online', n.online_count, `${n.device_count} known · subnet <span class="mono">${esc(n.subnet || '?')}</span>`) +
+    (n.deco && n.deco.enabled ? stat('Deco mesh', n.deco.ok ? `${(n.deco.nodes||[]).filter(x=>x.online).length}/${(n.deco.nodes||[]).length} units` : '✖ error', n.deco.ok ? `${(n.deco.clients||[]).filter(c=>c.online).length} clients on Deco` : esc(n.deco.error || ''), n.deco.ok ? 'good' : 'bad') : '');
+
+  // Deco nodes
+  const d = n.deco || {};
+  $('#deco').innerHTML = d.enabled && d.nodes && d.nodes.length ? `<div class="section-head"><h3>Deco units</h3><span class="small muted">${d.ok ? 'updated ' + ago(d.checked_at) : esc(d.error || '')}</span></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr));margin-bottom:6px">${d.nodes.map(x => `<div class="card" style="padding:12px 14px">
+      <div class="row"><span class="dot" style="background:var(--${x.online ? 'good' : 'bad'})"></span><b>${esc(x.name || x.model)}</b> <span class="pill neutral" style="margin-left:auto">${esc(x.role || '')}</span></div>
+      <div class="small muted">${esc(x.model || '')} · <span class="mono">${esc(x.ip || '')}</span></div>
+      <div class="small">${x.connection ? esc(x.connection) : ''}${x.signal != null ? ` · signal ${esc(x.signal)}` : ''}${x.fw ? ` · fw ${esc(x.fw)}` : ''}</div>
+    </div>`).join('')}</div>` : (d.enabled && !d.ok ? `<div class="card" style="margin-bottom:12px"><b>Deco:</b> <span class="bad" style="background:none">${esc(d.error || 'not working yet')}</span> <span class="small muted">— check the address and password under Settings.</span></div>` : '');
+
+  $('#sweepNote').innerHTML = n.sweeping ? '<span class="spin"></span> scanning…' : (n.last_sweep ? 'scanned ' + ago(n.last_sweep) : 'not scanned yet');
+  const showOff = $('#showOffline').checked;
+  const rows = n.devices.filter(x => showOff || x.online).map(x => {
+    const conn = {wired:'🔌 wired', band2_4:'📶 2.4 GHz', band5:'📶 5 GHz', band6:'📶 6 GHz'}[x.connection] || (x.connection ? esc(x.connection) : '');
+    const title = x.name || x.hostname || (x.is_me ? 'This PC (Home Hub)' : '') || '';
+    return `<tr class="${x.online ? '' : 'off'}" data-mac="${esc(x.mac)}">
+      <td><span class="dot" style="background:var(--${x.online ? 'good' : 'neutral'})" title="${x.online ? 'online' : 'offline'}"></span></td>
+      <td><input value="${esc(x.name || '')}" placeholder="${esc(x.hostname || (x.is_me ? 'this PC' : 'unnamed'))}" data-name="${esc(x.mac)}" aria-label="Device name" title="Type a name you'll recognise">${x.hostname && x.name ? `<div class="small muted">${esc(x.hostname)}</div>` : ''}</td>
+      <td class="mono">${esc(x.ip || '')}</td>
+      <td>${esc(x.vendor || '')}${x.deco_type ? `<div class="small muted">${esc(x.deco_type)}</div>` : ''}</td>
+      <td class="small">${conn}</td>
+      <td class="mono small">${x.mac === 'self' ? '' : esc(x.mac)}</td>
+      <td class="small">${x.online ? 'now' : ago(x.last_seen)}</td>
+      <td>${x.online ? '' : `<button class="btn sm" data-forget="${esc(x.mac)}" title="Forget this device">✕</button>`}</td>
+    </tr>`;
+  }).join('');
+  $('#devices tbody').innerHTML = rows || `<tr><td colspan="8" class="muted">${n.sweeping ? 'Scanning the network…' : 'No devices yet. Click "Scan now".'}</td></tr>`;
+}
+$('#devices').addEventListener('change', async e => {
+  const inp = e.target.closest('input[data-name]'); if (!inp) return;
+  try { await api(`/api/network/devices/${encodeURIComponent(inp.dataset.name)}`, {method:'PATCH', body: JSON.stringify({name: inp.value})}); toast('Saved'); } catch(err){ toast('✖ ' + err.message); }
+});
+$('#devices').addEventListener('keydown', e => { if (e.target.matches('input[data-name]') && e.key === 'Enter') e.target.blur(); });
+$('#devices').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-forget]'); if (!b) return;
+  try { await api(`/api/network/devices/${encodeURIComponent(b.dataset.forget)}`, {method:'DELETE'}); refresh(); } catch(err){ toast('✖ ' + err.message); }
+});
+$('#showOffline').addEventListener('change', () => { try { localStorage.setItem('hh.showOffline', $('#showOffline').checked ? '1' : ''); } catch(e){} renderNetwork(); });
+$('#sweepBtn').addEventListener('click', async () => { await api('/api/network/scan', {method:'POST'}); toast('Scanning the network (about 30 s)…'); setTimeout(refresh, 1500); });
+
+// ---------- settings
+function renderSettings(){
+  const s = state.settings;
+  if (document.activeElement && document.activeElement.closest('#tab-settings')) return; // don't clobber typing
+  $('#decoEnabled').checked = !!s.deco.enabled; $('#decoHost').value = s.deco.host || ''; $('#decoPass').value = s.deco.password || '';
+  $('#netEnabled').checked = !!s.network.enabled; $('#subnet').value = s.network.subnet || ''; $('#sweepMin').value = s.network.sweep_minutes; $('#pollSec').value = s.poll_seconds;
+  $('#selfUrl').textContent = location.origin;
+}
+$('#decoSave').onclick = async () => {
+  $('#decoNote').innerHTML = '<span class="spin"></span> saving and testing…';
+  try {
+    await api('/api/settings', {method:'PUT', body: JSON.stringify({deco: {enabled: $('#decoEnabled').checked, host: $('#decoHost').value, password: $('#decoPass').value}})});
+    const r = await api('/api/deco/refresh', {method:'POST'});
+    $('#decoNote').textContent = !r.enabled ? 'Saved (disabled)' : r.ok ? `✔ Working: ${r.nodes.length} Deco unit(s), ${r.clients.length} clients` : '✖ ' + r.error;
+  } catch(err){ $('#decoNote').textContent = '✖ ' + err.message; }
+  refresh();
+};
+$('#netSave').onclick = async () => {
+  try {
+    await api('/api/settings', {method:'PUT', body: JSON.stringify({network: {enabled: $('#netEnabled').checked, subnet: $('#subnet').value, sweep_minutes: +$('#sweepMin').value}, poll_seconds: +$('#pollSec').value})});
+    $('#netNote').textContent = 'Saved ✔';
+  } catch(err){ $('#netNote').textContent = '✖ ' + err.message; }
+};
+$('#addBtn').onclick = async () => {
+  try { await api('/api/printers', {method:'POST', body: JSON.stringify({host: $('#addHost').value, name: $('#addName').value})}); toast('Added'); $('#addHost').value = ''; $('#addName').value = ''; showTab('printers'); refresh(); }
+  catch(err){ toast('✖ ' + err.message); }
+};
+
+// ---------- tabs, theme, refresh loop
+function showTab(name){
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  ['printers','network','settings'].forEach(t => $('#tab-' + t).hidden = t !== name);
+  try { localStorage.setItem('hh.tab', name); } catch(e){}
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+$('#themeBtn').onclick = () => {
+  const cur = document.documentElement.dataset.theme; const next = cur === 'dark' ? 'light' : cur === 'light' ? '' : 'dark';
+  if (next) document.documentElement.dataset.theme = next; else delete document.documentElement.dataset.theme;
+  try { localStorage.setItem('hh.theme', next); } catch(e){}
+};
+try {
+  const th = localStorage.getItem('hh.theme'); if (th) document.documentElement.dataset.theme = th;
+  const tab = localStorage.getItem('hh.tab'); if (tab) showTab(tab);
+  $('#showOffline').checked = !!localStorage.getItem('hh.showOffline');
+} catch(e){}
+
+let failures = 0;
+async function refresh(){
+  try {
+    state = await api('/api/overview');
+    failures = 0;
+    renderPrinters(); renderNetwork(); renderSettings();
+    $('#updated').textContent = 'updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    $('#ver').textContent = 'v' + state.version;
+  } catch(err){
+    failures++;
+    $('#updated').textContent = 'cannot reach the Home Hub server (' + err.message + ')';
+    if (failures === 3) toast('The Home Hub server is not answering. Is it running on the always-on PC?', 8000);
+  }
+}
+refresh();
+setInterval(() => { if (!document.hidden) refresh(); }, 10000);
+setInterval(() => { if (state && state.printers.some(p => p.state === 'waking')) refresh(); }, 3000);
+</script>
+</body>
+</html>

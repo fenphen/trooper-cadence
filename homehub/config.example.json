@@ -1,0 +1,11 @@
+{
+  "port": 8080,
+  "bind": "0.0.0.0",
+  "poll_seconds": 30,
+  "discovery_minutes": 10,
+  "printers": [],
+  "printer_names": {},
+  "network": { "enabled": true, "subnet": null, "sweep_minutes": 5 },
+  "deco": { "enabled": false, "host": "192.168.68.1", "username": "admin", "password": "" },
+  "oui_download": true
+}
