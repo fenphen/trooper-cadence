@@ -39,6 +39,17 @@ built-in web API for ink levels and page counts).
 
 ## Setting it up on the always-on Windows PC
 
+**Fastest way:** open PowerShell on that PC (Start → type `powershell` → Enter) and paste:
+
+```powershell
+irm https://raw.githubusercontent.com/fenphen/trooper-cadence/claude/home-printer-network-dashboard-jh14d2/homehub/bootstrap.ps1 | iex
+```
+
+That installs Python if it is missing, downloads this folder to `C:\HomeHub`, and runs the installer
+below. Running it again later updates the files and keeps your settings.
+
+**By hand:**
+
 1. Install Python 3.10 or newer from <https://www.python.org/downloads/windows/>. Tick
    **"Add python.exe to PATH"** in the installer.
 2. Download this folder (`homehub/`) to the PC, e.g. `C:\HomeHub`. (On GitHub: **Code → Download
