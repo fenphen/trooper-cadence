@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Broward Live Map</title>
+<meta name="description" content="Live webcams, traffic cameras, cities, demographics and crime across Broward County, Florida, on one map.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230f766e'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23fff'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%230f766e'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" crossorigin="anonymous">
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#fff; --surface-2:#eef1f5; --border:#d9dee6; --text:#111827; --text-2:#4b5563; --muted:#8b93a1;
+    --accent:#0f766e; --accent-text:#fff;
+    --traffic:#2563eb; --beach:#0891b2; --marina:#7c3aed; --port:#b45309; --airport:#475569; --downtown:#db2777; --weather:#65a30d; --nature:#15803d; --attraction:#ea580c; --other:#6b7280;
+    --shadow:0 1px 2px rgba(16,24,40,.08),0 4px 12px rgba(16,24,40,.08);
+    --font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#0f1318; --surface:#171c23; --surface-2:#1f252e; --border:#2a313b; --text:#e8ecf1; --text-2:#b4bcc7; --muted:#7c8694; --accent:#2dd4bf; --accent-text:#06201c;
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.4);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0f1318; --surface:#171c23; --surface-2:#1f252e; --border:#2a313b; --text:#e8ecf1; --text-2:#b4bcc7; --muted:#7c8694; --accent:#2dd4bf; --accent-text:#06201c;
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+  button{font:inherit;cursor:pointer}
+  #map{position:absolute;inset:0}
+  /* ---- top bar */
+  .topbar{position:absolute;top:10px;left:10px;right:10px;z-index:1000;display:flex;gap:8px;align-items:center;pointer-events:none}
+  .topbar > *{pointer-events:auto}
+  .brand{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:8px;font-weight:700;white-space:nowrap}
+  .brand .sub{font-weight:400;color:var(--muted);font-size:12px}
+  .search{flex:1;max-width:420px;display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+  .search input{flex:1;border:0;background:transparent;color:var(--text);padding:9px 12px;font:inherit;min-width:0}
+  .search input:focus{outline:none}
+  .iconbtn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 10px;box-shadow:var(--shadow);color:var(--text);font-weight:600;white-space:nowrap}
+  .iconbtn.active{background:var(--accent);color:var(--accent-text);border-color:transparent}
+  /* ---- layers panel */
+  .panel{position:absolute;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:auto}
+  #layers{top:60px;left:10px;width:270px;max-height:calc(100% - 100px);padding:10px 12px}
+  #layers h3{margin:6px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .lrow{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}
+  .lrow label{display:flex;align-items:center;gap:8px;flex:1;cursor:pointer}
+  .lrow .count{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
+  .sw{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+  .lrow.soon{color:var(--muted)}
+  .lrow.soon .tag{font-size:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:1px 6px}
+  select.city{width:100%;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:inherit;margin:4px 0 6px}
+  .legendnote{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4}
+  /* ---- viewer */
+  #viewer{top:60px;right:10px;width:min(520px,calc(100% - 20px));max-height:calc(100% - 100px);display:none;flex-direction:column}
+  #viewer.open{display:flex}
+  #viewer .vh{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
+  #viewer .vh b{font-size:15px;display:block}
+  #viewer .vh .meta{color:var(--text-2);font-size:12px;margin-top:2px}
+  #viewer .close{margin-left:auto;background:none;border:0;color:var(--muted);font-size:20px;line-height:1;padding:0 4px}
+  .frame{position:relative;background:#000;aspect-ratio:16/9;width:100%}
+  .frame iframe,.frame video,.frame img{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:contain;background:#000}
+  .frame .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ccc;text-align:center;padding:20px;font-size:13px}
+  .vfoot{display:flex;gap:8px;align-items:center;padding:8px 12px;font-size:12px;color:var(--text-2);flex-wrap:wrap}
+  .vfoot a{color:var(--accent);font-weight:600;text-decoration:none}
+  .vfoot .spacer{flex:1}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2)}
+  /* ---- markers */
+  .cam-pin{width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.3)}
+  .cam-pin.live::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid currentColor;opacity:.5;animation:pulse 2s infinite}
+  @keyframes pulse{0%{transform:scale(.6);opacity:.7}100%{transform:scale(1.3);opacity:0}}
+  .marker-cluster-small{background:rgba(15,118,110,.25)} .marker-cluster-small div{background:rgba(15,118,110,.8);color:#fff}
+  .marker-cluster-medium{background:rgba(15,118,110,.25)} .marker-cluster-medium div{background:rgba(15,118,110,.85);color:#fff}
+  .marker-cluster-large{background:rgba(15,118,110,.25)} .marker-cluster-large div{background:rgba(15,118,110,.9);color:#fff}
+  .leaflet-popup-content-wrapper{border-radius:10px;background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+  .leaflet-popup-tip{background:var(--surface)}
+  .leaflet-popup-content{margin:10px 12px;font-size:13px}
+  .leaflet-popup-content b{display:block;margin-bottom:2px}
+  .leaflet-popup-content .thumb{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;margin:6px 0;background:#000;display:block}
+  .leaflet-popup-content button{margin-top:4px;background:var(--accent);color:var(--accent-text);border:0;border-radius:6px;padding:6px 10px;font-weight:600}
+  .leaflet-control-zoom a,.leaflet-control-layers{background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important}
+  .leaflet-control-layers{border-radius:10px!important;box-shadow:var(--shadow)!important}
+  .leaflet-container{font-family:var(--font)}
+  .leaflet-control-attribution{background:rgba(255,255,255,.75)!important;font-size:10px}
+  :root[data-theme="dark"] .leaflet-control-attribution,:root:not([data-theme="light"]) .leaflet-control-attribution{background:rgba(23,28,35,.8)!important;color:#aaa!important}
+  :root[data-theme="dark"] .leaflet-control-attribution a{color:#8fd}
+  :root[data-theme="dark"] .leaflet-tile-pane.streets{filter:brightness(.85) contrast(1.05) saturate(.85)}
+  .status{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-size:12px;color:var(--text-2);box-shadow:var(--shadow);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+  @media (max-width:700px){
+    #layers{width:calc(100% - 20px);max-height:40%;display:none} #layers.open{display:block}
+    #viewer{top:auto;bottom:0;right:0;width:100%;max-height:70%;border-radius:12px 12px 0 0}
+    .brand .sub{display:none} .search{max-width:none}
+    .status{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="map" role="application" aria-label="Map of Broward County"></div>
+
+<div class="topbar">
+  <div class="brand">📍 Broward Live <span class="sub">cams · cities · crime</span></div>
+  <div class="search"><input id="q" type="search" placeholder="Search cameras, roads, cities…" aria-label="Search"></div>
+  <button class="iconbtn" id="layersBtn" title="Layers">☰ Layers</button>
+  <button class="iconbtn" id="satBtn" title="Satellite view">🛰 Satellite</button>
+  <button class="iconbtn" id="themeBtn" title="Light/dark">◐</button>
+</div>
+
+<aside id="layers" class="panel" aria-label="Layers and filters">
+  <h3>Cameras</h3>
+  <div id="camTypes"></div>
+  <h3>City</h3>
+  <select class="city" id="cityFilter"><option value="">All of Broward</option></select>
+  <h3>Coming next</h3>
+  <div class="lrow soon"><label><input type="checkbox" disabled> Cities &amp; boundaries</label><span class="tag">phase 2</span></div>
+  <div class="lrow soon"><label><input type="checkbox" disabled> Demographics</label><span class="tag">phase 2</span></div>
+  <div class="lrow soon"><label><input type="checkbox" disabled> Crime incidents &amp; heat</label><span class="tag">phase 3</span></div>
+  <div class="lrow soon"><label><input type="checkbox" disabled> Economy &amp; employers</label><span class="tag">phase 4</span></div>
+  <div class="legendnote" id="dataNote">Loading camera list…</div>
+</aside>
+
+<aside id="viewer" class="panel" aria-label="Camera viewer">
+  <div class="vh"><div><b id="vTitle"></b><div class="meta" id="vMeta"></div></div><button class="close" id="vClose" aria-label="Close">×</button></div>
+  <div class="frame" id="vFrame"></div>
+  <div class="vfoot" id="vFoot"></div>
+</aside>
+
+<div class="status" id="status">Loading…</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.15/hls.min.js" crossorigin="anonymous"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TYPES = {
+  traffic:   {label:'Traffic (FDOT)', color:'var(--traffic)'},
+  beach:     {label:'Beach & pier',   color:'var(--beach)'},
+  marina:    {label:'Marina & Intracoastal', color:'var(--marina)'},
+  port:      {label:'Port Everglades', color:'var(--port)'},
+  airport:   {label:'Airport', color:'var(--airport)'},
+  downtown:  {label:'Downtown & city', color:'var(--downtown)'},
+  weather:   {label:'Weather stations', color:'var(--weather)'},
+  nature:    {label:'Nature & wildlife', color:'var(--nature)'},
+  attraction:{label:'Attractions', color:'var(--attraction)'},
+  other:     {label:'Other', color:'var(--other)'},
+};
+const BROWARD = [[25.95, -80.95],[26.40, -79.95]];
+
+// ---- map & basemaps
+const map = L.map('map', {zoomControl:false, minZoom:9, maxBounds:[[25.6,-81.4],[26.7,-79.6]]}).fitBounds([[25.96,-80.50],[26.35,-80.05]]);
+L.control.zoom({position:'bottomright'}).addTo(map);
+const streets = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {maxZoom:20, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'});
+const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:20, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'});
+const sat = L.layerGroup([
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:19, attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics'}),
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {maxZoom:20, pane:'overlayPane'}),
+]);
+let satOn = false;
+function isDark(){ const t = document.documentElement.dataset.theme; return t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches); }
+function applyBase(){
+  [streets, dark, sat].forEach(l => map.removeLayer(l));
+  (satOn ? sat : (isDark() ? dark : streets)).addTo(map);
+  $('#satBtn').classList.toggle('active', satOn);
+}
+$('#satBtn').onclick = () => { satOn = !satOn; applyBase(); try{localStorage.setItem('bl.sat', satOn?'1':'')}catch(e){} };
+$('#themeBtn').onclick = () => { const cur = document.documentElement.dataset.theme; const next = cur === 'dark' ? 'light' : cur === 'light' ? '' : 'dark'; if (next) document.documentElement.dataset.theme = next; else delete document.documentElement.dataset.theme; try{localStorage.setItem('bl.theme', next)}catch(e){}; applyBase(); };
+try { const t = localStorage.getItem('bl.theme'); if (t) document.documentElement.dataset.theme = t; satOn = !!localStorage.getItem('bl.sat'); } catch(e){}
+applyBase();
+$('#layersBtn').onclick = () => $('#layers').classList.toggle('open');
+
+// ---- cameras
+let cams = [], markers = new Map();
+const cluster = L.markerClusterGroup({maxClusterRadius: 40, disableClusteringAtZoom: 15, spiderfyOnMaxZoom: true, showCoverageOnHover: false});
+map.addLayer(cluster);
+const enabledTypes = new Set(Object.keys(TYPES));
+let cityFilter = '', query = '';
+
+function pinIcon(c){
+  const t = TYPES[c.type] || TYPES.other;
+  return L.divIcon({className:'', html:`<div class="cam-pin ${c.kind !== 'link' ? 'live' : ''}" style="background:${t.color};color:${t.color}"></div>`, iconSize:[14,14], iconAnchor:[7,7], popupAnchor:[0,-8]});
+}
+function matches(c){
+  if (!enabledTypes.has(c.type || 'other')) return false;
+  if (cityFilter && (c.city || '') !== cityFilter) return false;
+  if (query){ const q = query.toLowerCase(); if (!((c.name||'').toLowerCase().includes(q) || (c.city||'').toLowerCase().includes(q) || (c.operator||'').toLowerCase().includes(q) || (c.road||'').toLowerCase().includes(q))) return false; }
+  return true;
+}
+function rebuild(){
+  cluster.clearLayers(); markers.clear();
+  let n = 0;
+  for (const c of cams){
+    if (!matches(c)) continue;
+    const m = L.marker([c.lat, c.lon], {icon: pinIcon(c), title: c.name});
+    m.bindPopup(() => popupHtml(c), {maxWidth: 260});
+    m.on('popupopen', () => { const b = document.querySelector('.leaflet-popup button[data-view]'); if (b) b.onclick = () => openViewer(c); });
+    m.camId = c.id;
+    markers.set(c.id, m); cluster.addLayer(m); n++;
+  }
+  $('#status').textContent = `${n} of ${cams.length} cameras shown` + (cityFilter ? ` · ${cityFilter}` : '') + (query ? ` · "${query}"` : '');
+}
+function popupHtml(c){
+  const thumb = c.kind === 'image' ? `<img class="thumb" src="${esc(c.src)}${c.src.includes('?') ? '&' : '?'}t=${Date.now()}" alt="" loading="lazy" onerror="this.style.display='none'">` : (c.thumb ? `<img class="thumb" src="${esc(c.thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '');
+  return `<b>${esc(c.name)}</b><span class="pill">${esc((TYPES[c.type]||TYPES.other).label)}</span> ${c.city ? '<span class="pill">'+esc(c.city)+'</span>' : ''}${thumb}<button data-view="1">${c.kind === 'link' ? 'Open camera ↗' : '▶ Watch'}</button>`;
+}
+
+// ---- viewer
+let hls = null, imgTimer = null, current = null;
+function closeViewer(){ $('#viewer').classList.remove('open'); $('#vFrame').innerHTML = ''; if (hls){ hls.destroy(); hls = null; } clearInterval(imgTimer); current = null; history.replaceState(null, '', location.pathname + location.search); }
+$('#vClose').onclick = closeViewer;
+function openViewer(c){
+  if (c.kind === 'link'){ window.open(c.page || c.src, '_blank', 'noopener'); return; }
+  closeViewer(); current = c;
+  $('#viewer').classList.add('open');
+  $('#vTitle').textContent = c.name;
+  $('#vMeta').textContent = [c.operator, c.city, (TYPES[c.type]||TYPES.other).label].filter(Boolean).join(' · ');
+  const f = $('#vFrame'); f.innerHTML = '';
+  if (c.kind === 'youtube'){
+    const src = c.src.includes('/embed/') ? c.src : `https://www.youtube.com/embed/${c.src}`;
+    f.innerHTML = `<iframe src="${esc(src)}${src.includes('?') ? '&' : '?'}autoplay=1&mute=1&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${esc(c.name)}"></iframe>`;
+  } else if (c.kind === 'iframe'){
+    f.innerHTML = `<iframe src="${esc(c.src)}" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="no-referrer" title="${esc(c.name)}"></iframe>`;
+  } else if (c.kind === 'hls'){
+    const v = document.createElement('video'); v.controls = true; v.muted = true; v.autoplay = true; v.playsInline = true; f.appendChild(v);
+    if (v.canPlayType('application/vnd.apple.mpegurl')) v.src = c.src;
+    else if (window.Hls && Hls.isSupported()){ hls = new Hls({lowLatencyMode:true}); hls.loadSource(c.src); hls.attachMedia(v); hls.on(Hls.Events.ERROR, (e, d) => { if (d.fatal){ f.innerHTML = `<div class="msg">This stream would not play here (the owner may block other sites). <br><br><a href="${esc(c.page||c.src)}" target="_blank" rel="noopener" style="color:#8fd">Open it on the source site ↗</a></div>`; } }); }
+    else f.innerHTML = '<div class="msg">Your browser cannot play this stream.</div>';
+  } else if (c.kind === 'image'){
+    const img = document.createElement('img'); img.alt = c.name;
+    const load = () => { img.src = c.src + (c.src.includes('?') ? '&' : '?') + 't=' + Date.now(); };
+    img.onerror = () => { f.innerHTML = `<div class="msg">The snapshot did not load. The source may be offline or block other sites.<br><br><a href="${esc(c.page||c.src)}" target="_blank" rel="noopener" style="color:#8fd">Open it on the source site ↗</a></div>`; clearInterval(imgTimer); };
+    f.appendChild(img); load(); imgTimer = setInterval(load, (c.refresh || 15) * 1000);
+  }
+  const foot = $('#vFoot');
+  foot.innerHTML = `<span>${c.kind === 'image' ? `Snapshot, refreshes every ${c.refresh || 15}s` : c.kind === 'youtube' ? 'YouTube live stream' : c.kind === 'hls' ? 'Live video' : 'Embedded player'}</span>${c.notes ? `<span class="pill" title="${esc(c.notes)}">ⓘ</span>` : ''}<span class="spacer"></span>${c.page ? `<a href="${esc(c.page)}" target="_blank" rel="noopener">Source ↗</a>` : ''}<a href="https://www.google.com/maps?q=${c.lat},${c.lon}" target="_blank" rel="noopener">Directions ↗</a><a href="#cam=${encodeURIComponent(c.id)}" id="vShare">Share link</a>`;
+  $('#vShare').onclick = e => { e.preventDefault(); const u = location.origin + location.pathname + '#cam=' + encodeURIComponent(c.id); navigator.clipboard?.writeText(u); $('#vShare').textContent = 'Copied ✔'; setTimeout(() => $('#vShare').textContent = 'Share link', 1500); };
+  history.replaceState(null, '', '#cam=' + encodeURIComponent(c.id));
+  map.panTo([c.lat, c.lon], {animate:true});
+}
+
+// ---- filters UI
+function buildFilters(){
+  const counts = {}; cams.forEach(c => counts[c.type||'other'] = (counts[c.type||'other']||0) + 1);
+  $('#camTypes').innerHTML = Object.entries(TYPES).filter(([k]) => counts[k]).map(([k, t]) => `<div class="lrow"><label><input type="checkbox" data-type="${k}" checked><span class="sw" style="background:${t.color}"></span>${t.label}</label><span class="count">${counts[k]}</span></div>`).join('');
+  document.querySelectorAll('input[data-type]').forEach(cb => cb.onchange = () => { cb.checked ? enabledTypes.add(cb.dataset.type) : enabledTypes.delete(cb.dataset.type); rebuild(); });
+  const cities = [...new Set(cams.map(c => c.city).filter(Boolean))].sort();
+  $('#cityFilter').innerHTML = '<option value="">All of Broward</option>' + cities.map(c => `<option>${esc(c)}</option>`).join('');
+  $('#cityFilter').onchange = () => { cityFilter = $('#cityFilter').value; rebuild(); if (cityFilter){ const pts = cams.filter(c => c.city === cityFilter); if (pts.length) map.fitBounds(L.latLngBounds(pts.map(c => [c.lat, c.lon])).pad(0.2)); } };
+}
+let qTimer; $('#q').oninput = () => { clearTimeout(qTimer); qTimer = setTimeout(() => { query = $('#q').value.trim(); rebuild(); }, 200); };
+
+// ---- load
+fetch('data/cams.json', {cache:'no-cache'}).then(r => r.json()).then(d => {
+  cams = (d.cams || []).filter(c => typeof c.lat === 'number' && typeof c.lon === 'number');
+  cams.forEach((c, i) => { c.id = c.id || ('cam' + i); c.type = c.type || 'other'; c.kind = c.kind || 'link'; });
+  buildFilters(); rebuild();
+  const when = d.generated ? new Date(d.generated) : null;
+  $('#dataNote').innerHTML = `${cams.length} cameras${when ? ', list updated ' + when.toLocaleDateString() : ''}. Traffic cameras are FDOT snapshots that refresh every few seconds; others stream from their owners. Know a cam that is missing? <a href="https://github.com/fenphen/trooper-cadence/issues/new?title=Broward%20cam%20suggestion" target="_blank" rel="noopener">Suggest it</a>.`;
+  const m = location.hash.match(/cam=([^&]+)/);
+  if (m){ const c = cams.find(x => x.id === decodeURIComponent(m[1])); if (c){ map.setView([c.lat, c.lon], 15); openViewer(c); } }
+}).catch(e => { $('#status').textContent = 'Could not load the camera list'; $('#dataNote').textContent = 'Could not load data/cams.json: ' + e.message; });
+</script>
+</body>
+</html>
