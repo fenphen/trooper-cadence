@@ -70,7 +70,11 @@ def get(url: str, timeout: int = 60) -> bytes:
     for attempt in range(3):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.read()
+                body = r.read()
+                if body[:2] == b"\x1f\x8b":
+                    import gzip
+                    body = gzip.decompress(body)
+                return body
         except (urllib.error.URLError, TimeoutError, OSError) as e:
             last = e
             time.sleep(2 * (attempt + 1))
@@ -78,7 +82,11 @@ def get(url: str, timeout: int = 60) -> bytes:
 
 
 def get_json(url: str):
-    data = json.loads(get(url))
+    body = get(url)
+    try:
+        data = json.loads(body)
+    except ValueError as e:
+        raise RuntimeError(f"not JSON ({e}); body starts: {body[:300]!r}") from e
     if isinstance(data, dict) and data.get("error"):
         raise RuntimeError(f"service error: {data['error']}")
     return data
@@ -163,7 +171,8 @@ def norm_city(raw: str) -> str | None:
     s = re.sub(r"\s+", " ", (raw or "")).strip()
     s = re.sub(r"\b(city|town|village) of\b", "", s, flags=re.I).strip()
     s = re.sub(r",? Florida$", "", s).strip()
-    s = re.sub(r"\s+(city|town|village)$", "", s, flags=re.I).strip()
+    if not any(s.lower() == c.lower() for c in CITIES):   # "Cooper City" keeps its "City"
+        s = re.sub(r"\s+(city|town|village)$", "", s, flags=re.I).strip()
     key = s.lower().replace("-", " ").replace("by the sea", "by-the-sea").replace("ft.", "fort").replace("ft ", "fort ")
     for c in CITIES:
         if key == c.lower().replace("-", " ").replace("by the sea", "by-the-sea"):
@@ -246,7 +255,11 @@ def build_tracts() -> dict | None:
 
 def acs_rows(year: int, geo: str) -> list[list[str]]:
     url = f"https://api.census.gov/data/{year}/acs/acs5?get=NAME,{','.join(ACS_VARS.values())}&{geo}"
-    return get_json(url)
+    try:
+        return get_json(url)
+    except RuntimeError as e:
+        log(f"ACS {year} {geo}: {e}")
+        raise
 
 
 def num(v) -> float | None:
