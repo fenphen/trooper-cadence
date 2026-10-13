@@ -389,19 +389,26 @@ def main() -> None:
     cfg_path = Path(args.config)
     log_dir = cfg_path.parent / "data"
     log_dir.mkdir(parents=True, exist_ok=True)
+    # Under pythonw.exe (the hidden startup task) there is no console: stdout/stderr are None
+    # and anything that touches them crashes the process. Point them at a file instead.
+    import sys
+    if sys.stdout is None or sys.stderr is None:
+        console = open(log_dir / "console.log", "a", encoding="utf-8", buffering=1)
+        sys.stdout = sys.stdout or console
+        sys.stderr = sys.stderr or console
     from logging.handlers import RotatingFileHandler
-    handlers: list[logging.Handler] = [logging.StreamHandler(),
+    handlers: list[logging.Handler] = [logging.StreamHandler(sys.stderr),
                                        RotatingFileHandler(log_dir / "homehub.log", maxBytes=2_000_000, backupCount=2, encoding="utf-8")]
     logging.basicConfig(level=getattr(logging, args.log.upper(), logging.INFO),
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s", handlers=handlers)
     try:
         app = create_app(cfg_path)
+        cfg: Config = app.state.config
+        uvicorn.run(app, host=args.bind or cfg.get("bind", default="0.0.0.0"),
+                    port=args.port or int(cfg.get("port", default=8080)), log_level=args.log, log_config=None)
     except Exception:
-        logging.getLogger("homehub").exception("failed to start")
+        logging.getLogger("homehub").exception("Home Hub stopped because of an error")
         raise
-    cfg: Config = app.state.config
-    uvicorn.run(app, host=args.bind or cfg.get("bind", default="0.0.0.0"),
-                port=args.port or int(cfg.get("port", default=8080)), log_level=args.log)
 
 
 if __name__ == "__main__":
