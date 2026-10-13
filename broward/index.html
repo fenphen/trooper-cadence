@@ -13,16 +13,19 @@
   :root{
     --bg:#f6f7f9; --surface:#fff; --surface-2:#eef1f5; --border:#d9dee6; --text:#111827; --text-2:#4b5563; --muted:#8b93a1;
     --accent:#0f766e; --accent-text:#fff;
+    --crime:#b42318; --crime-bg:#fde8e6; --biz:#7c3aed;
     --traffic:#2563eb; --beach:#0891b2; --marina:#7c3aed; --port:#b45309; --airport:#475569; --downtown:#db2777; --weather:#65a30d; --nature:#15803d; --attraction:#ea580c; --other:#6b7280;
     --shadow:0 1px 2px rgba(16,24,40,.08),0 4px 12px rgba(16,24,40,.08);
     --font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
     --bg:#0f1318; --surface:#171c23; --surface-2:#1f252e; --border:#2a313b; --text:#e8ecf1; --text-2:#b4bcc7; --muted:#7c8694; --accent:#2dd4bf; --accent-text:#06201c;
+    --crime:#f0574c; --crime-bg:#3a1512; --biz:#a78bfa;
     --shadow:0 1px 2px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.4);
   }}
   :root[data-theme="dark"]{
     --bg:#0f1318; --surface:#171c23; --surface-2:#1f252e; --border:#2a313b; --text:#e8ecf1; --text-2:#b4bcc7; --muted:#7c8694; --accent:#2dd4bf; --accent-text:#06201c;
+    --crime:#f0574c; --crime-bg:#3a1512; --biz:#a78bfa;
     --shadow:0 1px 2px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.4);
   }
   *{box-sizing:border-box}
@@ -87,12 +90,40 @@
   :root[data-theme="dark"] .leaflet-control-attribution,:root:not([data-theme="light"]) .leaflet-control-attribution{background:rgba(23,28,35,.8)!important;color:#aaa!important}
   :root[data-theme="dark"] .leaflet-control-attribution a{color:#8fd}
   :root[data-theme="dark"] .leaflet-tile-pane.streets{filter:brightness(.85) contrast(1.05) saturate(.85)}
+  .legend{position:absolute;right:10px;bottom:90px;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:var(--shadow);display:none;max-width:240px}
+  .legend.open{display:block}
+  .legend b{display:block;margin-bottom:4px;font-size:12px}
+  .legend .row{display:flex;align-items:center;gap:6px;margin:2px 0;color:var(--text-2)}
+  .legend .box{width:18px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.15);flex:none}
+  .legend .src{color:var(--muted);font-size:11px;margin-top:4px}
+  .city-label{background:none;border:0;box-shadow:none;color:var(--text);font-weight:700;font-size:11px;text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 3px var(--surface);white-space:nowrap;pointer-events:none}
+  .stats{padding:10px 12px;font-size:13px}
+  .stats .big{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:10px}
+  .stats .tile{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+  .stats .tile .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .stats .tile .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+  .stats .bars{display:grid;gap:5px;margin:6px 0 10px}
+  .stats .bar{display:grid;grid-template-columns:96px 1fr 44px;align-items:center;gap:8px;font-size:12px;color:var(--text-2)}
+  .stats .bar .m{height:9px;background:var(--surface-2);border:1px solid var(--border);border-radius:5px;overflow:hidden}
+  .stats .bar .m i{display:block;height:100%;background:var(--accent);border-radius:4px}
+  .stats .bar .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+  .stats .note{color:var(--muted);font-size:11px;line-height:1.4}
+  .radio{display:flex;gap:10px;font-size:13px;margin:2px 0 6px;flex-wrap:wrap}
+  .chips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 6px}
+  .chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);cursor:pointer;user-select:none}
+  .chip.on{background:var(--crime-bg);color:var(--crime);border-color:var(--crime)}
+  .dates{display:flex;gap:6px;align-items:center;font-size:12px;margin:4px 0 6px}
+  .dates input{flex:1;min-width:0;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:inherit;font-size:12px}
+  .crime-pin{width:10px;height:10px;border-radius:50%;background:var(--crime);border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+  .biz-pin{width:8px;height:8px;border-radius:2px;background:var(--biz);border:1px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+  .crime-cluster{background:rgba(190,40,40,.25)} .crime-cluster div{background:rgba(190,40,40,.85);color:#fff}
+  .agencies{font-size:11px;color:var(--muted);line-height:1.4;margin-top:4px}
   .status{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-size:12px;color:var(--text-2);box-shadow:var(--shadow);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
   @media (max-width:700px){
     #layers{width:calc(100% - 20px);max-height:40%;display:none} #layers.open{display:block}
     #viewer{top:auto;bottom:0;right:0;width:100%;max-height:70%;border-radius:12px 12px 0 0}
     .brand .sub{display:none} .search{max-width:none}
-    .status{display:none}
+    .status{display:none} .legend{bottom:80px;right:8px}
   }
 </style>
 </head>
@@ -112,11 +143,42 @@
   <div id="camTypes"></div>
   <h3>City</h3>
   <select class="city" id="cityFilter"><option value="">All of Broward</option></select>
-  <h3>Coming next</h3>
-  <div class="lrow soon"><label><input type="checkbox" disabled> Cities &amp; boundaries</label><span class="tag">phase 2</span></div>
-  <div class="lrow soon"><label><input type="checkbox" disabled> Demographics</label><span class="tag">phase 2</span></div>
-  <div class="lrow soon"><label><input type="checkbox" disabled> Crime incidents &amp; heat</label><span class="tag">phase 3</span></div>
-  <div class="lrow soon"><label><input type="checkbox" disabled> Economy &amp; employers</label><span class="tag">phase 4</span></div>
+  <h3>Cities</h3>
+  <div class="lrow"><label><input type="checkbox" id="cityLines" checked><span class="sw" style="background:var(--accent)"></span>City boundaries</label><span class="count" id="cityCount"></span></div>
+  <div class="lrow"><label><input type="checkbox" id="cityLabels" checked> Names on the map</label></div>
+  <h3>Demographics</h3>
+  <select class="city" id="metric">
+    <option value="">None (no shading)</option>
+    <option value="population">Population</option>
+    <option value="median_income">Median household income</option>
+    <option value="median_home_value">Median home value</option>
+    <option value="median_age">Median age</option>
+    <option value="pct_renters">% renters</option>
+    <option value="pct_poverty">% below poverty line</option>
+    <option value="pct_bachelors">% with bachelor's or higher</option>
+    <option value="pct_hispanic">% Hispanic or Latino</option>
+    <option value="pct_white">% White (non-Hispanic)</option>
+    <option value="pct_black">% Black (non-Hispanic)</option>
+    <option value="pct_asian">% Asian (non-Hispanic)</option>
+  </select>
+  <div class="radio"><label><input type="radio" name="level" value="city" checked> by city</label><label><input type="radio" name="level" value="tract"> by neighborhood (tract)</label></div>
+  <div class="legendnote" id="demoNote"></div>
+  <h3>Crime</h3>
+  <div class="lrow"><label><input type="checkbox" id="crimeOn"><span class="sw" style="background:var(--crime)"></span>Incidents</label><span class="count" id="crimeCount"></span></div>
+  <div class="radio" id="crimeMode"><label><input type="radio" name="cmode" value="pins" checked> pins</label><label><input type="radio" name="cmode" value="heat"> heat map</label><label><input type="radio" name="cmode" value="both"> both</label></div>
+  <div class="dates"><input type="date" id="crimeFrom" aria-label="From date"><span>to</span><input type="date" id="crimeTo" aria-label="To date"></div>
+  <div class="chips" id="crimeCats"></div>
+  <div class="agencies" id="crimeAgencies">Tick "Incidents" to load.</div>
+  <h3>Businesses</h3>
+  <select class="city" id="bizMode">
+    <option value="">None</option>
+    <option value="city">Mapped businesses per city (OpenStreetMap)</option>
+    <option value="zip">Mapped businesses per ZIP (OpenStreetMap)</option>
+    <option value="zbp">Official establishments per ZIP (Census)</option>
+  </select>
+  <select class="city" id="bizType"><option value="">All types</option></select>
+  <div class="lrow"><label><input type="checkbox" id="bizPoints" checked><span class="sw" style="background:var(--biz);border-radius:2px"></span>Show business points when zoomed in</label></div>
+  <div class="legendnote" id="bizNote"></div>
   <div class="legendnote" id="dataNote">Loading camera list…</div>
 </aside>
 
@@ -126,11 +188,13 @@
   <div class="vfoot" id="vFoot"></div>
 </aside>
 
+<div class="legend" id="legend"></div>
 <div class="status" id="status">Loading…</div>
 
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/leaflet.markercluster.js"></script>
 <script src="vendor/hls.min.js"></script>
+<script src="vendor/leaflet-heat.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -208,7 +272,7 @@ function popupHtml(c){
 
 // ---- viewer
 let hls = null, imgTimer = null, current = null;
-function closeViewer(){ $('#viewer').classList.remove('open'); $('#vFrame').innerHTML = ''; if (hls){ hls.destroy(); hls = null; } clearInterval(imgTimer); current = null; history.replaceState(null, '', location.pathname + location.search); }
+function closeViewer(){ $('#viewer').classList.remove('open'); const vf = $('#vFrame'); vf.innerHTML = ''; vf.style.aspectRatio = ''; vf.style.background = ''; if (hls){ hls.destroy(); hls = null; } clearInterval(imgTimer); current = null; history.replaceState(null, '', location.pathname + location.search); }
 $('#vClose').onclick = closeViewer;
 function openViewer(c){
   if (c.kind === 'link'){ window.open(c.page || c.src, '_blank', 'noopener'); return; }
@@ -247,9 +311,212 @@ function buildFilters(){
   document.querySelectorAll('input[data-type]').forEach(cb => cb.onchange = () => { cb.checked ? enabledTypes.add(cb.dataset.type) : enabledTypes.delete(cb.dataset.type); rebuild(); });
   const cities = [...new Set(cams.map(c => c.city).filter(Boolean))].sort();
   $('#cityFilter').innerHTML = '<option value="">All of Broward</option>' + cities.map(c => `<option>${esc(c)}</option>`).join('');
-  $('#cityFilter').onchange = () => { cityFilter = $('#cityFilter').value; rebuild(); if (cityFilter){ const pts = cams.filter(c => c.city === cityFilter); if (pts.length) map.fitBounds(L.latLngBounds(pts.map(c => [c.lat, c.lon])).pad(0.2)); } };
+  $('#cityFilter').onchange = () => { cityFilter = $('#cityFilter').value; rebuild(); renderCrime(); if (cityFilter){ const pts = cams.filter(c => c.city === cityFilter); if (pts.length) map.fitBounds(L.latLngBounds(pts.map(c => [c.lat, c.lon])).pad(0.2)); } };
 }
 let qTimer; $('#q').oninput = () => { clearTimeout(qTimer); qTimer = setTimeout(() => { query = $('#q').value.trim(); rebuild(); }, 200); };
+
+// ---- cities, demographics
+const METRICS = {
+  population:{label:'Population', fmt:v => v.toLocaleString()},
+  median_income:{label:'Median household income', fmt:v => '$' + Math.round(v).toLocaleString()},
+  median_home_value:{label:'Median home value', fmt:v => '$' + Math.round(v).toLocaleString()},
+  median_age:{label:'Median age', fmt:v => v.toFixed(1)},
+  pct_renters:{label:'% renters', fmt:v => v.toFixed(0) + '%'},
+  pct_poverty:{label:'% below poverty line', fmt:v => v.toFixed(1) + '%'},
+  pct_bachelors:{label:"% bachelor's or higher", fmt:v => v.toFixed(0) + '%'},
+  pct_hispanic:{label:'% Hispanic or Latino', fmt:v => v.toFixed(0) + '%'},
+  pct_white:{label:'% White (non-Hispanic)', fmt:v => v.toFixed(0) + '%'},
+  pct_black:{label:'% Black (non-Hispanic)', fmt:v => v.toFixed(0) + '%'},
+  pct_asian:{label:'% Asian (non-Hispanic)', fmt:v => v.toFixed(1) + '%'},
+};
+const RAMP = ['#d9f1ee','#a6dcd6','#67bfb7','#2f9a92','#0b6a63'];   // one hue, light to dark
+let cityGeo = null, tractGeo = null, demo = null;
+let cityLayer = L.geoJSON(null, {style: cityStyle, onEachFeature: onCity}).addTo(map);
+let tractLayer = L.geoJSON(null, {style: tractStyle, onEachFeature: onTract});
+let labelLayer = L.layerGroup().addTo(map);
+let metric = '', level = 'city', breaks = [];
+
+function statsFor(lvl, key){ if (!demo || !demo.acs) return null; const t = lvl === 'city' ? demo.acs.cities : demo.acs.tracts; return t ? t[key] : null; }
+function valueFor(f){ const st = level === 'city' ? statsFor('city', f.properties.name) : statsFor('tract', f.properties.geoid); return st && st[metric] != null ? st[metric] : null; }
+function colorFor(v){ if (v == null || !breaks.length) return null; let i = 0; while (i < breaks.length - 1 && v > breaks[i]) i++; return RAMP[Math.min(i, RAMP.length - 1)]; }
+function cityStyle(f){
+  const fill = metric && level === 'city' ? colorFor(valueFor(f)) : null;
+  const uninc = f.properties.name === 'Unincorporated Broward';
+  return {color: 'var(--accent)', weight: uninc ? 1 : 1.4, opacity: 0.9, dashArray: uninc ? '3 4' : null, fillColor: fill || '#000', fillOpacity: fill ? 0.55 : 0.02};
+}
+function tractStyle(f){ const fill = colorFor(valueFor(f)); return {color: '#555', weight: 0.5, opacity: 0.6, fillColor: fill || '#000', fillOpacity: fill ? 0.6 : 0}; }
+function onCity(f, layer){
+  layer.on('click', () => openCity(f.properties.name));
+  layer.on('mouseover', e => { e.target.setStyle({weight: 3}); showTip(e, f.properties.name, level === 'city' ? valueFor(f) : null); });
+  layer.on('mouseout', e => { cityLayer.resetStyle(e.target); map.closeTooltip(); });
+}
+function onTract(f, layer){
+  layer.on('mouseover', e => { showTip(e, 'Tract ' + f.properties.name, valueFor(f)); });
+  layer.on('mouseout', () => map.closeTooltip());
+}
+function showTip(e, title, v){ const m = METRICS[metric]; L.tooltip({sticky:true}).setLatLng(e.latlng).setContent(`<b>${esc(title)}</b>${m && v != null ? '<br>' + esc(m.label) + ': ' + m.fmt(v) : ''}`).addTo(map); }
+function quantiles(vals){ const v = vals.filter(x => x != null).sort((a,b) => a-b); if (v.length < 5) return v.length ? [v[v.length-1]] : []; return [0.2,0.4,0.6,0.8,1].map(q => v[Math.min(v.length-1, Math.ceil(q*v.length)-1)]); }
+function applyDemo(){
+  const m = METRICS[metric];
+  const feats = level === 'city' ? (cityGeo ? cityGeo.features : []) : (tractGeo ? tractGeo.features : []);
+  breaks = m ? quantiles(feats.map(valueFor)) : [];
+  cityLayer.setStyle(cityStyle);
+  if (level === 'tract' && metric){ if (!map.hasLayer(tractLayer)) tractLayer.addTo(map); tractLayer.setStyle(tractStyle); cityLayer.bringToFront(); }
+  else if (map.hasLayer(tractLayer)) map.removeLayer(tractLayer);
+  const lg = $('#legend');
+  if (m && breaks.length){
+    let lo = null;
+    lg.innerHTML = `<b>${esc(m.label)}</b>` + breaks.map((b, i) => { const row = `<div class="row"><span class="box" style="background:${RAMP[i]}"></span>${lo == null ? 'up to ' : m.fmt(lo) + ' to '}${m.fmt(b)}</div>`; lo = b; return row; }).join('') + `<div class="src">${esc(demo.acs.label)}, by ${level === 'city' ? 'city' : 'census tract'}</div>`;
+    lg.classList.add('open');
+  } else lg.classList.remove('open');
+  $('#demoNote').textContent = demo && demo.acs ? '' : 'Demographic figures are not loaded yet (the nightly build fills them in).';
+}
+function renderLabels(){
+  labelLayer.clearLayers();
+  if (!cityGeo || !$('#cityLabels').checked || !$('#cityLines').checked) return;
+  const z = map.getZoom();
+  for (const f of cityGeo.features){
+    if (f.properties.name === 'Unincorporated Broward') continue;
+    const a = f.properties.area_deg2; if ((z < 11 && a < 0.002) || (z < 13 && a < 0.0004)) continue;   // skip tiny towns when zoomed out
+    const c = L.geoJSON(f).getBounds().getCenter();
+    labelLayer.addLayer(L.marker(c, {icon: L.divIcon({className:'city-label', html: esc(f.properties.name), iconSize: null}), interactive: false}));
+  }
+}
+map.on('zoomend', renderLabels);
+function openCity(name){
+  closeViewer();
+  const st = statsFor('city', name) || {};
+  const county = demo && demo.acs ? demo.acs.county : null;
+  const n = cams.filter(c => c.city === name).length;
+  $('#viewer').classList.add('open');
+  $('#vTitle').textContent = name;
+  $('#vMeta').textContent = demo && demo.acs ? demo.acs.label : 'Broward County, Florida';
+  const tile = (l, v, f) => `<div class="tile"><div class="l">${l}</div><div class="v">${v == null ? '—' : f(v)}</div></div>`;
+  const bar = (l, v, cv) => `<div class="bar"><span>${l}</span><span class="m"><i style="width:${v || 0}%"></i></span><span class="n">${v == null ? '—' : v.toFixed(0) + '%'}</span></div>`;
+  const vf = $('#vFrame'); vf.style.aspectRatio = 'auto'; vf.style.background = 'transparent';
+  vf.innerHTML = `<div class="stats">
+    <div class="big">${tile('Population', st.population, v => v.toLocaleString())}${tile('Median income', st.median_income, v => '$' + v.toLocaleString())}${tile('Median home value', st.median_home_value, v => '$' + v.toLocaleString())}${tile('Median age', st.median_age, v => v.toFixed(1))}</div>
+    <div class="bars">${bar('Renters', st.pct_renters)}${bar('Below poverty', st.pct_poverty)}${bar("Bachelor's+", st.pct_bachelors)}${bar('Hispanic/Latino', st.pct_hispanic)}${bar('White (NH)', st.pct_white)}${bar('Black (NH)', st.pct_black)}${bar('Asian (NH)', st.pct_asian)}</div>
+    <div class="note">${county ? `Broward overall: pop ${county.population.toLocaleString()}, median income $${county.median_income.toLocaleString()}, median age ${county.median_age}.` : ''} ${demo && demo.bls ? `County unemployment ${demo.bls.unemployment_rate}% (${esc(demo.bls.period)}, BLS).` : ''} ${name === 'Unincorporated Broward' ? 'Unincorporated areas have no Census place figures; neighborhood-level shading still works.' : ''}</div>
+  </div>`;
+  $('#vFoot').innerHTML = `<span>${n} camera${n === 1 ? '' : 's'} here</span><span class="spacer"></span>${n ? `<a href="#" id="vCams">Show only these cameras</a>` : ''}`;
+  if (n) $('#vCams').onclick = e => { e.preventDefault(); $('#cityFilter').value = name; $('#cityFilter').dispatchEvent(new Event('change')); };
+  const b = cityLayer.getLayers().find(l => l.feature.properties.name === name); if (b) map.fitBounds(b.getBounds().pad(0.1));
+}
+$('#cityLines').onchange = () => { $('#cityLines').checked ? cityLayer.addTo(map) : map.removeLayer(cityLayer); renderLabels(); };
+$('#cityLabels').onchange = renderLabels;
+$('#metric').onchange = () => { metric = $('#metric').value; if (metric && bizMode){ $('#bizMode').value = ''; bizMode = ''; applyBiz(); } if (level === 'tract' && metric && !tractGeo) loadTracts().then(applyDemo); else applyDemo(); };
+document.querySelectorAll('input[name=level]').forEach(r => r.onchange = () => { level = r.value; if (level === 'tract' && !tractGeo) loadTracts().then(applyDemo); else applyDemo(); });
+function loadTracts(){ return fetch('data/tracts.geojson').then(r => r.json()).then(g => { tractGeo = g; tractLayer.addData(g); }).catch(() => {}); }
+fetch('data/cities.geojson').then(r => r.json()).then(g => { cityGeo = g; cityLayer.addData(g); $('#cityCount').textContent = g.features.filter(f => f.properties.name !== 'Unincorporated Broward').length; renderLabels(); applyDemo(); }).catch(() => {});
+fetch('data/demographics.json', {cache:'no-cache'}).then(r => r.json()).then(d => { demo = d; applyDemo(); }).catch(() => {});
+
+// ---- crime
+let crime = null, crimeLoaded = false, crimeCats = new Set(), crimeMode = 'pins';
+const crimeCluster = L.markerClusterGroup({maxClusterRadius: 30, disableClusteringAtZoom: 15, showCoverageOnHover: false,
+  iconCreateFunction: c => L.divIcon({html: `<div><span>${c.getChildCount()}</span></div>`, className: 'marker-cluster crime-cluster', iconSize: L.point(36, 36)})});
+let heat = null;
+function crimeFiltered(){
+  if (!crime) return [];
+  const from = $('#crimeFrom').value, to = $('#crimeTo').value ? $('#crimeTo').value + 'T23:59' : '';
+  return crime.incidents.filter(i => (!from || i.date >= from) && (!to || i.date <= to) && (!crimeCats.size || crimeCats.has(i.category)) && (!cityFilter || i.city === cityFilter));
+}
+function renderCrime(){
+  crimeCluster.clearLayers(); if (heat){ map.removeLayer(heat); heat = null; }
+  if (!$('#crimeOn').checked || !crime){ $('#crimeCount').textContent = ''; if (map.hasLayer(crimeCluster)) map.removeLayer(crimeCluster); return; }
+  const rows = crimeFiltered();
+  $('#crimeCount').textContent = rows.length.toLocaleString();
+  if (crimeMode !== 'heat'){
+    if (!map.hasLayer(crimeCluster)) map.addLayer(crimeCluster);
+    const icon = L.divIcon({className:'', html:'<div class="crime-pin"></div>', iconSize:[10,10], iconAnchor:[5,5], popupAnchor:[0,-6]});
+    const ms = rows.slice(0, 20000).map(i => L.marker([i.lat, i.lon], {icon}).bindPopup(`<b>${esc(i.category)}</b>${esc(i.type)}<br><span class="muted">${esc((i.date||'').replace('T',' '))}${i.address ? ' · ' + esc(i.address) : ''}</span><br><span class="muted">${esc(i.agency)}</span>${i.url ? ` · <a href="${esc(i.url)}" target="_blank" rel="noopener">source ↗</a>` : ''}`));
+    crimeCluster.addLayers(ms);
+  } else if (map.hasLayer(crimeCluster)) map.removeLayer(crimeCluster);
+  if (crimeMode !== 'pins' && window.L.heatLayer){
+    heat = L.heatLayer(rows.map(i => [i.lat, i.lon, 1]), {radius: 18, blur: 15, maxZoom: 16, minOpacity: 0.2, max: Math.max(3, rows.length / 150),
+      gradient: {0.2:'#fde0d9', 0.5:'#f4a08a', 0.75:'#dc4a30', 1:'#8a1a0e'}}).addTo(map);
+  }
+}
+function loadCrime(){
+  if (crimeLoaded) return Promise.resolve();
+  $('#crimeAgencies').innerHTML = '<span class="spin"></span> loading incidents…';
+  return fetch('data/crime.json', {cache:'no-cache'}).then(r => r.json()).then(d => {
+    crime = d; crimeLoaded = true;
+    const cats = {}; d.incidents.forEach(i => cats[i.category] = (cats[i.category]||0) + 1);
+    $('#crimeCats').innerHTML = Object.entries(cats).sort((a,b) => b[1]-a[1]).map(([c, n]) => `<span class="chip" data-cat="${esc(c)}" title="${n.toLocaleString()} incidents">${esc(c)}</span>`).join('');
+    document.querySelectorAll('.chip[data-cat]').forEach(ch => ch.onclick = () => { const c = ch.dataset.cat; crimeCats.has(c) ? crimeCats.delete(c) : crimeCats.add(c); ch.classList.toggle('on', crimeCats.has(c)); renderCrime(); });
+    const dates = d.incidents.map(i => i.date).filter(Boolean).sort();
+    if (dates.length){ const last = dates[dates.length-1].slice(0,10); const start = new Date(last); start.setDate(start.getDate() - 90); $('#crimeTo').value = last; $('#crimeFrom').value = start.toISOString().slice(0,10); $('#crimeFrom').min = dates[0].slice(0,10); $('#crimeTo').max = last; }
+    $('#crimeAgencies').innerHTML = (d.agencies || []).map(a => `<div><b>${esc(a.name)}</b>: ${(a.count||0).toLocaleString()} incidents${a.historical ? `, <span class="bad" style="background:none">historical, through ${esc((a.newest||'').slice(0,7))}</span>` : ''} · <a href="${esc(a.source)}" target="_blank" rel="noopener">source</a></div>`).join('') + '<div>Other agencies publish no incident feed yet; see the README for the per-city picture.</div>';
+  }).catch(e => { $('#crimeAgencies').textContent = 'Could not load crime data: ' + e.message; });
+}
+$('#crimeOn').onchange = () => { if ($('#crimeOn').checked) loadCrime().then(renderCrime); else renderCrime(); };
+$('#crimeFrom').onchange = $('#crimeTo').onchange = renderCrime;
+document.querySelectorAll('input[name=cmode]').forEach(r => r.onchange = () => { crimeMode = r.value; renderCrime(); });
+
+// ---- businesses
+let biz = null, bizPts = null, zctaGeo = null, bizMode = '', bizType = '';
+const BIZ_RAMP = ['#ede9fe','#c4b5fd','#a78bfa','#7c3aed','#4c1d95'];
+let zipLayer = L.geoJSON(null, {style: zipStyle, onEachFeature: (f, l) => { l.on('mouseover', e => { l.setStyle({weight:2}); showBizTip(e, 'ZIP ' + f.properties.zip, bizValue(f)); }); l.on('mouseout', () => { zipLayer.resetStyle(l); map.closeTooltip(); }); }});
+let bizPointLayer = L.layerGroup();
+let bizBreaks = [];
+function bizValue(f){
+  if (!biz) return null;
+  if (bizMode === 'city'){ const t = biz.osm.by_city[f.properties.name]; return t ? (bizType ? (t.groups[bizType]||0) : t.total) : null; }
+  if (bizMode === 'zip'){ const t = biz.osm.by_zip[f.properties.zip]; return t ? (bizType ? (t.groups[bizType]||0) : t.total) : null; }
+  if (bizMode === 'zbp'){ const z = biz.census && biz.census.zbp ? biz.census.zbp.zips[f.properties.zip] : null; return z ? (z[bizType || '00'] ?? null) : null; }
+  return null;
+}
+function bizColor(v){ if (v == null || !bizBreaks.length) return null; let i = 0; while (i < bizBreaks.length - 1 && v > bizBreaks[i]) i++; return BIZ_RAMP[Math.min(i, 4)]; }
+function zipStyle(f){ const c = bizColor(bizValue(f)); return {color:'#6d28d9', weight:0.8, opacity:0.7, fillColor: c || '#000', fillOpacity: c ? 0.55 : 0}; }
+function showBizTip(e, title, v){ L.tooltip({sticky:true}).setLatLng(e.latlng).setContent(`<b>${esc(title)}</b><br>${v == null ? 'no data' : v.toLocaleString() + ' ' + (bizMode === 'zbp' ? 'establishments' : 'mapped businesses')}${bizType ? ' · ' + esc(bizTypeLabel()) : ''}`).addTo(map); }
+function bizTypeLabel(){ return bizMode === 'zbp' ? (biz.sector_labels[bizType] || bizType) : bizType; }
+function fillBizTypes(){
+  const sel = $('#bizType'); const cur = sel.value;
+  if (bizMode === 'zbp'){ const secs = biz.census && biz.census.cbp ? biz.census.cbp.sectors : {}; sel.innerHTML = '<option value="">All sectors</option>' + Object.entries(secs).filter(([c]) => c !== '00').sort((a,b) => b[1].estab - a[1].estab).map(([c, s]) => `<option value="${c}">${esc(s.label)} (${s.estab.toLocaleString()} in Broward)</option>`).join(''); }
+  else { sel.innerHTML = '<option value="">All types</option>' + Object.entries(biz.osm.groups).map(([g, n]) => `<option value="${esc(g)}">${esc(g)} (${n.toLocaleString()})</option>`).join(''); }
+  sel.value = [...sel.options].some(o => o.value === cur) ? cur : ''; bizType = sel.value;
+}
+function applyBiz(){
+  const lg = $('#legend');
+  if (!bizMode || !biz){ if (map.hasLayer(zipLayer)) map.removeLayer(zipLayer); if (map.hasLayer(bizPointLayer)) map.removeLayer(bizPointLayer); if (!metric) lg.classList.remove('open'); if (metric) applyDemo(); $('#bizNote').textContent = ''; return; }
+  if (metric){ $('#metric').value = ''; metric = ''; applyDemo(); }   // one choropleth at a time
+  const feats = bizMode === 'city' ? (cityGeo ? cityGeo.features : []) : (zctaGeo ? zctaGeo.features : []);
+  bizBreaks = quantiles(feats.map(bizValue));
+  if (bizMode === 'city'){ if (map.hasLayer(zipLayer)) map.removeLayer(zipLayer); cityLayer.setStyle(f => { const c = bizColor(bizValue(f)); return Object.assign(cityStyle(f), {fillColor: c || '#000', fillOpacity: c ? 0.55 : 0.02}); }); }
+  else { cityLayer.setStyle(cityStyle); if (!map.hasLayer(zipLayer)) zipLayer.addTo(map); zipLayer.setStyle(zipStyle); cityLayer.bringToFront(); }
+  const unit = bizMode === 'zbp' ? 'establishments' : 'mapped businesses';
+  const src = bizMode === 'zbp' ? `Census ZIP Code Business Patterns ${biz.census && biz.census.zbp ? biz.census.zbp.year : ''}` : 'OpenStreetMap (community-mapped, not a complete register)';
+  if (bizBreaks.length){ let lo = null; lg.innerHTML = `<b>${esc(bizType ? bizTypeLabel() : 'All businesses')}</b>` + bizBreaks.map((b, i) => { const r = `<div class="row"><span class="box" style="background:${BIZ_RAMP[i]}"></span>${lo == null ? 'up to ' : lo.toLocaleString() + ' to '}${b.toLocaleString()}</div>`; lo = b; return r; }).join('') + `<div class="src">${unit}, by ${bizMode === 'city' ? 'city' : 'ZIP'} · ${src}</div>`; lg.classList.add('open'); }
+  else { lg.innerHTML = `<b>No data</b><div class="src">${bizMode === 'zbp' ? 'Census figures need the API key (see README).' : 'No business counts available.'}</div>`; lg.classList.add('open'); }
+  $('#bizNote').textContent = bizMode === 'zbp' ? 'Official counts of employer establishments by industry sector. Roughly two years behind.' : `${biz.osm.count.toLocaleString()} businesses mapped in OpenStreetMap across Broward. Hover a shape for its count; zoom in for individual businesses.`;
+  renderBizPoints();
+}
+function renderBizPoints(){
+  bizPointLayer.clearLayers();
+  if (!bizMode || !bizPts || !$('#bizPoints').checked || map.getZoom() < 15){ if (map.hasLayer(bizPointLayer)) map.removeLayer(bizPointLayer); return; }
+  const b = map.getBounds().pad(0.2); const icon = L.divIcon({className:'', html:'<div class="biz-pin"></div>', iconSize:[8,8], iconAnchor:[4,4], popupAnchor:[0,-5]});
+  let n = 0;
+  for (const p of bizPts){
+    const [lat, lon, group, kind, name, city, zip] = p;
+    if (bizMode !== 'zbp' && bizType && group !== bizType) continue;
+    if (!b.contains([lat, lon])) continue;
+    if (++n > 3000) break;
+    bizPointLayer.addLayer(L.marker([lat, lon], {icon, title: name || kind}).bindPopup(`<b>${esc(name || kind)}</b>${esc(group)}${kind ? ' · ' + esc(kind.replace(/_/g,' ')) : ''}<br><span class="muted">${esc(city)}${zip ? ' ' + esc(zip) : ''}</span>`));
+  }
+  if (!map.hasLayer(bizPointLayer)) bizPointLayer.addTo(map);
+}
+map.on('moveend', renderBizPoints);
+function loadBiz(){
+  const jobs = [];
+  if (!biz) jobs.push(fetch('data/business.json', {cache:'no-cache'}).then(r => r.json()).then(d => { biz = d; }));
+  if (!zctaGeo) jobs.push(fetch('data/zctas.geojson').then(r => r.json()).then(g => { zctaGeo = g; zipLayer.addData(g); }).catch(() => {}));
+  if (!bizPts) jobs.push(fetch('data/business_points.json').then(r => r.json()).then(d => { bizPts = d.points; }).catch(() => {}));
+  return Promise.all(jobs);
+}
+$('#bizMode').onchange = () => { bizMode = $('#bizMode').value; if (!bizMode){ applyBiz(); return; } $('#bizNote').innerHTML = '<span class="spin"></span> loading…'; loadBiz().then(() => { fillBizTypes(); applyBiz(); }).catch(e => { $('#bizNote').textContent = 'Could not load business data: ' + e.message; }); };
+$('#bizType').onchange = () => { bizType = $('#bizType').value; applyBiz(); };
+$('#bizPoints').onchange = renderBizPoints;
 
 // ---- load
 fetch('data/cams.json', {cache:'no-cache'}).then(r => r.json()).then(d => {

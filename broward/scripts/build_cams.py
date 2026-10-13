@@ -56,7 +56,11 @@ def get(url: str, timeout: int = 30, headers: dict | None = None) -> bytes:
     for attempt in range(3):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return r.read()
+                body = r.read()
+                if body[:2] == b"\x1f\x8b":
+                    import gzip
+                    body = gzip.decompress(body)
+                return body
         except (urllib.error.URLError, TimeoutError, OSError) as e:
             last = e
             time.sleep(2 * (attempt + 1))
