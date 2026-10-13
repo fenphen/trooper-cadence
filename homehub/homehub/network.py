@@ -61,11 +61,42 @@ def default_gateway() -> str | None:
     return None
 
 
+def _netmask_for(ip: str) -> str | None:
+    """Read the subnet mask of the interface that owns `ip` from the OS."""
+    try:
+        if IS_WINDOWS:
+            out = subprocess.run(["ipconfig"], capture_output=True, text=True, timeout=5).stdout
+            lines = out.splitlines()
+            for i, line in enumerate(lines):
+                if "IPv4" in line and line.strip().endswith(ip):
+                    for nxt in lines[i + 1:i + 4]:
+                        m = re.search(r"(\d+\.\d+\.\d+\.\d+)\s*$", nxt)
+                        if "Subnet" in nxt and m:
+                            return m.group(1)
+        else:
+            out = subprocess.run(["ip", "-o", "-4", "addr"], capture_output=True, text=True, timeout=5).stdout
+            m = re.search(rf"inet {re.escape(ip)}/(\d+)", out)
+            if m:
+                return str(ipaddress.ip_network(f"0.0.0.0/{m.group(1)}").netmask)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        pass
+    return None
+
+
 def guess_subnet() -> str | None:
+    """The LAN range to scan. Deco meshes use a /22 (192.168.68.0 - 192.168.71.255), so the
+    real mask matters; fall back to /24 if the OS will not tell us."""
     ip = local_ip()
     if not ip:
         return None
-    return str(ipaddress.ip_network(ip + "/24", strict=False))
+    mask = _netmask_for(ip)
+    try:
+        net = ipaddress.ip_network(f"{ip}/{mask or 24}", strict=False)
+    except ValueError:
+        net = ipaddress.ip_network(ip + "/24", strict=False)
+    if net.prefixlen < 22:  # don't sweep anything bigger than 1024 addresses
+        net = ipaddress.ip_network(ip + "/22", strict=False)
+    return str(net)
 
 
 async def ping(host: str, timeout_s: float = 1.0) -> float | None:
