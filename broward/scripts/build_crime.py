@@ -32,9 +32,9 @@ CATEGORIES = [  # (category, regex on the agency's type text)
     ("Sexual assault", r"sex|rape"),
     ("Robbery", r"robbery"),
     ("Assault", r"assault|battery"),
-    ("Burglary", r"burglar|breaking"),
-    ("Vehicle theft", r"motor vehicle theft|auto theft|stolen vehicle|vehicle theft|grand theft auto"),
     ("Vehicle break-in", r"burglary.*(vehicle|conveyance|auto)|vehicle.*(burglar|break)|theft from (motor )?vehicle"),
+    ("Vehicle theft", r"motor vehicle theft|auto theft|stolen vehicle|vehicle theft|grand theft auto"),
+    ("Burglary", r"burglar|breaking"),
     ("Theft", r"theft|larceny|shoplift|retail"),
     ("Vandalism", r"vandal|criminal mischief|damage"),
     ("Drugs", r"drug|narcotic|marijuana|cocaine"),
@@ -65,6 +65,10 @@ def get(url: str, timeout: int = 60, headers: dict | None = None) -> bytes:
             last = e
             time.sleep(2 * (attempt + 1))
     raise RuntimeError(f"GET {url[:140]}: {last}")
+
+
+BROWSER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+           "Accept-Language": "en-US,en;q=0.9"}
 
 
 def get_json(url: str, **kw):
@@ -122,7 +126,8 @@ def pick(d: dict, *patterns: str):
 
 def plantation() -> tuple[list[dict], dict]:
     base = "https://pgis.plantation.org/arcgis/rest/services/Maps/crimeEvent/MapServer"
-    info = get_json(base + "?f=pjson")
+    hdr = {**BROWSER, "Referer": "https://pgis.plantation.org/crime/"}
+    info = get_json(base + "?f=pjson", headers=hdr)
     layers = info.get("layers") or []
     log(f"Plantation: layers {[(l.get('id'), l.get('name')) for l in layers]}")
     out = []
@@ -130,7 +135,7 @@ def plantation() -> tuple[list[dict], dict]:
         lid = layer.get("id", 0)
         url = f"{base}/{lid}/query?where=1%3D1&outFields=*&outSR=4326&f=geojson&resultRecordCount=5000"
         try:
-            gj = get_json(url)
+            gj = get_json(url, headers=hdr)
         except Exception as e:  # noqa: BLE001
             log(f"Plantation layer {lid}: {e}")
             continue
@@ -168,10 +173,16 @@ def fort_lauderdale() -> tuple[list[dict], dict]:
     cands.sort(key=lambda r: r["resource"].get("updatedAt", ""), reverse=True)
     res = cands[0]["resource"]
     ds = res["id"]
-    cols = [(c, t) for c, t in zip(res.get("columns_field_name") or [], res.get("columns_datatype") or [])]
+    cols = [(c, str(t).lower().replace(" ", "_")) for c, t in zip(res.get("columns_field_name") or [], res.get("columns_datatype") or [])]
     log(f"FLL dataset {ds} '{res['name']}' updated {res.get('updatedAt')}; columns {cols[:40]}")
     date_col = next((c for c, t in cols if t in ("calendar_date", "floating_timestamp") and re.search(r"date|time|occur|report", c, re.I)), None) or next((c for c, t in cols if t in ("calendar_date", "floating_timestamp")), None)
-    since = (datetime.now(timezone.utc) - timedelta(days=KEEP_DAYS)).strftime("%Y-%m-%dT00:00:00")
+    newest = None
+    if date_col:
+        mx = get_json(f"https://{domain}/resource/{ds}.json?$select=max({date_col})%20as%20m")
+        newest = parse_date((mx[0] or {}).get("m")) if mx else None
+    log(f"FLL date column {date_col}, newest record {newest}")
+    anchor = datetime.strptime(newest[:10], "%Y-%m-%d") if newest else datetime.now(timezone.utc).replace(tzinfo=None)
+    since = (anchor - timedelta(days=KEEP_DAYS)).strftime("%Y-%m-%dT00:00:00")
     q = f"https://{domain}/resource/{ds}.json?$limit=50000" + (f"&$where={urllib.parse.quote(date_col)}%20%3E%20%27{since}%27&$order={urllib.parse.quote(date_col)}%20DESC" if date_col else "")
     rows = get_json(q)
     log(f"FLL rows: {len(rows)}; sample: {json.dumps(rows[0])[:400] if rows else 'none'}")
@@ -193,13 +204,15 @@ def fort_lauderdale() -> tuple[list[dict], dict]:
         out.append({"id": f"fll-{cid}", "agency": "Fort Lauderdale PD", "city": "Fort Lauderdale", "date": date, "type": typ, "category": categorize(typ),
                     "address": str(pick(r, r"address|block|location_desc|street") or ""), "lat": round(float(lat), 5), "lon": round(float(lon), 5),
                     "url": f"https://{domain}/d/{ds}"})
-    return out, {"name": "Fort Lauderdale PD", "source": f"https://{domain}/d/{ds}", "kind": "socrata", "window": f"dataset '{res['name']}', last updated {str(res.get('updatedAt',''))[:10]}"}
+    stale = newest and newest[:10] < (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%d")
+    return out, {"name": "Fort Lauderdale PD", "source": f"https://{domain}/d/{ds}", "kind": "socrata", "newest": newest, "historical": bool(stale),
+                 "window": f"city open-data dataset '{res['name']}'" + (f"; the city stopped updating it in {newest[:7]}" if stale else "")}
 
 
 # ---------------------------------------------------------------- BSO (discovery)
 
 def bso() -> tuple[list[dict], dict]:
-    html = get("https://bsocrimes.sheriff.org/", timeout=40).decode("utf-8", "replace")
+    html = get("https://bsocrimes.sheriff.org/", timeout=90, headers=BROWSER).decode("utf-8", "replace")
     urls = sorted(set(re.findall(r"https?://[\w./-]*arcgis[\w./-]*/(?:FeatureServer|MapServer)[\w/]*", html)))
     apps = sorted(set(re.findall(r"[\"'](?:appid|webmap|id)[\"']?\s*[:=]\s*[\"']([0-9a-f]{32})", html)))
     scripts = sorted(set(re.findall(r"src=[\"']([^\"']+\.js)", html)))[:15]
@@ -251,13 +264,11 @@ def main() -> int:
     prev = json.loads(OUT.read_text("utf-8")) if OUT.exists() else {"incidents": [], "agencies": []}
     incidents: dict[str, dict] = {i["id"]: i for i in prev.get("incidents", [])}
     agencies: dict[str, dict] = {a["name"]: a for a in prev.get("agencies", [])}
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=KEEP_DAYS)).strftime("%Y-%m-%d")
     for fn in (plantation, fort_lauderdale, bso):
         try:
             rows, meta = fn()
         except Exception as e:  # noqa: BLE001
             log(f"{fn.__name__}: FAILED: {e}")
-            a = agencies.get(fn.__name__.replace("_", " ").title(), None)
             continue
         fresh = [r for r in rows if r.get("date")]
         for r in fresh:
@@ -265,7 +276,17 @@ def main() -> int:
         meta.update({"fetched": len(rows), "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ok": True})
         agencies[meta["name"]] = meta
         log(f"{meta['name']}: {len(rows)} incidents this run")
-    kept = [i for i in incidents.values() if (i.get("date") or "") >= cutoff]
+    newest_by_agency: dict[str, str] = {}
+    for i in incidents.values():
+        if i.get("date"):
+            newest_by_agency[i["agency"]] = max(newest_by_agency.get(i["agency"], ""), i["date"])
+    def keep(i):
+        n = newest_by_agency.get(i["agency"])
+        if not n:
+            return False
+        start = (datetime.strptime(n[:10], "%Y-%m-%d") - timedelta(days=KEEP_DAYS)).strftime("%Y-%m-%d")
+        return (i.get("date") or "") >= start
+    kept = [i for i in incidents.values() if keep(i)]
     kept.sort(key=lambda i: i.get("date") or "", reverse=True)
     for a in agencies.values():
         a["count"] = sum(1 for i in kept if i["agency"] == a["name"])

@@ -51,6 +51,10 @@ TRACT_SOURCES = [
     ("Census TIGERweb tracts",
      "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Tracts_Blocks/MapServer/0/query?where=STATE%3D%2712%27%20AND%20COUNTY%3D%27011%27&outFields=GEOID,NAME,BASENAME&outSR=4326&f=geojson&resultRecordCount=2000"),
 ]
+ZCTA_SOURCES = [
+    ("Census TIGERweb ZCTAs (bbox)", "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/PUMA_TAD_TAZ_UGA_ZCTA/MapServer/{layer}/query?where=1%3D1&geometry=" + BBOX +
+     "&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=GEOID,ZCTA5,BASENAME,NAME&outSR=4326&f=geojson&resultRecordCount=2000"),
+]
 ACS_YEARS = [2024, 2023]
 ACS_VARS = {
     "pop": "B01003_001E", "income": "B19013_001E", "age": "B01002_001E", "home_value": "B25077_001E",
@@ -252,6 +256,58 @@ def build_tracts() -> dict | None:
     return None
 
 
+def build_zctas(cities: dict | None) -> dict | None:
+    """ZIP Code Tabulation Areas touching Broward; keeps those whose centroid falls inside a Broward city polygon."""
+    try:
+        layers = get_json("https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/PUMA_TAD_TAZ_UGA_ZCTA/MapServer?f=pjson").get("layers") or []
+    except Exception as e:  # noqa: BLE001
+        log("zctas: layer list failed:", e)
+        return None
+    zl = [l for l in layers if re.search(r"zip|zcta", l.get("name", ""), re.I)]
+    log(f"zctas: candidate layers {[(l['id'], l['name']) for l in zl]}")
+    polys = []
+    if cities:
+        for f in cities["features"]:
+            polys.append(f["geometry"])
+    for layer in zl:
+        url = ZCTA_SOURCES[0][1].format(layer=layer["id"])
+        try:
+            gj = get_json(url)
+        except Exception as e:  # noqa: BLE001
+            log(f"zctas: layer {layer['id']} failed: {e}")
+            continue
+        feats = gj.get("features") or []
+        out = []
+        for f in feats:
+            p = f.get("properties") or {}
+            z = str(p.get("ZCTA5") or p.get("GEOID") or p.get("BASENAME") or "")
+            if not f.get("geometry") or not z:
+                continue
+            geom = simplify_geom(f["geometry"], 0.0001)
+            cx, cy = centroid(geom)
+            if polys and not any(_pip(cx, cy, g) for g in polys):
+                continue
+            out.append({"type": "Feature", "properties": {"zip": z}, "geometry": geom})
+        log(f"zctas: layer {layer['id']}: {len(feats)} touching the bbox, {len(out)} kept")
+        if len(out) >= 20:
+            return {"type": "FeatureCollection", "source": "Census TIGERweb 2020 ZCTAs", "generated": now(), "features": out}
+    return None
+
+
+def _pip(lon: float, lat: float, geom: dict) -> bool:
+    def ring(r):
+        inside = False
+        j = len(r) - 1
+        for i in range(len(r)):
+            xi, yi, xj, yj = r[i][0], r[i][1], r[j][0], r[j][1]
+            if (yi > lat) != (yj > lat) and lon < (xj - xi) * (lat - yi) / ((yj - yi) or 1e-12) + xi:
+                inside = not inside
+            j = i
+        return inside
+    polys = geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
+    return any(p and ring(p[0]) and not any(ring(h) for h in p[1:]) for p in polys)
+
+
 # ---------------------------------------------------------------- ACS
 
 def acs_rows(year: int, geo: str) -> list[list[str]]:
@@ -339,6 +395,10 @@ def main() -> int:
         log(f"wrote cities.geojson ({(DATA / 'cities.geojson').stat().st_size // 1024} KB)")
     else:
         log("cities: all sources failed; keeping previous file" if (DATA / "cities.geojson").exists() else "cities: nothing written")
+    zc = build_zctas(cities or (json.loads((DATA / "cities.geojson").read_text("utf-8")) if (DATA / "cities.geojson").exists() else None))
+    if zc:
+        (DATA / "zctas.geojson").write_text(json.dumps(zc, separators=(",", ":")) + "\n", "utf-8")
+        log(f"wrote zctas.geojson ({(DATA / 'zctas.geojson').stat().st_size // 1024} KB)")
     tracts = build_tracts()
     if tracts:
         (DATA / "tracts.geojson").write_text(json.dumps(tracts, separators=(",", ":")) + "\n", "utf-8")
