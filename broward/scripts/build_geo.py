@@ -105,7 +105,13 @@ def simplify_ring(ring: list, tol: float) -> list:
         if best > tol:
             return dp(pts[:idx + 1])[:-1] + dp(pts[idx:])
         return [pts[0], pts[-1]]
-    out = dp([tuple(p[:2]) for p in ring])
+    pts = [tuple(p[:2]) for p in ring]
+    if pts[0] == pts[-1]:
+        # closed ring: split at the point farthest from the start so the chord is not degenerate
+        far = max(range(1, len(pts) - 1), key=lambda i: (pts[i][0] - pts[0][0]) ** 2 + (pts[i][1] - pts[0][1]) ** 2)
+        out = dp(pts[:far + 1])[:-1] + dp(pts[far:])
+    else:
+        out = dp(pts)
     if len(out) < 4:
         return ring
     if out[0] != out[-1]:
