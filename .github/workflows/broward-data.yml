@@ -25,6 +25,8 @@ jobs:
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
       - name: Build camera list
         run: python broward/scripts/build_cams.py
+      - name: Build crime incidents
+        run: python broward/scripts/build_crime.py
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
