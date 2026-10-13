@@ -6,9 +6,9 @@
 <title>Broward Live Map</title>
 <meta name="description" content="Live webcams, traffic cameras, cities, demographics and crime across Broward County, Florida, on one map.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230f766e'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23fff'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%230f766e'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="vendor/MarkerCluster.css">
+<link rel="stylesheet" href="vendor/MarkerCluster.Default.css">
 <style>
   :root{
     --bg:#f6f7f9; --surface:#fff; --surface-2:#eef1f5; --border:#d9dee6; --text:#111827; --text-2:#4b5563; --muted:#8b93a1;
@@ -66,7 +66,9 @@
   .vfoot .spacer{flex:1}
   .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2)}
   /* ---- markers */
-  .cam-pin{width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.3)}
+  .cam-pin{position:relative;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.3)}
+  .cam-pin.nofeed{opacity:.45}
+  .cam-pin.big{width:18px;height:18px}
   .cam-pin.live::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid currentColor;opacity:.5;animation:pulse 2s infinite}
   @keyframes pulse{0%{transform:scale(.6);opacity:.7}100%{transform:scale(1.3);opacity:0}}
   .marker-cluster-small{background:rgba(15,118,110,.25)} .marker-cluster-small div{background:rgba(15,118,110,.8);color:#fff}
@@ -126,9 +128,9 @@
 
 <div class="status" id="status">Loading…</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.15/hls.min.js" crossorigin="anonymous"></script>
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/leaflet.markercluster.js"></script>
+<script src="vendor/hls.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -170,14 +172,15 @@ $('#layersBtn').onclick = () => $('#layers').classList.toggle('open');
 
 // ---- cameras
 let cams = [], markers = new Map();
-const cluster = L.markerClusterGroup({maxClusterRadius: 40, disableClusteringAtZoom: 15, spiderfyOnMaxZoom: true, showCoverageOnHover: false});
-map.addLayer(cluster);
+const cluster = L.markerClusterGroup({maxClusterRadius: 36, disableClusteringAtZoom: 14, spiderfyOnMaxZoom: true, showCoverageOnHover: false});
+const plain = L.layerGroup();   // non-traffic cams stay visible at every zoom
+map.addLayer(cluster); map.addLayer(plain);
 const enabledTypes = new Set(Object.keys(TYPES));
 let cityFilter = '', query = '';
 
 function pinIcon(c){
   const t = TYPES[c.type] || TYPES.other;
-  return L.divIcon({className:'', html:`<div class="cam-pin ${c.kind !== 'link' ? 'live' : ''}" style="background:${t.color};color:${t.color}"></div>`, iconSize:[14,14], iconAnchor:[7,7], popupAnchor:[0,-8]});
+  return L.divIcon({className:'', html:`<div class="cam-pin ${c.type !== 'traffic' ? 'big' : ''} ${c.has_feed === false ? 'nofeed' : c.kind !== 'link' ? 'live' : ''}" style="background:${t.color};color:${t.color}"></div>`, iconSize:[14,14], iconAnchor:[7,7], popupAnchor:[0,-8]});
 }
 function matches(c){
   if (!enabledTypes.has(c.type || 'other')) return false;
@@ -186,7 +189,7 @@ function matches(c){
   return true;
 }
 function rebuild(){
-  cluster.clearLayers(); markers.clear();
+  cluster.clearLayers(); plain.clearLayers(); markers.clear();
   let n = 0;
   for (const c of cams){
     if (!matches(c)) continue;
@@ -194,13 +197,13 @@ function rebuild(){
     m.bindPopup(() => popupHtml(c), {maxWidth: 260});
     m.on('popupopen', () => { const b = document.querySelector('.leaflet-popup button[data-view]'); if (b) b.onclick = () => openViewer(c); });
     m.camId = c.id;
-    markers.set(c.id, m); cluster.addLayer(m); n++;
+    markers.set(c.id, m); (c.type === 'traffic' ? cluster : plain).addLayer(m); n++;
   }
   $('#status').textContent = `${n} of ${cams.length} cameras shown` + (cityFilter ? ` · ${cityFilter}` : '') + (query ? ` · "${query}"` : '');
 }
 function popupHtml(c){
   const thumb = c.kind === 'image' ? `<img class="thumb" src="${esc(c.src)}${c.src.includes('?') ? '&' : '?'}t=${Date.now()}" alt="" loading="lazy" onerror="this.style.display='none'">` : (c.thumb ? `<img class="thumb" src="${esc(c.thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '');
-  return `<b>${esc(c.name)}</b><span class="pill">${esc((TYPES[c.type]||TYPES.other).label)}</span> ${c.city ? '<span class="pill">'+esc(c.city)+'</span>' : ''}${thumb}<button data-view="1">${c.kind === 'link' ? 'Open camera ↗' : '▶ Watch'}</button>`;
+  return `<b>${esc(c.name)}</b><span class="pill">${esc((TYPES[c.type]||TYPES.other).label)}</span> ${c.city ? '<span class="pill">'+esc(c.city)+'</span>' : ''}${c.has_feed === false ? '<div class="pill" style="margin-top:6px">No live feed at the moment</div>' : ''}${thumb}<button data-view="1">${c.kind === 'link' ? 'Open camera ↗' : '▶ Watch'}</button>`;
 }
 
 // ---- viewer
