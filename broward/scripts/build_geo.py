@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
 import sys
 import time
@@ -254,7 +255,10 @@ def build_tracts() -> dict | None:
 # ---------------------------------------------------------------- ACS
 
 def acs_rows(year: int, geo: str) -> list[list[str]]:
-    url = f"https://api.census.gov/data/{year}/acs/acs5?get=NAME,{','.join(ACS_VARS.values())}&{geo}"
+    key = os.environ.get("CENSUS_API_KEY", "").strip()
+    if not key:
+        raise RuntimeError("CENSUS_API_KEY is not set (free key: https://api.census.gov/data/key_signup.html; add it as a repository secret)")
+    url = f"https://api.census.gov/data/{year}/acs/acs5?get=NAME,{','.join(ACS_VARS.values())}&{geo}&key={key}"
     try:
         return get_json(url)
     except RuntimeError as e:

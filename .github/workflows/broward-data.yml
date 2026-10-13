@@ -21,6 +21,8 @@ jobs:
           python-version: '3.12'
       - name: Build geography and demographics
         run: python broward/scripts/build_geo.py
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
       - name: Build camera list
         run: python broward/scripts/build_cams.py
       - name: Commit if changed
