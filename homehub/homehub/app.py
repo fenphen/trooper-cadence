@@ -386,9 +386,19 @@ def main() -> None:
     ap.add_argument("--bind")
     ap.add_argument("--log", default="info")
     args = ap.parse_args()
+    cfg_path = Path(args.config)
+    log_dir = cfg_path.parent / "data"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    from logging.handlers import RotatingFileHandler
+    handlers: list[logging.Handler] = [logging.StreamHandler(),
+                                       RotatingFileHandler(log_dir / "homehub.log", maxBytes=2_000_000, backupCount=2, encoding="utf-8")]
     logging.basicConfig(level=getattr(logging, args.log.upper(), logging.INFO),
-                        format="%(asctime)s %(levelname)s %(name)s: %(message)s")
-    app = create_app(Path(args.config))
+                        format="%(asctime)s %(levelname)s %(name)s: %(message)s", handlers=handlers)
+    try:
+        app = create_app(cfg_path)
+    except Exception:
+        logging.getLogger("homehub").exception("failed to start")
+        raise
     cfg: Config = app.state.config
     uvicorn.run(app, host=args.bind or cfg.get("bind", default="0.0.0.0"),
                 port=args.port or int(cfg.get("port", default=8080)), log_level=args.log)

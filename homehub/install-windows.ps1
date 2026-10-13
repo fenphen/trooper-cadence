@@ -80,18 +80,26 @@ $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccou
 Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Printer, scanner and network dashboard for the house" | Out-Null
 Start-ScheduledTask -TaskName $taskName
+Start-Sleep -Seconds 6
+$state = (Get-ScheduledTask -TaskName $taskName).State
+try { $health = Invoke-RestMethod "http://localhost:$Port/api/health" -TimeoutSec 5 } catch { $health = $null }
+if ($health -and $health.ok) {
+  Write-Host "Server is answering on port $Port." -ForegroundColor Green
+} else {
+  Write-Host "The startup task is '$state' but the server is not answering yet." -ForegroundColor Yellow
+  Write-Host "Check data\homehub.log, or run run.bat to see errors in a window."
+}
 
 # 5. shortcut
 $ip = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" -and $_.PrefixOrigin -ne "WellKnown" } | Sort-Object InterfaceMetric | Select-Object -First 1).IPAddress
-$host = $env:COMPUTERNAME.ToLower()
-$url = "http://$host`:$Port/"
+$pcName = $env:COMPUTERNAME.ToLower()
+$url = "http://$pcName`:$Port/"
 @"
 [InternetShortcut]
 URL=$url
 IconIndex=0
 "@ | Set-Content "Home Hub.url"
 
-Start-Sleep -Seconds 3
 Write-Host ""
 Write-Host "Home Hub is installed and running." -ForegroundColor Green
 Write-Host "  On this PC:      http://localhost:$Port/"
