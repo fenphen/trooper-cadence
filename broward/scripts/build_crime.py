@@ -42,7 +42,14 @@ CATEGORIES = [  # (category, regex on the agency's type text)
     ("Fraud", r"fraud|forgery|counterfeit|identity|scam"),
     ("DUI", r"dui|driving under"),
     ("Arson", r"arson"),
-    ("Disturbance", r"disturb|disorderly|trespass|loiter"),
+    ("Disturbance", r"disturb|disorderly|trespass|loiter|threat|intimidat|stalking|harass"),
+    ("Family & abuse", r"family offense|elderly|child (neglect|abuse)|domestic|abuse"),
+    ("Traffic & vehicle", r"traffic|accident|crash|abandoned vehicle|recovered auto|hit and run|boating|rental vehicle"),
+    ("Missing person", r"missing|runaway"),
+    ("Death investigation", r"death"),
+    ("Warrant & court", r"warrant|court order|parole|probation|resist"),
+    ("Lost & found", r"lost property|found property|recovered property"),
+    ("Info / non-criminal", r"^information$|suspicious|alarm|civil|a\.o\.a|assist|animal|baker|marchman|ordinance|noise|welfare"),
 ]
 
 

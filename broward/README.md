@@ -10,6 +10,10 @@ demographics, crime and economic layers being added in phases.
   snapshots that refresh every few seconds; beach, marina and other cams stream from their owners
   (YouTube or the owner's player). Cams whose owners block embedding open on the source site.
 - Filter by camera type and by city; search by name or road. Every camera has a shareable link.
+- **Cities**: boundaries and names; click a city for its population, income, home values, age, housing, poverty, education and race/ethnicity (Census ACS), plus how many cameras it has.
+- **Demographics**: shade the map by any of those measures, by city or by neighborhood (census tract), with a legend.
+- **Crime**: incident pins or a heat map with date range, category chips and the city filter. Each pin shows the offense, date, block and source.
+- **Businesses**: shade cities or ZIP codes by how many businesses are mapped there, filter by type (restaurants, retail, health care, auto, offices…), and zoom in to see the individual businesses. Official Census establishment counts by industry sector per ZIP when the Census key is set.
 
 ## Phases
 
