@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Toasty and Sonny's Big Adventure</title>
+<meta name="description" content="A family game for taking care of and training Toasty and Sonny.">
+<meta name="theme-color" content="#2a6f4e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Big Adventure">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#fff8ec; --card:#ffffff; --ink:#23302a; --muted:#6b7a72; --line:#eadfcc;
+  --green:#2a6f4e; --green-2:#4fb27c; --sun:#ffcf5a; --sun-ink:#7a5a00; --coral:#ef7d57; --sky:#5aa9e6; --purple:#9b7bdc;
+  --shadow:0 2px 10px rgba(60,40,10,.08);
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131a16; --card:#1c2520; --ink:#eef3ee; --muted:#9aa89f; --line:#2b372f;
+    --green:#4fb27c; --green-2:#2a6f4e; --sun:#ffcf5a; --sun-ink:#ffe59a; --shadow:0 2px 10px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131a16; --card:#1c2520; --ink:#eef3ee; --muted:#9aa89f; --line:#2b372f;
+  --green:#4fb27c; --green-2:#2a6f4e; --sun:#ffcf5a; --sun-ink:#ffe59a; --shadow:0 2px 10px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+h1,h2,h3{margin:0;line-height:1.2}
+.wrap{max-width:720px;margin:0 auto;padding:12px 16px}
+header.top{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--green) 0%,var(--green) 80%,transparent);padding-top:env(safe-area-inset-top)}
+header.top .wrap{display:flex;align-items:center;gap:12px;color:#fff;padding-bottom:16px}
+header.top h1{font-size:19px;letter-spacing:.2px}
+header.top .sub{font-size:13px;opacity:.9}
+.who{margin-left:auto;background:rgba(255,255,255,.18);border-radius:999px;padding:6px 12px;font-weight:600;color:#fff;white-space:nowrap}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px;margin:12px 0;border:1px solid var(--line)}
+.card h2{font-size:17px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.card h2 .pts{margin-left:auto;font-size:13px;color:var(--muted);font-weight:500}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+.muted{color:var(--muted);font-size:14px}
+.small{font-size:13px}
+.btn{background:var(--green);color:#fff;border-radius:12px;padding:10px 16px;font-weight:600;box-shadow:var(--shadow)}
+.btn.sun{background:var(--sun);color:var(--sun-ink)}
+.btn.ghost{background:transparent;color:var(--green);box-shadow:none;border:1px solid var(--line)}
+.btn.sm{padding:7px 12px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:default}
+.chip{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:13px;color:var(--muted)}
+.chip.done{background:var(--green);color:#fff;border-color:var(--green)}
+/* tabs */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:6}
+nav.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted);padding:6px 0}
+nav.tabs button span.i{font-size:22px}
+nav.tabs button.on{color:var(--green);font-weight:600}
+.page{display:none}.page.on{display:block}
+/* dog switcher */
+.dogs{display:flex;gap:10px;margin:10px 0}
+.dogs button{flex:1;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px;text-align:left;display:flex;gap:10px;align-items:center}
+.dogs button.on{border-color:var(--green)}
+.dogs .em{font-size:30px}
+.dogs .nm{font-weight:700}
+.bar{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--green-2),var(--green));border-radius:999px;transition:width .4s}
+/* task list */
+.task{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.task:first-of-type{border-top:0}
+.task .em{font-size:26px;width:34px;text-align:center}
+.task .t{font-weight:600}
+.task .d{font-size:13px;color:var(--muted)}
+.task .n{font-size:12px;color:var(--muted);margin-top:2px}
+.task .btn{white-space:nowrap}
+.task.done .t{color:var(--muted)}
+/* quest */
+.quest{border-top:1px solid var(--line);padding:12px 0}
+.quest:first-of-type{border-top:0}
+.quest .hd{display:flex;align-items:center;gap:10px}
+.quest .hd .em{font-size:28px}
+.quest .hd .t{font-weight:700}
+.quest .hd .lv{font-size:12px;color:var(--muted)}
+.sets{display:flex;gap:8px;margin:10px 0 6px;flex-wrap:wrap;align-items:center}
+.sets .btn{height:46px;white-space:nowrap;width:auto;border-style:solid;border-color:var(--line);color:var(--green)}
+.sets button{width:46px;height:46px;border-radius:12px;border:2px dashed var(--line);font-weight:700;font-size:14px;color:var(--muted);background:var(--bg)}
+.sets button.done{border-style:solid;border-color:var(--green);background:var(--green);color:#fff}
+.sets button.next{border-color:var(--green);color:var(--green);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.how{font-size:14px;color:var(--muted);margin-top:4px}
+.how b{color:var(--ink)}
+details summary{cursor:pointer;color:var(--green);font-size:14px;font-weight:600;list-style:none}
+details summary::-webkit-details-marker{display:none}
+/* trail */
+.trail{position:relative;padding:6px 0}
+.stop{display:flex;gap:12px;align-items:flex-start;padding:10px 0;position:relative}
+.stop:before{content:"";position:absolute;left:21px;top:0;bottom:0;border-left:3px dotted var(--line)}
+.stop .dot{width:44px;height:44px;border-radius:50%;background:var(--bg);border:3px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;z-index:1;flex:none}
+.stop.reached .dot{border-color:var(--green);background:var(--card)}
+.stop.here .dot{border-color:var(--sun);background:var(--sun);box-shadow:0 0 0 6px rgba(255,207,90,.3)}
+.stop .nm{font-weight:700}
+.stop .ds{font-size:13px;color:var(--muted)}
+.stop.locked{opacity:.55}
+/* badges */
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.badge{text-align:center;padding:10px 6px;border-radius:14px;background:var(--bg);border:1px solid var(--line)}
+.badge .em{font-size:30px;filter:grayscale(1);opacity:.4}
+.badge.got .em{filter:none;opacity:1}
+.badge .t{font-size:12px;font-weight:600;margin-top:4px}
+.badge .d{font-size:11px;color:var(--muted)}
+/* leaderboard */
+.lb{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.lb:first-child{border-top:0}
+.lb .rk{width:26px;font-weight:800;color:var(--muted)}
+.lb .nm{font-weight:600}
+.lb .pt{margin-left:auto;font-weight:800;color:var(--green)}
+/* stats grid */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.stat .v{font-size:22px;font-weight:800;color:var(--green)}
+.stat .l{font-size:12px;color:var(--muted)}
+/* log */
+.log{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px;align-items:center}
+.log:first-child{border-top:0}
+.log .em{font-size:20px}
+.log .pt{margin-left:auto;font-weight:700;color:var(--green);white-space:nowrap}
+.log .x{color:var(--muted);padding:4px 6px}
+/* toast */
+#toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:20;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:30}
+.modal.on{display:flex}
+.modal .box{background:var(--card);border-radius:20px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow:auto}
+.timer .big{font-size:56px;font-weight:800;text-align:center;letter-spacing:1px;font-variant-numeric:tabular-nums;margin:8px 0}
+.timer .ring{height:10px}
+.players{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:10px 0}
+.players button{background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:14px;font-weight:700;font-size:16px}
+.players button.on{border-color:var(--green);background:var(--card)}
+.field{margin:10px 0}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.celebrate{position:fixed;inset:0;pointer-events:none;z-index:25;overflow:hidden}
+.celebrate i{position:absolute;top:-20px;font-size:22px;animation:fall 1.8s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.2}}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.cal i{display:block;aspect-ratio:1;border-radius:6px;background:var(--bg);border:1px solid var(--line)}
+.cal i.l1{background:#c8e8d4}.cal i.l2{background:#7fcf9f}.cal i.l3{background:var(--green)}
+.hint{background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--muted)}
+.hint b{color:var(--ink)}
+.textbtn{color:var(--green);font-weight:600;font-size:14px}
+.danger{color:var(--coral)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div><h1>🐾 Toasty &amp; Sonny's Big Adventure</h1><div class="sub" id="subline">Loading…</div></div>
+  <button class="who" id="whoBtn">Who?</button>
+</div></header>
+
+<main class="wrap">
+
+<!-- TODAY -->
+<section class="page on" id="page-today">
+  <div class="card" id="familyCard">
+    <h2>🗺️ The journey <span class="pts" id="journeyPts"></span></h2>
+    <div class="row"><div class="grow"><div class="bar"><i id="journeyBar" style="width:0%"></i></div></div></div>
+    <div class="muted small" id="journeyText" style="margin-top:6px"></div>
+  </div>
+
+  <div class="dogs" id="dogSwitch"></div>
+
+  <div class="card">
+    <h2>🎯 Today's training quest <span class="pts" id="questPts"></span></h2>
+    <div class="muted small" id="questIntro"></div>
+    <div id="questList"></div>
+    <div class="hint" id="questHint" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h2>💛 Care &amp; love <span class="pts" id="carePts"></span></h2>
+    <div class="muted small">Daily things that keep a pup happy. Tap when you've done it. Some can be done by more than one person a day.</div>
+    <div id="careList"></div>
+  </div>
+
+  <div class="card">
+    <h2>🎓 Skill tree</h2>
+    <div class="muted small">Every 10 completed sets levels a skill up. New skills unlock as the basics get solid.</div>
+    <div id="skillList"></div>
+  </div>
+</section>
+
+<!-- ADVENTURE -->
+<section class="page" id="page-adventure">
+  <div class="card">
+    <h2>🏆 Family leaderboard</h2>
+    <div class="row" style="margin-bottom:8px">
+      <button class="btn sm ghost" data-lb="week">This week</button>
+      <button class="btn sm ghost" data-lb="all">All time</button>
+    </div>
+    <div id="leaderboard"></div>
+  </div>
+  <div class="card">
+    <h2>🔥 Streaks</h2>
+    <div class="stats" id="streakStats"></div>
+    <div class="muted small" style="margin-top:8px">Last 5 weeks of family activity</div>
+    <div class="cal" id="calendar"></div>
+  </div>
+  <div class="card">
+    <h2>🗺️ Adventure trail</h2>
+    <div class="muted small">Every point the family earns moves Toasty and Sonny further down the trail.</div>
+    <div class="trail" id="trail"></div>
+  </div>
+  <div class="card">
+    <h2>🎖️ Badges</h2>
+    <div class="badges" id="badges"></div>
+  </div>
+</section>
+
+<!-- LOG -->
+<section class="page" id="page-log">
+  <div class="card">
+    <h2>📜 Recent activity</h2>
+    <div class="muted small">Tap ✕ to undo a mistake.</div>
+    <div id="logList"></div>
+    <button class="textbtn" id="moreLog" style="margin-top:8px">Show more</button>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="page" id="page-settings">
+  <div class="card">
+    <h2>👨‍👩‍👦‍👦 Family</h2>
+    <div class="muted small">Names shown on the leaderboard. Each person picks themselves with the "Who?" button at the top.</div>
+    <div id="playerEdit"></div>
+    <button class="btn sm ghost" id="addPlayer" style="margin-top:8px">+ Add a person</button>
+  </div>
+  <div class="card">
+    <h2>🐶 Dogs</h2>
+    <div id="dogEdit"></div>
+  </div>
+  <div class="card">
+    <h2>☁️ Family sync</h2>
+    <div class="muted small">Without sync, each phone keeps its own scores. To play as one family, connect all four phones to the same free Firebase database. Takes about five minutes once.</div>
+    <details style="margin-top:8px"><summary>How to set it up</summary>
+      <ol class="small muted" style="padding-left:18px">
+        <li>Go to <b>console.firebase.google.com</b>, sign in with a Google account, and <b>Add project</b> (any name, Analytics off).</li>
+        <li>In the left menu open <b>Build → Realtime Database → Create database</b>. Pick a location, choose <b>Start in test mode</b>.</li>
+        <li>In the <b>Rules</b> tab replace the rules with the block below and <b>Publish</b>. Only someone who knows your family code can read or write.</li>
+        <li>Copy the database URL shown at the top of the Data tab (looks like <i>https://something-default-rtdb.firebaseio.com</i>) and paste it below, together with a family code you make up.</li>
+        <li>Share this page's link with the family. Each person pastes the same URL and code once.</li>
+      </ol>
+      <pre class="small" style="background:var(--bg);padding:10px;border-radius:10px;overflow:auto">{
+  "rules": {
+    "families": {
+      "$code": {
+        ".read": "$code.length >= 8",
+        ".write": "$code.length >= 8"
+      }
+    }
+  }
+}</pre>
+    </details>
+    <div class="field"><label>Database URL</label><input id="syncUrl" placeholder="https://your-project-default-rtdb.firebaseio.com" inputmode="url" autocapitalize="off"></div>
+    <div class="field"><label>Family code (8+ characters, same on every phone)</label><input id="syncRoom" placeholder="e.g. toastysonny2026" autocapitalize="off"></div>
+    <div class="row">
+      <button class="btn sm" id="syncSave">Connect</button>
+      <button class="btn sm ghost" id="syncOff">Disconnect</button>
+      <span class="muted small grow" id="syncStatus"></span>
+    </div>
+  </div>
+  <div class="card">
+    <h2>📲 Put it on your phone</h2>
+    <div class="muted small">
+      <b>iPhone (Safari):</b> tap the Share button, then <b>Add to Home Screen</b>.<br>
+      <b>Android (Chrome):</b> tap the ⋮ menu, then <b>Add to Home screen</b> or <b>Install app</b>.
+    </div>
+    <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="shareBtn">Share the link</button></div>
+  </div>
+  <div class="card">
+    <h2>🧰 Data</h2>
+    <div class="row" style="flex-wrap:wrap">
+      <button class="btn sm ghost" id="exportBtn">Export backup</button>
+      <label class="btn sm ghost" style="display:inline-block">Import backup<input type="file" id="importFile" accept="application/json" style="display:none"></label>
+      <button class="btn sm ghost" id="themeBtn">Theme: auto</button>
+      <button class="btn sm ghost danger" id="resetBtn">Reset everything</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<nav class="tabs">
+  <button data-page="today" class="on"><span class="i">🐾</span>Today</button>
+  <button data-page="adventure"><span class="i">🗺️</span>Adventure</button>
+  <button data-page="log"><span class="i">📜</span>Log</button>
+  <button data-page="settings"><span class="i">⚙️</span>Settings</button>
+</nav>
+
+<div id="toast"></div>
+<div class="celebrate" id="celebrate"></div>
+
+<div class="modal" id="whoModal"><div class="box">
+  <h2>Who's playing?</h2>
+  <div class="muted small">Points go to the person who's picked. Change it any time with the button at the top.</div>
+  <div class="players" id="whoList"></div>
+</div></div>
+
+<div class="modal" id="timerModal"><div class="box timer">
+  <h2 id="timerTitle">Belly rub</h2>
+  <div class="muted small" id="timerSub"></div>
+  <div class="big" id="timerBig">2:00</div>
+  <div class="bar ring"><i id="timerBar" style="width:0%"></i></div>
+  <div class="row" style="margin-top:14px;justify-content:center">
+    <button class="btn" id="timerStart">Start</button>
+    <button class="btn ghost" id="timerCancel">Cancel</button>
+  </div>
+</div></div>
+
+<div class="modal" id="howModal"><div class="box">
+  <h2 id="howTitle"></h2>
+  <div id="howBody" style="margin-top:8px;font-size:15px"></div>
+  <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="howClose">Got it</button></div>
+</div></div>
+
+<script>
+/* ============ Content ============ */
+const CARE = [
+  {k:'brush',  em:'🪮', t:'Brush',           d:'A good brushing, all over',                 pts:10, per:1},
+  {k:'belly',  em:'🫶', t:'Belly rub',       d:'2 minutes of belly rubs (timer)',           pts:5,  per:3, timer:120},
+  {k:'walk',   em:'🦮', t:'Walk',            d:'A real walk around the block or more',      pts:15, per:2},
+  {k:'play',   em:'🎾', t:'Play time',       d:'5 minutes of fetch or tug (timer)',         pts:10, per:3, timer:300},
+  {k:'feed',   em:'🍖', t:'Feed',            d:'Breakfast or dinner, measured out',         pts:3,  per:2},
+  {k:'water',  em:'💧', t:'Fresh water',     d:'Rinse the bowl and refill',                 pts:2,  per:2},
+  {k:'teeth',  em:'🦷', t:'Teeth',           d:'Brush teeth or a dental chew',              pts:10, per:1},
+  {k:'paws',   em:'🐾', t:'Paw & ear check', d:'Look at paws, nails and inside the ears',   pts:5,  per:1},
+  {k:'potty',  em:'💩', t:'Yard patrol',     d:'Scoop the yard',                            pts:5,  per:1},
+  {k:'nails',  em:'✂️', t:'Nail trim',       d:'Trim or file nails (weekly)',               pts:20, per:1},
+  {k:'bath',   em:'🛁', t:'Bath',            d:'Full bath and dry (every few weeks)',       pts:25, per:1},
+  {k:'cuddle', em:'🛋️', t:'Couch cuddle',    d:'A proper snuggle session',                  pts:3,  per:3},
+];
+
+/* Training skills. reps/sets are the base; reps grow with level. prereq: {skill:level}. */
+const SKILLS = [
+  {k:'name',    em:'📣', t:'Name game',      tier:0, reps:5, sets:2, pts:4,
+    how:'Say the dog\'s name once in a happy voice. The instant they look at you, say "yes!" and give a treat. If they don\'t look, make a kissy noise, then reward the look. Never repeat the name over and over.'},
+  {k:'eyes',    em:'👀', t:'Eye contact',    tier:0, reps:5, sets:2, pts:4,
+    how:'Hold a treat out to the side at arm\'s length. Wait quietly. The moment the dog looks away from the treat and at your face, say "yes!" and give the treat. At higher levels, wait for 2–3 seconds of eye contact before rewarding.'},
+  {k:'sit',     em:'🪑', t:'Sit',            tier:0, reps:5, sets:2, pts:5,
+    how:'Hold a treat just above the nose and move it slowly back over the head. When the bottom hits the floor, say "yes!" and treat. Add the word "sit" once it happens reliably. At higher levels, fade the treat lure and use just the word or a hand signal.'},
+  {k:'touch',   em:'🖐️', t:'Touch',          tier:0, reps:5, sets:2, pts:4,
+    how:'Hold your flat palm a few inches from the nose. Dogs usually sniff it. The moment the nose touches your hand, say "yes!" and treat from the other hand. Move your hand to new spots each rep. Great for recalls and moving the dog around later.'},
+  {k:'down',    em:'⬇️', t:'Down',           tier:1, reps:5, sets:2, pts:6, prereq:{sit:1},
+    how:'From a sit, hold a treat at the nose and lower it straight to the floor between the front paws, then slowly drag it out. When elbows touch the floor, say "yes!" and treat. Be patient, this one takes a few tries. Add the word "down" once it\'s smooth.'},
+  {k:'stay',    em:'✋', t:'Stay',           tier:1, reps:4, sets:2, pts:6, prereq:{sit:1},
+    how:'Ask for a sit, show a flat palm and say "stay". Count in your head (level 0: 2 seconds, add 2 seconds per level), then say "yes!" and treat while they are still sitting. Release with "okay!" If they get up, no treat, just calmly reset. Add distance only after time is solid.'},
+  {k:'come',    em:'🏃', t:'Come',           tier:1, reps:4, sets:2, pts:7, prereq:{name:1},
+    how:'Start a few steps away. Say "Sonny, come!" once in an excited voice, crouch, open your arms. Big praise and a jackpot (3 treats) when they arrive. Touch the collar gently before treating so collar grabs feel good. Never call them for something they dislike.'},
+  {k:'leaveit', em:'🚫', t:'Leave it',       tier:1, reps:5, sets:2, pts:7, prereq:{eyes:1},
+    how:'Put a treat in your closed fist and offer it. The dog will lick and paw. Wait. The second they back off, say "yes!" and give a DIFFERENT treat from the other hand. Add the words "leave it" when they back off fast. Later levels: treat on the floor under your hand, then uncovered.'},
+  {k:'shake',   em:'🤝', t:'Shake',          tier:1, reps:5, sets:2, pts:5, prereq:{sit:1},
+    how:'From a sit, hold a treat in a closed fist low near a paw. Most dogs paw at it. The moment a paw lifts, say "yes!" and treat. Gradually hold out an open hand instead and say "shake".'},
+  {k:'drop',    em:'🎾', t:'Drop it',        tier:2, reps:4, sets:2, pts:7, prereq:{leaveit:1},
+    how:'Play tug or fetch. Hold a tasty treat right at the nose and say "drop it". When the toy drops, treat and give the toy right back. The toy coming back is the real reward and teaches that dropping is not losing.'},
+  {k:'place',   em:'🛏️', t:'Go to place',    tier:2, reps:4, sets:2, pts:8, prereq:{down:1,stay:1},
+    how:'Use a mat or bed. Toss a treat onto it and say "place". When all four paws are on, say "yes!" and treat on the mat. Ask for a down on the mat. At higher levels, point instead of tossing and build a short stay there.'},
+  {k:'wait',    em:'🚪', t:'Wait at door',   tier:2, reps:3, sets:2, pts:8, prereq:{stay:1},
+    how:'Hand on the door. Say "wait". Open it an inch. If the dog moves forward, close it gently. When they hold still, say "yes!" and treat, then release with "okay" and go through together. Build to a fully open door.'},
+  {k:'spin',    em:'🌀', t:'Spin',           tier:2, reps:5, sets:2, pts:5, prereq:{touch:1},
+    how:'Hold a treat at nose height and draw a slow circle so the dog follows it all the way around. Treat on completion. Say "spin" as they do it. Switch directions at higher levels ("twirl").'},
+  {k:'heel',    em:'🚶', t:'Loose-leash walk', tier:3, reps:1, sets:3, pts:10, prereq:{eyes:2,come:1}, unit:'minute',
+    how:'Walk at a steady pace. Any time the dog is next to you with slack in the leash, say "yes!" and treat at your pant seam. If the leash goes tight, stop and stand still until it slackens, then go. Each rep is about a minute of walking.'},
+  {k:'rollover',em:'🔄', t:'Roll over',      tier:3, reps:3, sets:2, pts:8, prereq:{down:2},
+    how:'From a down, move a treat from the nose toward the shoulder blade so the head turns and the dog flops to one side, then keep the arc over so they roll. Treat big. Break it into pieces: reward side-flop first for a few sessions.'},
+  {k:'recall2', em:'📯', t:'Distance recall', tier:3, reps:3, sets:2, pts:12, prereq:{come:2,stay:1},
+    how:'Have a helper hold the dog, or ask for a stay, and go 20+ feet away (yard or long line). Call once with huge energy. Jackpot on arrival. Practice with mild distractions once reliable.'},
+];
+const LEVEL_NAMES = ['New','Learning','Getting it','Solid','Pro','Master'];
+const SETS_PER_LEVEL = 10;
+const MAX_LEVEL = 5;
+
+const TRAIL = [
+  {at:0,    em:'🏠', nm:'Home base',            ds:'Every adventure starts at the front door.'},
+  {at:150,  em:'🌳', nm:'Backyard',             ds:'First sniff of freedom. Good start, team!'},
+  {at:400,  em:'🛝', nm:'Neighborhood park',    ds:'Squirrels spotted. Nobody was caught.'},
+  {at:800,  em:'🏖️', nm:'Dog beach',            ds:'Toasty found the water. Sonny found a crab.'},
+  {at:1300, em:'🌲', nm:'Pine forest',          ds:'Every tree inspected. Twice.'},
+  {at:2000, em:'🏕️', nm:'Campsite',             ds:'Marshmallows guarded all night.'},
+  {at:2800, em:'🚣', nm:'River crossing',       ds:'A brave swim and a very good shake.'},
+  {at:3800, em:'🏔️', nm:'Mountain pass',        ds:'Thin air, big views, two happy tails.'},
+  {at:5000, em:'🌵', nm:'Desert canyon',        ds:'Lizards everywhere. Also: naps.'},
+  {at:6500, em:'🏰', nm:'Castle of Treats',     ds:'Legend says the walls are made of jerky.'},
+  {at:8500, em:'🌋', nm:'Volcano lookout',      ds:'Hot stuff. Paws stayed safe.'},
+  {at:11000,em:'🚀', nm:'Moon walk',            ds:'One small step for pups.'},
+  {at:15000,em:'👑', nm:'Summit of the Big Adventure', ds:'Best dogs in the universe. Officially.'},
+];
+
+const BADGES = [
+  {k:'first',    em:'🌱', t:'First steps',    d:'Log anything',                      f:s=>s.events.length>=1},
+  {k:'brush10',  em:'🪮', t:'Fur stylist',    d:'10 brushings',                      f:s=>countKey(s,'care','brush')>=10},
+  {k:'belly30',  em:'🫶', t:'Belly master',   d:'30 belly rubs',                     f:s=>countKey(s,'care','belly')>=30},
+  {k:'walk25',   em:'🦮', t:'Road dogs',      d:'25 walks',                          f:s=>countKey(s,'care','walk')>=25},
+  {k:'streak3',  em:'🔥', t:'On a roll',      d:'3-day family streak',               f:s=>s.streak>=3},
+  {k:'streak7',  em:'🔥', t:'Week warrior',   d:'7-day family streak',               f:s=>s.streak>=7},
+  {k:'streak30', em:'🌟', t:'Habit heroes',   d:'30-day family streak',              f:s=>s.streak>=30},
+  {k:'quest1',   em:'🎯', t:'Quest complete', d:'Finish a daily quest',              f:s=>countKind(s,'quest')>=1},
+  {k:'quest10',  em:'🏹', t:'Quest hunter',   d:'10 daily quests',                   f:s=>countKind(s,'quest')>=10},
+  {k:'sets100',  em:'💪', t:'Century club',   d:'100 training sets',                 f:s=>countKind(s,'train')>=100},
+  {k:'sitpro',   em:'🪑', t:'Sit happens',    d:'Sit reaches Pro on either dog',     f:s=>anyLevel(s,'sit')>=4},
+  {k:'comepro',  em:'🏃', t:'Boomerang',      d:'Come reaches Pro on either dog',    f:s=>anyLevel(s,'come')>=4},
+  {k:'master1',  em:'🎓', t:'Master trainer', d:'Any skill reaches Master',          f:s=>SKILLS.some(sk=>anyLevel(s,sk.k)>=5)},
+  {k:'allfam',   em:'👨‍👩‍👦‍👦', t:'Whole pack',   d:'Everyone logs on the same day',     f:s=>s.allFamilyDay},
+  {k:'both',     em:'🐕🐕', t:'Fair & square', d:'Both dogs trained on the same day', f:s=>s.bothDogsDay},
+  {k:'trail5',   em:'🏕️', t:'Camper',         d:'Reach the campsite',                f:s=>s.total>=2000},
+  {k:'trail10',  em:'🏰', t:'Castle crew',    d:'Reach the Castle of Treats',        f:s=>s.total>=6500},
+  {k:'summit',   em:'👑', t:'Summit',         d:'Finish the Big Adventure',          f:s=>s.total>=15000},
+];
+const QUEST_BONUS = 20;
+const QUEST_SIZE = 3;
+
+/* ============ State ============ */
+const LS_KEY = 'bigadventure.v1';
+const LS_ME = 'bigadventure.me';
+const LS_THEME = 'bigadventure.theme';
+let S = load();
+let me = lsGet(LS_ME) || '';
+let curDog = S.dogs[0].id;
+let lbMode = 'week';
+let logShown = 40;
+
+function defaultState(){
+  return {
+    v:1,
+    players:[{id:'p1',name:'Dad',em:'🧔'},{id:'p2',name:'Mom',em:'👩'},{id:'p3',name:'Son 1',em:'🧑'},{id:'p4',name:'Son 2',em:'🧒'}],
+    dogs:[{id:'toasty',name:'Toasty',em:'🐕'},{id:'sonny',name:'Sonny',em:'🐶'}],
+    events:{},      // id -> {t, p, d, k, key, pts, note}
+    sync:{url:'',room:''},
+    updated:0
+  };
+}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function load(){
+  try{const raw=lsGet(LS_KEY); if(raw){const s=JSON.parse(raw); if(s&&s.events) return Object.assign(defaultState(),s);} }catch(e){}
+  return defaultState();
+}
+function save(){ S.updated=Date.now(); lsSet(LS_KEY, JSON.stringify(S)); }
+
+/* ============ Helpers ============ */
+const $ = s=>document.querySelector(s);
+const $$ = s=>Array.from(document.querySelectorAll(s));
+const esc = s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function dayKey(ts){const d=new Date(ts||Date.now());return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+const TODAY = ()=>dayKey();
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function evs(){return Object.values(S.events).filter(Boolean).sort((a,b)=>a.t-b.t);}
+function todayEvs(){const k=TODAY();return evs().filter(e=>dayKey(e.t)===k);}
+function playerName(id){const p=S.players.find(p=>p.id===id);return p?p.name:'Someone';}
+function playerEm(id){const p=S.players.find(p=>p.id===id);return p?p.em:'🙂';}
+function dog(id){return S.dogs.find(d=>d.id===id)||S.dogs[0];}
+function countKey(stats,kind,key){return stats.all.filter(e=>e.k===kind&&e.key===key).length;}
+function countKind(stats,kind){return stats.all.filter(e=>e.k===kind).length;}
+function anyLevel(stats,skill){return Math.max(...S.dogs.map(d=>skillLevel(d.id,skill)));}
+function skillSets(dogId,skill){return evs().filter(e=>e.k==='train'&&e.d===dogId&&e.key===skill).length;}
+function skillLevel(dogId,skill){return Math.min(MAX_LEVEL,Math.floor(skillSets(dogId,skill)/SETS_PER_LEVEL));}
+function skillUnlocked(dogId,sk){if(!sk.prereq)return true;return Object.entries(sk.prereq).every(([k,l])=>skillLevel(dogId,k)>=l);}
+function repsFor(sk,level){return sk.reps+ (sk.unit?Math.floor(level/2):level);}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(toast._h);toast._h=setTimeout(()=>t.classList.remove('on'),1800);}
+function confetti(){const c=$('#celebrate');const ems=['🐾','⭐','🦴','🎾','💛','✨'];for(let i=0;i<26;i++){const s=document.createElement('i');s.textContent=ems[i%ems.length];s.style.left=Math.random()*100+'vw';s.style.animationDelay=(Math.random()*.5)+'s';c.appendChild(s);setTimeout(()=>s.remove(),2400);}}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function seeded(seed){let x=seed||1;return()=>{x^=x<<13;x>>>=0;x^=x>>>17;x^=x<<5;x>>>=0;return (x>>>0)/4294967296;};}
+
+/* ============ Daily quest ============ */
+function questFor(dogId, day){
+  day=day||TODAY();
+  const rnd=seeded(hashStr(day+'|'+dogId));
+  const avail=SKILLS.filter(sk=>skillUnlocked(dogId,sk)&&skillLevel(dogId,sk.k)<MAX_LEVEL);
+  const pool=avail.length?avail:SKILLS;
+  // weight: skills with lower level get picked more; newest unlocked tier favored a bit
+  const weighted=pool.map(sk=>({sk,w:1+ (MAX_LEVEL-skillLevel(dogId,sk.k))*0.6 + (sk.tier*0.3)}));
+  const picks=[];
+  while(picks.length<Math.min(QUEST_SIZE,weighted.length)){
+    const tot=weighted.reduce((a,x)=>a+(picks.includes(x.sk)?0:x.w),0);
+    let r=rnd()*tot;
+    for(const x of weighted){ if(picks.includes(x.sk))continue; r-=x.w; if(r<=0){picks.push(x.sk);break;} }
+  }
+  return picks.map(sk=>{const lv=skillLevel(dogId,sk.k);return {sk,lv,reps:repsFor(sk,lv),sets:sk.sets};});
+}
+function setsDoneToday(dogId,skill){return todayEvs().filter(e=>e.k==='train'&&e.d===dogId&&e.key===skill).length;}
+function questComplete(dogId){return questFor(dogId).every(q=>setsDoneToday(dogId,q.sk.k)>=q.sets);}
+function questBonusGiven(dogId){return todayEvs().some(e=>e.k==='quest'&&e.d===dogId);}
+
+/* ============ Stats ============ */
+function stats(){
+  const all=evs();
+  const total=all.reduce((a,e)=>a+e.pts,0);
+  const days=new Set(all.map(e=>dayKey(e.t)));
+  // streak: consecutive days ending today or yesterday
+  let streak=0;let d=new Date();
+  if(!days.has(dayKey(d))) d.setDate(d.getDate()-1);
+  while(days.has(dayKey(d))){streak++;d.setDate(d.getDate()-1);}
+  const byDay={};all.forEach(e=>{const k=dayKey(e.t);(byDay[k]=byDay[k]||{p:new Set(),d:new Set(),pts:0});byDay[k].p.add(e.p);if(e.d)byDay[k].d.add(e.d);byDay[k].pts+=e.pts;});
+  const allFamilyDay=Object.values(byDay).some(x=>S.players.every(p=>x.p.has(p.id)));
+  const bothDogsDay=Object.values(byDay).some(x=>S.dogs.every(dg=>x.d.has(dg.id)));
+  return {all,total,streak,byDay,allFamilyDay,bothDogsDay,events:all};
+}
+function weekStart(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime();}
+
+/* ============ Actions ============ */
+function addEvent(e){
+  if(!me){openWho();toast('Pick who you are first');return null;}
+  const ev=Object.assign({id:uid(),t:Date.now(),p:me},e);
+  S.events[ev.id]=ev; save(); syncPush(ev); return ev;
+}
+function removeEvent(id){ S.events[id]=null; save(); syncDelete(id); render(); }
+function logCare(k){
+  const c=CARE.find(x=>x.k===k);
+  const mine=todayEvs().filter(e=>e.k==='care'&&e.key===k&&e.d===curDog&&e.p===me).length;
+  const all=todayEvs().filter(e=>e.k==='care'&&e.key===k&&e.d===curDog).length;
+  if(all>=c.per){toast('Already done today for '+dog(curDog).name);return;}
+  const ev=addEvent({k:'care',key:k,d:curDog,pts:c.pts});
+  if(ev){toast(`+${c.pts} ${c.t} for ${dog(curDog).name} ${c.em}`);render();}
+}
+function logSet(skill){
+  const q=questFor(curDog).find(x=>x.sk.k===skill);
+  const sk=SKILLS.find(x=>x.k===skill);
+  const before=skillLevel(curDog,skill);
+  const ev=addEvent({k:'train',key:skill,d:curDog,pts:sk.pts,reps:q?q.reps:sk.reps});
+  if(!ev)return;
+  const after=skillLevel(curDog,skill);
+  if(after>before){confetti();toast(`${dog(curDog).name} leveled up ${sk.t} → ${LEVEL_NAMES[after]}! 🎉`);}
+  else toast(`+${sk.pts} set of ${sk.t} ✅`);
+  if(questComplete(curDog)&&!questBonusGiven(curDog)){
+    addEvent({k:'quest',key:'daily',d:curDog,pts:QUEST_BONUS});
+    setTimeout(()=>{confetti();toast(`Quest complete! +${QUEST_BONUS} bonus 🎯`);},900);
+  }
+  render();
+}
+function logFreeSet(skill){ logSet(skill); }
+
+/* ============ Timer ============ */
+let timer={h:null,left:0,total:0,care:null};
+function openTimer(c){
+  timer.care=c;timer.total=c.timer;timer.left=c.timer;clearInterval(timer.h);
+  $('#timerTitle').textContent=c.em+' '+c.t+' · '+dog(curDog).name;
+  $('#timerSub').textContent=c.d+'. Points land when the timer finishes.';
+  $('#timerStart').textContent='Start';$('#timerStart').disabled=false;
+  drawTimer();$('#timerModal').classList.add('on');
+}
+function drawTimer(){const m=Math.floor(timer.left/60),s=timer.left%60;$('#timerBig').textContent=m+':'+String(s).padStart(2,'0');$('#timerBar').style.width=(100*(1-timer.left/timer.total))+'%';}
+$('#timerStart').onclick=()=>{
+  if(timer.h){clearInterval(timer.h);timer.h=null;$('#timerStart').textContent='Resume';return;}
+  $('#timerStart').textContent='Pause';
+  const end=Date.now()+timer.left*1000;
+  timer.h=setInterval(()=>{timer.left=Math.max(0,Math.round((end-Date.now())/1000));drawTimer();
+    if(timer.left<=0){clearInterval(timer.h);timer.h=null;$('#timerModal').classList.remove('on');
+      const c=timer.care;const ev=addEvent({k:'care',key:c.k,d:curDog,pts:c.pts});
+      if(ev){confetti();toast(`+${c.pts} ${c.t} for ${dog(curDog).name} ${c.em}`);try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}render();}
+    }},250);
+};
+$('#timerCancel').onclick=()=>{clearInterval(timer.h);timer.h=null;$('#timerModal').classList.remove('on');};
+
+/* ============ Render ============ */
+function render(){
+  const st=stats();
+  renderHeader(st); renderJourney(st); renderDogs(); renderQuest(); renderCare(); renderSkills();
+  renderLeaderboard(); renderStreaks(st); renderTrail(st); renderBadges(st); renderLog(); renderSettings();
+}
+function renderHeader(st){
+  $('#whoBtn').textContent=me?playerEm(me)+' '+playerName(me):'Who are you?';
+  const myToday=todayEvs().filter(e=>e.p===me).reduce((a,e)=>a+e.pts,0);
+  const famToday=todayEvs().reduce((a,e)=>a+e.pts,0);
+  $('#subline').textContent=`Today: you ${myToday} · family ${famToday} · streak ${st.streak}🔥`;
+}
+function renderJourney(st){
+  let i=0;while(i+1<TRAIL.length&&st.total>=TRAIL[i+1].at)i++;
+  const here=TRAIL[i],next=TRAIL[i+1];
+  $('#journeyPts').textContent=st.total+' pts';
+  if(next){const pct=100*(st.total-here.at)/(next.at-here.at);$('#journeyBar').style.width=pct+'%';
+    $('#journeyText').textContent=`${here.em} ${here.nm} → ${next.em} ${next.nm}: ${next.at-st.total} points to go`;}
+  else{$('#journeyBar').style.width='100%';$('#journeyText').textContent=`${here.em} ${here.nm}. You did it!`;}
+}
+function renderDogs(){
+  $('#dogSwitch').innerHTML=S.dogs.map(d=>{
+    const q=questFor(d.id);const done=q.reduce((a,x)=>a+Math.min(x.sets,setsDoneToday(d.id,x.sk.k)),0);const tot=q.reduce((a,x)=>a+x.sets,0);
+    const dpts=todayEvs().filter(e=>e.d===d.id).reduce((a,e)=>a+e.pts,0);
+    return `<button class="${d.id===curDog?'on':''}" data-dog="${d.id}"><span class="em">${d.em}</span><span class="grow"><div class="nm">${esc(d.name)}</div><div class="muted small">${dpts} pts today · quest ${done}/${tot}</div><div class="bar" style="margin-top:4px"><i style="width:${tot?100*done/tot:0}%"></i></div></span></button>`;}).join('');
+  $$('#dogSwitch button').forEach(b=>b.onclick=()=>{curDog=b.dataset.dog;render();});
+}
+function renderQuest(){
+  const d=dog(curDog);const q=questFor(curDog);
+  const tot=q.reduce((a,x)=>a+x.sk.pts*x.sets,0)+QUEST_BONUS;
+  $('#questPts').textContent=`up to ${tot} pts`;
+  $('#questIntro').textContent=`${d.name}'s three exercises for today. Keep sessions short and fun: a set is one quick round, then a play break. Tap a set when it's done.`;
+  $('#questList').innerHTML=q.map(x=>{
+    const done=setsDoneToday(curDog,x.sk.k);
+    const sets=Array.from({length:x.sets},(_,i)=>`<button class="${i<done?'done':(i===done?'next':'')}" data-set="${x.sk.k}" ${i<done?'disabled':''}>${i<done?'✓':'Set '+(i+1)}</button>`).join('');
+    const extra=done>=x.sets?`<button class="btn sm ghost" data-extra="${x.sk.k}">+ extra set</button>`:'';
+    const unit=x.sk.unit?` ${x.sk.unit}${x.reps>1?'s':''}`:' reps';
+    return `<div class="quest"><div class="hd"><span class="em">${x.sk.em}</span><div class="grow"><div class="t">${esc(x.sk.t)} <span class="chip">${x.sk.pts} pts/set</span></div><div class="lv">Level ${x.lv} · ${LEVEL_NAMES[x.lv]} · ${skillSets(curDog,x.sk.k)%SETS_PER_LEVEL}/${SETS_PER_LEVEL} to next</div></div><button class="textbtn" data-how="${x.sk.k}">How?</button></div>
+      <div class="how"><b>${x.sets} sets × ${x.reps}${unit}</b> · about ${x.reps} treats per set. ${x.sk.how.split('.')[0]}.</div>
+      <div class="sets">${sets}${extra}</div></div>`;}).join('');
+  $$('#questList [data-set]').forEach(b=>b.onclick=()=>logSet(b.dataset.set));
+  $$('#questList [data-extra]').forEach(b=>b.onclick=()=>logSet(b.dataset.extra));
+  $$('#questList [data-how]').forEach(b=>b.onclick=()=>openHow(b.dataset.how));
+  const complete=questComplete(curDog);
+  $('#questHint').innerHTML=complete?`🎯 <b>Quest complete for ${esc(d.name)}!</b> Extra sets still earn points. Tomorrow brings three new exercises.`
+    :`<b>Treat tips:</b> use pea-sized pieces, train before meals when ${esc(d.name)} is hungry, and end every set on a win. Three short sessions beat one long one.`;
+}
+function renderCare(){
+  const today=todayEvs().filter(e=>e.k==='care'&&e.d===curDog);
+  $('#carePts').textContent=today.reduce((a,e)=>a+e.pts,0)+' pts today';
+  $('#careList').innerHTML=CARE.map(c=>{
+    const done=today.filter(e=>e.key===c.k);const n=done.length;const full=n>=c.per;
+    const who=done.map(e=>playerEm(e.p)).join('');
+    const btn=c.timer?`<button class="btn sm ${full?'ghost':'sun'}" data-timer="${c.k}" ${full?'disabled':''}>⏱ ${full?'Done':'Start'}</button>`:`<button class="btn sm ${full?'ghost':''}" data-care="${c.k}" ${full?'disabled':''}>${full?'Done':'+'+c.pts}</button>`;
+    return `<div class="task ${full?'done':''}"><span class="em">${c.em}</span><div class="grow"><div class="t">${esc(c.t)} <span class="muted small">${c.pts} pts${c.per>1?' · up to '+c.per+'×/day':''}</span></div><div class="d">${esc(c.d)}</div>${n?`<div class="n">${who} ${n}/${c.per} today</div>`:''}</div>${btn}</div>`;}).join('');
+  $$('#careList [data-care]').forEach(b=>b.onclick=()=>logCare(b.dataset.care));
+  $$('#careList [data-timer]').forEach(b=>b.onclick=()=>openTimer(CARE.find(c=>c.k===b.dataset.timer)));
+}
+function renderSkills(){
+  $('#skillList').innerHTML=SKILLS.map(sk=>{
+    const un=skillUnlocked(curDog,sk);const lv=skillLevel(curDog,sk.k);const n=skillSets(curDog,sk.k);
+    const need=sk.prereq?Object.entries(sk.prereq).map(([k,l])=>`${SKILLS.find(s=>s.k===k).t} L${l}`).join(', '):'';
+    return `<div class="task ${un?'':'done'}"><span class="em">${un?sk.em:'🔒'}</span><div class="grow"><div class="t">${esc(sk.t)} <span class="chip ${lv>=MAX_LEVEL?'done':''}">${un?LEVEL_NAMES[lv]+' · L'+lv:'Locked'}</span></div><div class="d">${un?`${n} sets logged`:'Needs '+esc(need)}</div>${un?`<div class="bar" style="margin-top:4px"><i style="width:${lv>=MAX_LEVEL?100:100*(n%SETS_PER_LEVEL)/SETS_PER_LEVEL}%"></i></div>`:''}</div>${un?`<button class="textbtn" data-how="${sk.k}">How?</button><button class="btn sm ghost" data-free="${sk.k}">+ set</button>`:''}</div>`;}).join('');
+  $$('#skillList [data-how]').forEach(b=>b.onclick=()=>openHow(b.dataset.how));
+  $$('#skillList [data-free]').forEach(b=>b.onclick=()=>logFreeSet(b.dataset.free));
+}
+function openHow(k){const sk=SKILLS.find(s=>s.k===k);const lv=skillLevel(curDog,k);
+  $('#howTitle').textContent=sk.em+' '+sk.t;
+  $('#howBody').innerHTML=`<p class="muted small">${esc(dog(curDog).name)} is at level ${lv} (${LEVEL_NAMES[lv]}). Today: ${sk.sets} sets × ${repsFor(sk,lv)} ${sk.unit?sk.unit+'s':'reps'}.</p><p>${esc(sk.how)}</p><p class="muted small">Mark "yes!" the instant the behavior happens, then treat within a second. If ${esc(dog(curDog).name)} fails twice in a row, make it easier and end on a success.</p>`;
+  $('#howModal').classList.add('on');}
+$('#howClose').onclick=()=>$('#howModal').classList.remove('on');
+
+function renderLeaderboard(){
+  const since=lbMode==='week'?weekStart():0;
+  const rows=S.players.map(p=>({p,pts:evs().filter(e=>e.p===p.id&&e.t>=since).reduce((a,e)=>a+e.pts,0),n:evs().filter(e=>e.p===p.id&&e.t>=since).length})).sort((a,b)=>b.pts-a.pts);
+  const medals=['🥇','🥈','🥉'];
+  $('#leaderboard').innerHTML=rows.map((r,i)=>`<div class="lb"><span class="rk">${medals[i]||(i+1)}</span><span>${r.p.em}</span><span class="nm">${esc(r.p.name)}${r.p.id===me?' <span class="muted small">(you)</span>':''}</span><span class="muted small">${r.n} actions</span><span class="pt">${r.pts}</span></div>`).join('');
+  $$('[data-lb]').forEach(b=>{b.classList.toggle('ghost',b.dataset.lb!==lbMode);b.onclick=()=>{lbMode=b.dataset.lb;renderLeaderboard();};});
+}
+function renderStreaks(st){
+  const myDays=new Set(st.all.filter(e=>e.p===me).map(e=>dayKey(e.t)));
+  let my=0;let d=new Date();if(!myDays.has(dayKey(d)))d.setDate(d.getDate()-1);while(myDays.has(dayKey(d))){my++;d.setDate(d.getDate()-1);}
+  const best=(()=>{const ds=Object.keys(st.byDay).sort();let b=0,c=0,prev=null;ds.forEach(k=>{const t=new Date(k+'T00:00:00').getTime();c=(prev!==null&&t-prev===86400000)?c+1:1;prev=t;b=Math.max(b,c);});return b;})();
+  $('#streakStats').innerHTML=`<div class="stat"><div class="v">${st.streak}</div><div class="l">family streak</div></div><div class="stat"><div class="v">${my}</div><div class="l">your streak</div></div><div class="stat"><div class="v">${best}</div><div class="l">best ever</div></div>`;
+  const cells=[];const end=new Date();end.setHours(0,0,0,0);
+  const start=new Date(end);start.setDate(end.getDate()-34-((end.getDay()+6)%7));
+  for(let t=new Date(start);t<=end;t.setDate(t.getDate()+1)){const k=dayKey(t);const pts=(st.byDay[k]||{}).pts||0;const l=pts>=120?3:pts>=50?2:pts>0?1:0;cells.push(`<i class="l${l}" title="${k}: ${pts} pts"></i>`);}
+  $('#calendar').innerHTML=cells.join('');
+}
+function renderTrail(st){
+  let here=0;TRAIL.forEach((s,i)=>{if(st.total>=s.at)here=i;});
+  $('#trail').innerHTML=TRAIL.map((s,i)=>`<div class="stop ${i<=here?'reached':'locked'} ${i===here?'here':''}"><div class="dot">${i===here?S.dogs.map(d=>d.em).join(''):s.em}</div><div><div class="nm">${s.em} ${esc(s.nm)} <span class="muted small">· ${s.at} pts</span></div><div class="ds">${i<=here?esc(s.ds):'Locked · '+(s.at-st.total)+' points away'}</div></div></div>`).join('');
+}
+function renderBadges(st){
+  $('#badges').innerHTML=BADGES.map(b=>{let got=false;try{got=!!b.f(st);}catch(e){}return `<div class="badge ${got?'got':''}"><div class="em">${b.em}</div><div class="t">${esc(b.t)}</div><div class="d">${esc(b.d)}</div></div>`;}).join('');
+}
+function renderLog(){
+  const list=evs().slice().reverse().slice(0,logShown);
+  const label=e=>{if(e.k==='care'){const c=CARE.find(x=>x.k===e.key)||{};return [c.em||'💛',c.t||e.key];}
+    if(e.k==='train'){const s=SKILLS.find(x=>x.k===e.key)||{};return [s.em||'🎓',(s.t||e.key)+' set'+(e.reps?` (${e.reps} reps)`:'')];}
+    if(e.k==='quest')return ['🎯','Daily quest bonus'];return ['⭐',e.key||'bonus'];};
+  const fmt=t=>{const d=new Date(t);const k=dayKey(t);const day=k===TODAY()?'Today':k===dayKey(Date.now()-86400000)?'Yesterday':d.toLocaleDateString(undefined,{month:'short',day:'numeric'});return day+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});};
+  $('#logList').innerHTML=list.length?list.map(e=>{const [em,t]=label(e);return `<div class="log"><span class="em">${em}</span><div class="grow"><div><b>${esc(playerName(e.p))}</b> · ${esc(t)} · ${esc(dog(e.d).name)}</div><div class="muted small">${fmt(e.t)}</div></div><span class="pt">+${e.pts}</span><button class="x" data-del="${e.id}" title="Undo">✕</button></div>`;}).join('')
+    :'<div class="muted">Nothing yet. Go rub a belly!</div>';
+  $('#moreLog').style.display=evs().length>logShown?'':'none';
+  $$('#logList [data-del]').forEach(b=>b.onclick=()=>{if(confirm('Remove this entry?'))removeEvent(b.dataset.del);});
+}
+$('#moreLog').onclick=()=>{logShown+=40;renderLog();};
+
+function renderSettings(){
+  $('#playerEdit').innerHTML=S.players.map(p=>`<div class="row" style="margin:8px 0"><input style="width:64px;text-align:center" value="${esc(p.em)}" data-pem="${p.id}" maxlength="4"><input value="${esc(p.name)}" data-pname="${p.id}"><button class="x danger" data-pdel="${p.id}">✕</button></div>`).join('');
+  $$('[data-pname]').forEach(i=>i.onchange=()=>{const p=S.players.find(x=>x.id===i.dataset.pname);p.name=i.value.trim()||p.name;save();syncMeta();render();});
+  $$('[data-pem]').forEach(i=>i.onchange=()=>{const p=S.players.find(x=>x.id===i.dataset.pem);p.em=i.value.trim()||p.em;save();syncMeta();render();});
+  $$('[data-pdel]').forEach(b=>b.onclick=()=>{if(S.players.length<=1)return;if(confirm('Remove '+playerName(b.dataset.pdel)+'? Their points stay in the log.')){S.players=S.players.filter(p=>p.id!==b.dataset.pdel);if(me===b.dataset.pdel){me='';lsSet(LS_ME,'');}save();syncMeta();render();}});
+  $('#dogEdit').innerHTML=S.dogs.map(d=>`<div class="row" style="margin:8px 0"><input style="width:64px;text-align:center" value="${esc(d.em)}" data-dem="${d.id}" maxlength="4"><input value="${esc(d.name)}" data-dname="${d.id}"></div>`).join('');
+  $$('[data-dname]').forEach(i=>i.onchange=()=>{const d=S.dogs.find(x=>x.id===i.dataset.dname);d.name=i.value.trim()||d.name;save();syncMeta();render();});
+  $$('[data-dem]').forEach(i=>i.onchange=()=>{const d=S.dogs.find(x=>x.id===i.dataset.dem);d.em=i.value.trim()||d.em;save();syncMeta();render();});
+  if(document.activeElement!==$('#syncUrl'))$('#syncUrl').value=S.sync.url||'';
+  if(document.activeElement!==$('#syncRoom'))$('#syncRoom').value=S.sync.room||'';
+  $('#syncStatus').textContent=syncState.msg;
+  const th=lsGet(LS_THEME)||'auto';$('#themeBtn').textContent='Theme: '+th;
+}
+$('#addPlayer').onclick=()=>{S.players.push({id:'p'+uid(),name:'New person',em:'🙂'});save();syncMeta();render();};
+
+/* ============ Who ============ */
+function openWho(){
+  $('#whoList').innerHTML=S.players.map(p=>`<button class="${p.id===me?'on':''}" data-who="${p.id}">${p.em} ${esc(p.name)}</button>`).join('');
+  $$('#whoList button').forEach(b=>b.onclick=()=>{me=b.dataset.who;lsSet(LS_ME,me);$('#whoModal').classList.remove('on');render();toast('Hi '+playerName(me)+'! 👋');});
+  $('#whoModal').classList.add('on');
+}
+$('#whoBtn').onclick=openWho;
+$$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m&&m.id!=='whoModal')m.classList.remove('on');}));
+
+/* ============ Tabs ============ */
+$$('nav.tabs button').forEach(b=>b.onclick=()=>{$$('nav.tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('.page').forEach(p=>p.classList.toggle('on',p.id==='page-'+b.dataset.page));window.scrollTo(0,0);});
+
+/* ============ Settings actions ============ */
+$('#themeBtn').onclick=()=>{const cur=lsGet(LS_THEME)||'auto';const next=cur==='auto'?'light':cur==='light'?'dark':'auto';lsSet(LS_THEME,next);applyTheme();renderSettings();};
+function applyTheme(){const t=lsGet(LS_THEME)||'auto';if(t==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t);}
+$('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='big-adventure-backup-'+TODAY()+'.json';a.click();};
+$('#importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(!s.events)throw 0;mergeState(s);save();render();toast('Backup merged in');}catch(err){toast('That file did not look like a backup');}};r.readAsText(f);};
+$('#resetBtn').onclick=()=>{if(confirm('Erase all scores and settings on THIS phone? (Synced data on other phones is not touched.)')){S=defaultState();save();render();}};
+$('#shareBtn').onclick=async()=>{const url=location.href.split('#')[0];try{if(navigator.share){await navigator.share({title:"Toasty & Sonny's Big Adventure",url});return;}}catch(e){}try{await navigator.clipboard.writeText(url);toast('Link copied');}catch(e){prompt('Copy this link:',url);}};
+function mergeState(s){
+  Object.entries(s.events||{}).forEach(([id,ev])=>{ if(ev===null){S.events[id]=null;} else if(ev&&!(id in S.events)) S.events[id]=ev; });
+  if(Array.isArray(s.players))s.players.forEach(p=>{if(!S.players.find(x=>x.id===p.id))S.players.push(p);else Object.assign(S.players.find(x=>x.id===p.id),p);});
+  if(Array.isArray(s.dogs))s.dogs.forEach(d=>{const x=S.dogs.find(x=>x.id===d.id);if(x)Object.assign(x,d);});
+}
+
+/* ============ Sync (Firebase Realtime Database REST) ============ */
+const syncState={msg:'Not connected',h:null,busy:false,known:new Set()};
+function syncBase(){const u=(S.sync.url||'').trim().replace(/\/+$/,'');const r=(S.sync.room||'').trim();if(!/^https:\/\/[a-z0-9.-]+\.(firebaseio\.com|firebasedatabase\.app)$/i.test(u)||r.length<8)return null;return u+'/families/'+encodeURIComponent(r);}
+async function syncPull(){
+  const base=syncBase();if(!base||syncState.busy)return;syncState.busy=true;
+  try{
+    const r=await fetch(base+'.json',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json()||{};let changed=false;
+    const remote=data.events||{};
+    Object.entries(remote).forEach(([id,ev])=>{if(ev&&!(id in S.events)){S.events[id]=ev;changed=true;}});
+    // events deleted locally are tombstoned as null; push tombstones for local-only deletions already handled in syncDelete
+    Object.keys(S.events).forEach(id=>{if(S.events[id]&&!(id in remote))fetch(base+'/events/'+id+'.json',{method:'PUT',body:JSON.stringify(S.events[id])}).catch(()=>{});});
+    Object.keys(S.events).forEach(id=>{if(S.events[id]===null&&remote[id])syncDelete(id);});
+    Object.entries(remote).forEach(([id,ev])=>{if(ev===null&&S.events[id]){S.events[id]=null;changed=true;}});
+    if(data.meta&&(data.meta.updated||0)>(S.metaUpdated||0)){mergeMeta(data.meta);changed=true;}
+    else if(!data.meta){syncMeta();}
+    if(changed){save();render();}
+    syncState.msg='Connected · synced '+new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  }catch(e){syncState.msg='Sync problem: '+e.message;}
+  syncState.busy=false;$('#syncStatus').textContent=syncState.msg;
+}
+function syncPush(ev){const base=syncBase();if(!base)return;fetch(base+'/events/'+ev.id+'.json',{method:'PUT',body:JSON.stringify(ev)}).catch(()=>{});}
+function syncDelete(id){const base=syncBase();if(!base)return;fetch(base+'/events/'+id+'.json',{method:'PUT',body:'null'}).catch(()=>{});}
+function syncMeta(){const base=syncBase();if(!base)return;S.metaUpdated=Date.now();save();fetch(base+'/meta.json',{method:'PUT',body:JSON.stringify({players:S.players,dogs:S.dogs,updated:S.metaUpdated})}).catch(()=>{});}
+function mergeMeta(m){if(Array.isArray(m.players)&&m.players.length)S.players=m.players;if(Array.isArray(m.dogs)&&m.dogs.length)S.dogs=m.dogs;S.metaUpdated=m.updated||Date.now();if(me&&!S.players.find(p=>p.id===me)){me='';lsSet(LS_ME,'');}}
+function syncStart(){clearInterval(syncState.h);if(!syncBase()){syncState.msg=S.sync.url?'Check the URL and an 8+ character code':'Not connected';renderSettings();return;}syncState.msg='Connecting…';renderSettings();syncPull();syncState.h=setInterval(()=>{if(document.visibilityState==='visible')syncPull();},8000);}
+$('#syncSave').onclick=()=>{S.sync.url=$('#syncUrl').value.trim();S.sync.room=$('#syncRoom').value.trim();save();if(!syncBase()){toast('Check the URL and use an 8+ character code');syncStart();return;}syncStart();toast('Connecting…');};
+$('#syncOff').onclick=()=>{S.sync={url:'',room:''};save();clearInterval(syncState.h);syncState.msg='Not connected';renderSettings();};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){render();syncPull();}});
+
+/* ============ Boot ============ */
+applyTheme();
+render();
+syncStart();
+if(!me)setTimeout(openWho,400);
+// re-render at midnight so the quest rolls over
+setInterval(()=>{if(render._day!==TODAY()){render._day=TODAY();render();}},60000);render._day=TODAY();
+try{if('serviceWorker' in navigator&&!/claude\.ai$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').catch(function(){})}}catch(e){}
+</script>
+</body>
+</html>
