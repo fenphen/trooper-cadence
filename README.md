@@ -18,6 +18,22 @@ No build step, no dependencies — just open `index.html` in any browser.
 
 ---
 
+# 🐾 Toasty & Sonny's Big Adventure
+
+A **family dog-care and training game** for two dogs. Everyone in the house earns points for caring for the pups (brushing, a timed 2‑minute belly rub, walks, teeth, fresh water…) and for training them, and the family's points move Toasty and Sonny along an adventure trail from the backyard to the Summit.
+
+**▶ Play it:** https://fenphen.github.io/trooper-cadence/bigadventure/
+
+- **Daily training quest per dog:** three exercises picked each day from a 16‑skill tree (name game, sit, down, stay, come, leave it, drop it, place, loose‑leash walking, tricks…), each with **sets × reps**, a treat count and a plain‑English how‑to. Reps grow as the dog levels up; new skills unlock as the basics get solid.
+- **Care & love checklist** with points, per‑day limits and timers for belly rubs and play.
+- **Gamified:** levels per skill, quest bonuses, family and personal streaks, 18 badges, a weekly and all‑time family leaderboard and a 13‑stop adventure trail.
+- **Family sync:** optional, free Firebase Realtime Database so all four phones share one game (instructions in Settings). Without it each phone keeps its own scores; backups can be exported and merged.
+- Works on iPhone and Android as a home‑screen app (PWA), offline once installed.
+
+File: `bigadventure/index.html` (self‑contained, no build step).
+
+---
+
 # 🔎 Mention Finder
 
 A second, separate tool in this repo: find **recent Reddit posts and comments that mention a name, place or website**, however people spelled it.
